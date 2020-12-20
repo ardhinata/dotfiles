@@ -1,0 +1,11 @@
+[submodule "tools/dotbot"]
+	path = tools/dotbot
+	url = https://github.com/anishathalye/dotbot
+	ignore = dirty
+[submodule "tools/transcrypt"]
+	path = tools/transcrypt
+	url = https://github.com/elasticdog/transcrypt.git
+	ignore = dirty
+[submodule "tools/antigen"]
+	path = tools/antigen
+	url = https://github.com/zsh-users/antigen.git
