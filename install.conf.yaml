@@ -1,0 +1,67 @@
+- defaults:
+    link:
+      relink: true
+      create: true
+    clean:
+      recursive: true
+
+- create:
+    - ~/.local/bin
+    - ~/.config/sway
+    - ~/.scripts
+    - ~/.gnupg/keys
+
+- clean:
+    ~/:
+      recursive: false
+    ~/.ssh:
+    ~/.config:
+    ~/.local:
+    ~/.scripts:
+
+- shell:
+  - command: git submodule update --init --recursive
+    description: Installing and update submodule
+  - command: ./tools/force-clean.sh ~/.ssh ~/.zsh_history
+    description: Clean all symlink to secret directory
+    stdout: true
+
+- link:
+    ## Secret Directory
+
+    # Link ssh cofig and keys
+    ~/.ssh/:
+      if: ./tools/check.sh
+      glob: true
+      path: secret/ssh/*
+    # Link pgp keys
+    ~/.gnupg/keys/:
+      if: ./tools/check.sh
+      glob: true
+      path: secret/pgp/*
+    # Link ZSH history
+    ~/.zsh_history:
+      if: ./tools/check.sh
+      path: secret/zsh/history
+
+    ## Application Configuration
+
+    # Git
+    ~/.gitconfig:
+      path: cli/gitconfig
+    # ZSH
+    ~/.zshrc:
+      path: zsh/zshrc
+    ~/.antigen.zsh:
+      path: tools/antigen/antigen.zsh
+    ~/.zsh_useropts.zsh:
+      path: zsh/zsh_useropts.zsh
+    ~/.antigen-bundles.txt:
+      path: zsh/antigen-bundles.txt
+    # aria2
+    ~/.aria2/aria2.conf:
+      path: cli/aria2.conf
+    #tmux
+    ~/.tmux.conf:
+      path: cli/tmux.conf
+    

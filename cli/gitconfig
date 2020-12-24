@@ -1,0 +1,10 @@
+[user]
+    name = Ardhinata Juari
+    email = ardhinata.juari@gmail.com
+	signingkey = 0x9842BB38D825505C
+[core]
+    editor = /usr/bin/vim
+[commit]
+	gpgsign = yes
+[pull]
+	rebase = true
