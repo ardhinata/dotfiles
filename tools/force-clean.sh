@@ -1,4 +1,4 @@
-##!/usr/bin/env bash
+#!/usr/bin/env bash
 set -e
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../secret/" && pwd)"
 COUNT=0
@@ -27,9 +27,9 @@ COUNT=0
 
 for i in $(seq 0 $((${#DIRS[@]} - 1))); do
     target=${DIRS[i]}
-    echo -n "Scanning symlink in $target"
+    echo -n "Scanning symlink in $target" >&2
     if [[ -n $SHALLOW ]]; then
-        echo " with shallow mode."
+        echo " with shallow mode." >&2
     else
         echo ""
     fi
@@ -44,7 +44,7 @@ COUNT=0
 for i in $(seq 0 $((${#FILES[@]} - 1))); do
     FOUND=$([[ -n ${FILES[i]} ]] && readlink ${FILES[i]} | grep $BASEDIR) || true
     if [[ -n $FOUND ]]; then
-        rm -v ${FILES[i]}
+        rm -v ${FILES[i]} >&2
         COUNT=$((COUNT + 1))
     fi
 done

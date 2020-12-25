@@ -22,9 +22,10 @@
 - shell:
   - command: git submodule update --init --recursive
     description: Installing and update submodule
-  - command: ./tools/force-clean.sh ~/.ssh ~/.zsh_history
+  - command: ./tools/force-clean.sh -s ~/.ssh ~/.zsh_history ~/.gnupg/keys
     description: Clean all symlink to secret directory
     stdout: true
+    stderr: false
 
 - link:
     ## Secret Directory
@@ -61,7 +62,16 @@
     # aria2
     ~/.aria2/aria2.conf:
       path: cli/aria2.conf
-    #tmux
+    # tmux
     ~/.tmux.conf:
       path: cli/tmux.conf
     
+    ## Desktop Environment
+    # Font
+    ~/.local/share/fonts:
+      path: kde/fonts/
+    # Konsole profile
+    ~/.config/konsolerc:
+      path: kde/config/konsolerc
+    ~/.local/share/konsole:
+      path: kde/config/konsole/
