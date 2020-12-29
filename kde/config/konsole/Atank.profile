@@ -2,7 +2,7 @@
 AntiAliasFonts=true
 BoldIntense=true
 ColorScheme=Atank
-Font=JetBrains Mono,9,-1,5,50,0,0,0,0,0
+Font=JetBrains Mono NL Light,9,-1,5,25,0,0,0,0,0,Regular
 
 [General]
 Name=Atank
