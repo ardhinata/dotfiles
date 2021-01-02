@@ -9,6 +9,8 @@ antigen apply
 
 source ~/.zsh_useropts.zsh
 # The following lines were added by compinstall
+
+zstyle ':completion:*' completer _complete _ignored
 zstyle :compinstall filename '/home/ardhinata/.zshrc'
 
 autoload -Uz compinit

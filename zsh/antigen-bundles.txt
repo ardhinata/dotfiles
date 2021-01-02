@@ -7,7 +7,7 @@ cp
 docker
 docker-compose
 docker-machine
-git
+gitfast
 git-lfs
 golang
 gpg-agent
@@ -16,7 +16,6 @@ kate
 pip
 rsync
 rust
-rustup
 systemd
 tmux
 virtualenv
@@ -24,3 +23,4 @@ vscode
 zsh-users/zsh-syntax-highlighting
 zsh-users/zsh-history-substring-search
 zsh-users/zsh-completions
+pkulev/zsh-rustup-completion

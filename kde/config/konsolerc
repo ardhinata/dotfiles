@@ -6,6 +6,9 @@ RemoveWindowTitleBarAndFrame=true
 ShowMenuBarByDefault=false
 
 [MainWindow]
+DP-1 Window-Maximized 2160x3840=true
+DP-1 XPosition=0
+DP-1 YPosition=0
 DisplayPort-0 Height 1440=1381
 DisplayPort-0 Height 2160=2085
 DisplayPort-0 Width 2560=2560
@@ -15,5 +18,5 @@ DisplayPort-0 Window-Maximized 2160x3840=true
 DisplayPort-0 XPosition=0
 DisplayPort-0 YPosition=0
 MenuBar=Disabled
-State=AAAA/wAAAAD9AAAAAAAACgAAAAWBAAAABAAAAAQAAAAIAAAACPwAAAAA
+State=AAAA/wAAAAD9AAAAAAAADwAAAAhCAAAABAAAAAQAAAAIAAAACPwAAAAA
 ToolBarsMovable=Disabled
