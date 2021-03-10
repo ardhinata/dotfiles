@@ -9,6 +9,7 @@ docker-compose
 docker-machine
 gitfast
 git-lfs
+gitignore
 golang
 gpg-agent
 gradle

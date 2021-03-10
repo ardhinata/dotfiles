@@ -3,8 +3,14 @@
     email = ardhinata.juari@gmail.com
 	signingkey = 0x9842BB38D825505C
 [core]
-    editor = /usr/bin/vim
+	editor = vim
+	compression = 0
+	loosecompression = 0
 [commit]
 	gpgsign = yes
 [pull]
 	rebase = true
+[diff]
+	algorithm = histogram
+[pack]
+	compression = 0

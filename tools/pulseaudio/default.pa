@@ -1,0 +1,8 @@
+.include /etc/pulse/default.pa
+
+load-module module-null-sink sink_name=mic_denoised_out rate=48000
+load-module module-ladspa-sink sink_name=mic_raw_in sink_master=mic_denoised_out label=noise_suppressor_mono plugin=/home/ardhinata/.local/lib/ladspa/librnnoise_ladspa.so control=50
+load-module module-loopback source=alsa_input.pci-0000_0e_00.3.analog-stereo sink=mic_raw_in channels=1 source_dont_move=true sink_dont_move=true
+load-module module-remap-source source_name=denoised master=mic_denoised_out.monitor channels=1
+
+set-default-source mic_denoised_out.monitor

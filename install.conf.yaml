@@ -17,12 +17,15 @@
     ~/.ssh:
     ~/.config:
     ~/.local:
+      recursive: false
+    ~/.local/share/konsole:
+    ~/.local/lib:
     ~/.scripts:
 
 - shell:
   - command: git submodule update --init --recursive
     description: Installing and update submodule
-  - command: ./tools/force-clean.sh -s ~/.ssh ~/.zsh_history ~/.gnupg/keys
+  - command: ./tools/force-clean.sh -s ~/.ssh ~/.zsh_history ~/.gnupg/keys ~/.netrc
     description: Clean all symlink to secret directory
     stdout: true
     stderr: false
@@ -44,6 +47,9 @@
     ~/.zsh_history:
       if: ./tools/check.sh
       path: secret/zsh/history
+    ~/.netrc:
+      if: ./tools/check.sh
+      path: secret/zsh/netrc
 
     ## Application Configuration
 
@@ -65,6 +71,10 @@
     # tmux
     ~/.tmux.conf:
       path: cli/tmux.conf
+    # Scripts
+    ~/.scripts:
+      path: tools/scripts/*
+      glob: true
     
     ## Desktop Environment
     # Font
@@ -75,3 +85,11 @@
       path: kde/config/konsolerc
     ~/.local/share/konsole:
       path: kde/config/konsole/
+    # Pulseaudio override config
+    ~/.config/pulse/daemon.conf:
+      path: tools/pulseaudio/daemon.conf
+    ~/.config/pulse/default.pa:
+      path: tools/pulseaudio/default.pa
+    # Pulseaudio ladspa plugin
+    ~/.local/lib/ladspa/librnnoise_ladspa.so:
+      path: tools/pulseaudio/bin/ladspa/librnnoise_ladspa.so
