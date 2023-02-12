@@ -1,0 +1,44 @@
+# Benchmark flag. Run 'zprof' to get the details
+if [[ $ZSH_BENCHMARK -gt 0 ]]; then
+    zmodload zsh/zprof
+fi
+
+# Load pre-source shell script
+if [[ -f "${HOME}/.shell/zsh/00-pre-source.sh" ]]; then
+    source "${HOME}/.shell/zsh/00-pre-source.sh"
+fi
+
+# Load zplug
+if [[ -f "${HOME}/.shell/zplug/init.zsh" ]]; then
+    source "${HOME}/.shell/zplug/init.zsh"
+
+    # Load pre-zplug-load shell script
+    if [[ -f "${HOME}/.shell/zsh/01-pre-zplug-load.sh" ]]; then
+        source "${HOME}/.shell/zsh/01-pre-zplug-load.sh"
+    fi
+
+    # Load zplug module
+    if [[ -f "${HOME}/.shell/zsh/02-zplug-load.sh" ]]; then
+        source "${HOME}/.shell/zsh/02-zplug-load.sh"
+    fi
+
+    if ! zplug check --verbose; then
+        zplug install
+    fi
+    zplug load
+
+    # Load post-zplug-load shell script
+    if [[ -f "${HOME}/.shell/zsh/03-post-zplug-load.sh" ]]; then
+        source "${HOME}/.shell/zsh/03-post-zplug-load.sh"
+    fi
+
+fi
+
+# Source shell script in useropts.d dir
+if [[ -d "${HOME}/.shell/zsh/useropts.d" ]]; then
+    for f in "${HOME}"/.shell/zsh/useropts.d/*.sh; do
+        if [[ -f "$f" ]]; then
+            source "$f"
+        fi
+    done
+fi

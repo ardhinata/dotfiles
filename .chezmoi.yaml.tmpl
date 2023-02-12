@@ -1,0 +1,23 @@
+# Set `chezmoi data` format output to yaml
+format: yaml
+
+# diff exclude
+diff:
+  exclude:
+    - scripts
+
+# Enable encryption if we detect any file with extension .age.key in `age-keys` directory
+# {{- if gt (len (glob (printf "%s/age-keys/*.age.key" .chezmoi.sourceDir))) 0}}
+encryption: age
+
+age:
+  suffix: .age.crypt
+  identities:
+  # Populate identities {{- range (glob (printf "%s/age-keys/*.age.key" .chezmoi.sourceDir))}}{{printf "\n    - %s" .}}{{- end}}
+
+  # Disable recipients auto-populate if `age-keygen` isn't found in $PATH. {{- if lookPath "age-keygen"}}
+  recipients:
+  # Populate recipients {{- range (glob (printf "%s/age-keys/*.age.key" .chezmoi.sourceDir))}}{{printf "\n    - %s # %s" (output "age-keygen" "-y" . | trim) (lstat .).name}}{{- end}}
+  # {{- end}} End of age-keygen check
+
+# {{- end }} End of encryption section

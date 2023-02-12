@@ -1,0 +1,17 @@
+# Ignore README.md and .keep on all directory
+**/README.md
+**/.keep
+
+# age-keys directory for encryption
+age-keys/
+
+# Ignore vscode directory
+.vscode/
+
+# Ignore bitwarden attachment template files when BW_SESSION and FETCH_ATTACHMENT environment isn't set {{- if or (eq (len (env "BW_SESSION")) 0) (eq (len (env "FETCH_ATTACHMENT")) 0) }}
+.keys/age/*.age.key
+.keys/gpg/*.gpg.asc
+.keys/ssh/*.pem
+.keys/ssh/*.pem.pub
+
+# End of bitwarden ignore {{- end }} 

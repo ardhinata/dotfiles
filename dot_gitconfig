@@ -1,0 +1,9 @@
+[user]
+	name = Ardhinata Juari
+	email = ardhinata.juari@gmail.com
+	signingkey = 0xC2BB5763F70CB279!
+[commit]
+	gpgsign = yes
+
+[includeIf "gitdir:~/Work/git/"]
+    path = ~/Work/git/.gitconfig

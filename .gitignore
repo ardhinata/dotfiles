@@ -1,0 +1,5 @@
+# Don't commit age encryption keys
+age-keys/*.age.key
+
+# Ignore vscode settings
+.vscode/

@@ -1,0 +1,21 @@
+# Single host configuration
+Include conf.d/*.single.conf
+
+# Group or range configuration
+Include conf.d/*.group.conf
+
+# Global configuration (that have sensitive information)
+Include conf.d/*.global.conf
+
+# Global configuration (non auth)
+Host *
+    PubkeyAuthentication yes
+    KexAlgorithms curve25519-sha256@libssh.org,curve25519-sha256,diffie-hellman-group-exchange-sha256,diffie-hellman-group18-sha512,diffie-hellman-group16-sha512,diffie-hellman-group14-sha256
+    HostKeyAlgorithms ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+    Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+    MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com
+    HashKnownHosts no
+    IPQoS cs2 cs1
+    TCPKeepAlive yes
+    VisualHostKey yes
+    RekeyLimit 2G 10m

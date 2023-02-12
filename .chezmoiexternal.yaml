@@ -1,0 +1,88 @@
+# Consider pinning release tag instead of using chezmoi github template because of rate-limit.
+
+".shell/zplug":
+  type: git-repo
+  url: https://github.com/zplug/zplug.git
+  refreshPeriod: 168h
+  clone:
+    args:
+      - --branch
+      - "2.4.2"
+  pull:
+    args:
+      - origin
+      - "2.4.2"
+
+".shell/nvm":
+  type: git-repo
+  url: https://github.com/nvm-sh/nvm.git
+  refreshPeriod: 168h
+  clone:
+    args:
+      - --branch
+      - v0.39.3
+  pull:
+    args:
+      - origin
+      - v0.39.3
+
+".shell/pyenv":
+  type: git-repo
+  url: https://github.com/pyenv/pyenv.git
+  refreshPeriod: 168h
+  clone:
+    args:
+      - --branch
+      - v2.3.12
+  pull:
+    args:
+      - origin
+      - v2.3.12
+
+".shell/pyenv/plugins/pyenv-virtualenv":
+  type: git-repo
+  url: https://github.com/pyenv/pyenv-virtualenv.git
+  refreshPeriod: 168h
+  clone:
+    args:
+      - --branch
+      - v1.2.1
+  pull:
+    args:
+      - origin
+      - v1.2.1
+
+".shell/goenv":
+  type: git-repo
+  url: https://github.com/syndbg/goenv.git
+  refreshPeriod: 168h
+  clone:
+    args:
+      - --branch
+      - "2.0.5"
+  pull:
+    args:
+      - origin
+      - "2.0.5"
+
+".shell/phpenv":
+  type: git-repo
+  url: https://github.com/phpenv/phpenv.git
+  refreshPeriod: 168h
+
+".shell/phpenv/plugins/php-build":
+  type: git-repo
+  url: https://github.com/php-build/php-build.git
+  refreshPeriod: 168h
+  clone:
+    args:
+      - --branch
+      - v0.10.0
+  pull:
+    args:
+      - v0.10.0
+
+".shell/phpenv/plugins/phpenv-composer":
+  type: git-repo
+  url: https://github.com/ngyuki/phpenv-composer.git
+  refreshPeriod: 168h
