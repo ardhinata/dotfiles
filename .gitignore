@@ -3,3 +3,8 @@ age-keys/*.age.key
 
 # Ignore vscode settings
 .vscode/
+
+# Ignore temp working directory
+tmp/*
+!tmp/README.md
+!tmp/.keep

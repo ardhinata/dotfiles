@@ -8,6 +8,9 @@ age-keys/
 # Ignore vscode directory
 .vscode/
 
+# Ignore temp directory
+tmp/
+
 # Ignore bitwarden attachment template files when BW_SESSION and FETCH_ATTACHMENT environment isn't set {{- if or (eq (len (env "BW_SESSION")) 0) (eq (len (env "FETCH_ATTACHMENT")) 0) }}
 .keys/age/*.age.key
 .keys/gpg/*.gpg.asc
