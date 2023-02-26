@@ -80,6 +80,7 @@
       - v0.10.0
   pull:
     args:
+      - origin
       - v0.10.0
 
 ".shell/phpenv/plugins/phpenv-composer":

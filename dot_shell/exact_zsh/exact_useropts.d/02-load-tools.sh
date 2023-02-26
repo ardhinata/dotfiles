@@ -58,17 +58,23 @@ internal_load_nvmrc() {
 }
 
 if [[ -d "$HOME/.shell/flag" ]]; then
-    if [[ -d "$LOCAL_TOOLS_GIT/pyenv/bin" && -f "$LOCAL_TOOLS_GIT/flag/pyenv" ]]; then 
-        internal_pyenv_export
-        internal_pyenv_run
+    if [[ -d "$LOCAL_TOOLS_GIT/pyenv/bin" ]]; then 
+        if [[ -f "$LOCAL_TOOLS_GIT/flag/pyenv" || -n $LOCAL_USE_PYENV ]]; then
+            internal_pyenv_export
+            internal_pyenv_run
+        fi
     fi
-    if [[ -d "$LOCAL_TOOLS_GIT/phpenv/bin" && -f "$LOCAL_TOOLS_GIT/flag/phpenv" ]]; then 
-        internal_phpenv_export
-        internal_phpenv_run
+    if [[ -d "$LOCAL_TOOLS_GIT/phpenv/bin" ]]; then 
+        if [[ -f "$LOCAL_TOOLS_GIT/flag/phpenv" || -n $LOCAL_USE_PHPENV ]]; then
+            internal_phpenv_export
+            internal_phpenv_run
+        fi
     fi
-    if [[ -s "$LOCAL_TOOLS_GIT/nvm/nvm.sh" && -f "$LOCAL_TOOLS_GIT/flag/nvm" ]]; then
-        internal_nvm_export
-        internal_nvm_run
+    if [[ -s "$LOCAL_TOOLS_GIT/nvm/nvm.sh" ]]; then
+        if [[ -f "$LOCAL_TOOLS_GIT/flag/nvm" || -n $LOCAL_USE_NVM ]]; then
+            internal_nvm_export
+            internal_nvm_run
+        fi
     fi
 fi
 
