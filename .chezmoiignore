@@ -18,3 +18,8 @@ tmp/
 .keys/ssh/*.pem.pub
 
 # End of bitwarden ignore {{- end }} 
+
+# Ignore encrypted file when no keys installed {{- if eq (len (glob (printf "%s/age-keys/*.age.key" .chezmoi.sourceDir))) 0}}
+**/encrypted_*.age.crypt
+
+# End of encrypted ignore {{- end }}
