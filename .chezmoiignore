@@ -20,6 +20,10 @@ tmp/
 # End of bitwarden ignore {{- end }} 
 
 # Ignore encrypted file when no keys installed {{- if eq (len (glob (printf "%s/age-keys/*.age.key" .chezmoi.sourceDir))) 0}}
-# {{- range (glob (printf "%s/**/encrypted_*.age.crypt" .chezmoi.sourceDir))}}{{printf "\n%s" (replace (print $.chezmoi.sourceDir "/") "" . | replace "encrypted_" "" | replace ".age.crypt" "")}}{{- end}}
+# {{- range (glob (printf "%s/**/encrypted_*.age.crypt" .chezmoi.sourceDir))}}
+{{- /* Forgive me to commit these atrocities. TODO: use more elegant regex replace */ -}}
+{{ printf "\n%s" (replace (print $.chezmoi.sourceDir "/") "" . | replace "encrypted_" "" | replace "external_" "" | replace "exact_" "" | replace "private_" ""
+| replace "readonly_" "" | replace "dot_" "." | replace "executable_" "" | replace "empty_" "" | replace ".age.crypt" "")}}
+{{- end}}
 
 # End of encrypted ignore {{- end }}
