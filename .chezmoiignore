@@ -1,0 +1,9 @@
+**/README.md
+**/*.decrypted
+
+## Dynamic ignore for files that failed to be decrypted
+{{ $script := joinPath .chezmoi.sourceDir .source_structure.helper "check_decrypt.sh" -}}
+{{ $keyDir := joinPath .chezmoi.sourceDir .source_structure.encryption_keys -}}
+{{ if stat $script -}}
+{{ output "bash" $script $keyDir .chezmoi.sourceDir -}}
+{{ end -}}

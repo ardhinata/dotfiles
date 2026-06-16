@@ -1,0 +1,78 @@
+#!/bin/bash
+# Helper script to fetch secret environment token and pass it to launched process
+
+set -euo pipefail
+SHELL_TOOL_DIR="${HOME}/.shell"
+STATIC_PW="$(echo "chezmoi:{{- .system_environment.profile | sha512sum -}}" | sha256sum | cut -d ' ' -f 1)"
+JSON_STORE="${SHELL_TOOL_DIR}/store/{{- .system_environment.profile -}}_environment_store.json"
+
+if [ -f "$JSON_STORE" ]; then
+	chmod 600 "$JSON_STORE"
+else
+	echo "Error: JSON store not found at $JSON_STORE" >&2
+	exit 1
+fi
+
+TAGS=""
+PROCESS=""
+PASS_THROUGH_ARGS=()
+# Single-pass argument parsing
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+	--tag=*)
+		TAGS="${TAGS:+$TAGS,}${1#*=}"
+		shift
+		;;
+	--)
+		shift
+		PASS_THROUGH_ARGS+=("$@")
+		break
+		;;
+	*)
+		if [ -z "$PROCESS" ]; then PROCESS="$1"; else PASS_THROUGH_ARGS+=("$1"); fi
+		shift
+		;;
+	esac
+done
+
+if [ -z "$PROCESS" ] && [ ${#PASS_THROUGH_ARGS[@]} -gt 0 ]; then
+	PROCESS="${PASS_THROUGH_ARGS[0]}"
+	PASS_THROUGH_ARGS=("${PASS_THROUGH_ARGS[@]:1}")
+fi
+
+if [ -z "$PROCESS" ]; then
+	echo "Usage: $0 [--tag=a,b,c] [--] <process_name> [process_flags...]" >&2
+	exit 1
+fi
+
+# 1. Fetch the keys and ENCRYPTED values from jq as raw text pairs
+MAPFILE_INPUT=$(jq -r --arg tags_str "$TAGS" --arg proc "$PROCESS" '
+  ($tags_str | if . != "" then split(",") else [] end) as $target_tags
+  | to_entries[]
+  | select(
+      if ($target_tags | length > 0) then
+        (.value.tag // [] | any(IN($target_tags[])))
+      else
+        (.value.process // [] | any(. == $proc))
+      end
+    )
+  | "\(.key) \(.value.value)"
+' "$JSON_STORE")
+
+ENV_ARRAY=()
+
+# 2. Decrypt each value on the fly and format into the array
+if [ -n "$MAPFILE_INPUT" ]; then
+	while read -r key encrypted_val; do
+		[ -z "$key" ] && continue
+
+		# Decrypt the value safely in-memory using OpenSSL ChaCha20
+		decrypted_val=$(echo "$encrypted_val" | openssl enc -d -chacha20 -pbkdf2 -base64 -A -pass "pass:$STATIC_PW" 2>/dev/null)
+
+		# Append to our environment array
+		ENV_ARRAY+=("$key=$decrypted_val")
+	done <<<"$MAPFILE_INPUT"
+fi
+
+# 3. Inject directly into the execution context (No eval, no leakage)
+exec env "${ENV_ARRAY[@]}" "$PROCESS" "${PASS_THROUGH_ARGS[@]}"

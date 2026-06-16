@@ -1,0 +1,84 @@
+#!/bin/bash
+# Helper script to encrypt and store environment variable values into the JSON store
+
+set -euo pipefail
+SHELL_TOOL_DIR="${HOME}/.shell"
+STATIC_PW="$(echo "chezmoi:{{- .system_environment.profile | sha512sum -}}" | sha256sum | cut -d ' ' -f 1)"
+JSON_STORE="${SHELL_TOOL_DIR}/store/{{- .system_environment.profile -}}_environment_store.json"
+
+usage() {
+	echo "Usage: $0 <variable_name> [--tag=a,b,c] [--process=x,y,z]" >&2
+	echo "Reads the secret value from stdin." >&2
+	exit 1
+}
+
+VAR_NAME=""
+TAGS=""
+PROCESSES=""
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+	--tag=*)
+		TAGS="${1#*=}"
+		shift
+		;;
+	--process=*)
+		PROCESSES="${1#*=}"
+		shift
+		;;
+	--help|-h)
+		usage
+		;;
+	*)
+		if [ -z "$VAR_NAME" ]; then VAR_NAME="$1"; else usage; fi
+		shift
+		;;
+	esac
+done
+
+if [ -z "$VAR_NAME" ]; then
+	usage
+fi
+
+SECRET_VALUE=""
+if [ -t 0 ]; then
+	read -r -s -p "Enter value for ${VAR_NAME}: " SECRET_VALUE
+	echo >&2
+else
+	SECRET_VALUE=$(cat)
+fi
+
+if [ -z "$SECRET_VALUE" ]; then
+	echo "Error: empty value not allowed" >&2
+	exit 1
+fi
+
+if [ ! -f "$JSON_STORE" ]; then
+	echo "Error: JSON store not found at $JSON_STORE" >&2
+	exit 1
+fi
+
+ENCRYPTED_VAL=$(echo -n "$SECRET_VALUE" | openssl enc -chacha20 -pbkdf2 -base64 -A -pass "pass:$STATIC_PW")
+
+jq --arg key "$VAR_NAME" --arg enc_val "$ENCRYPTED_VAL" \
+	--arg tags_str "$TAGS" --arg procs_str "$PROCESSES" '
+	def to_array(s):
+		if s == "" then
+			null
+		else
+			(s | split(","))
+		end;
+
+	to_array($tags_str) as $new_tags
+	| to_array($procs_str) as $new_procs
+	| .[$key] as $existing
+	| .[$key] = {
+		value: $enc_val,
+		tag: (if $new_tags != null then $new_tags else $existing.tag end),
+		process: (if $new_procs != null then $new_procs else $existing.process end)
+	}
+' "$JSON_STORE" > "${JSON_STORE}.tmp"
+mv "${JSON_STORE}.tmp" "$JSON_STORE"
+chmod 600 "$JSON_STORE"
+
+echo "$ENCRYPTED_VAL"

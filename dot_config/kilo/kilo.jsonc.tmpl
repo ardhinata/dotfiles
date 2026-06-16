@@ -1,0 +1,121 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "permission": {
+    "bash": "allow",
+  },
+  "model": "openrouter/deepseek/deepseek-v4-pro",
+  "small_model": "openrouter/openai/gpt-oss-120b",
+  "agent": {
+    "orchestrator": {
+      "disable": true,
+      "hidden": false,
+    },
+  },
+  "layout": "auto",
+  "share": "auto",
+  "remote_control": true,
+  "compaction": {
+    "prune": false,
+  },
+  "experimental": {
+    "batch_tool": true,
+    "codebase_search": false,
+    "agent_manager_tool": true,
+    "openTelemetry": true,
+  },
+  "mcp": {
+    "talivy": {
+      "type": "remote",
+      "url": "https://mcp.tavily.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:TAVILY_API_TOKEN}",
+        "DEFAULT_PARAMETERS": "{\"include_images\":true, \"search_depth\": \"basic\", \"max_results\": 16}",
+      },
+      "enabled": true,
+    },
+    "firecrawl": {
+      "type": "remote",
+      "url": "https://mcp.firecrawl.dev/{env:FIRECRAWL_API_TOKEN}/v2/mcp",
+      "enabled": true,
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_TOKEN}",
+      },
+      "enabled": true,
+    },
+    "exa": {
+      "type": "remote",
+      "url": "https://mcp.exa.ai/mcp",
+      "headers": {
+        "X-API-KEY": "{env:EXA_SEARCH_API_TOKEN}",
+      },
+      "enabled": true,
+    },
+    // Conditionals for time MCP {{- if lookPath "uvx" }}
+    "time": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-time"],
+      "enabled": true,
+      "timeout": 10000,
+    },
+    // {{ end -}} Conditionals end
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer {env:GITHUB_TOKEN}"
+      },
+      "enabled": true,
+    },
+  },
+  "provider": {
+    "openrouter": {
+      "models": {
+        "deepseek/deepseek-v4-flash": {
+          "options": {
+            "provider": {
+              "only": ["deepseek"],
+              "order": ["deepseek"],
+            },
+            "reasoning": {
+              "effort": "xhigh",
+            },
+          },
+        },
+        "deepseek/deepseek-v4-pro": {
+          "options": {
+            "provider": {
+              "only": ["deepseek"],
+              "order": ["deepseek"],
+            },
+            "reasoning": {
+              "effort": "high",
+            },
+          },
+        },
+        "google/gemini-3.1-flash-lite": {
+          "options": {
+            "service_tier": "flex",
+          },
+        },
+        "openai/gpt-oss-120b": {
+          "options": {
+            "reasoning": {
+              "effort": "high",
+            },
+          },
+        },
+      },
+    },
+  },
+  "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
+{{- $rulesGlob := ".config/kilo/rules/*.md" }}
+{{- $paths := list }}
+{{- range $file := glob $rulesGlob }}
+{{-   $paths = append $paths (printf "%s/%s" (env "HOME") $file) }}
+{{- end }}
+  "instructions": {{ $paths | toJson }},
+}

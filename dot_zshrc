@@ -1,0 +1,68 @@
+# shellcheck disable=all
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+	source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Shell tool directory
+SHELL_TOOL_DIR="${HOME}/.shell"
+ZGENOM_DIR="${SHELL_TOOL_DIR}/zgenom"
+
+# Disable Prezto autoload plugin
+export ZGEN_PREZTO_LOAD_DEFAULT=0
+
+source "${ZGENOM_DIR}/zgenom.zsh"
+
+# Zgenom definition
+
+# Check for plugin and zgenom updates every 7 days
+# This does not increase the startup time.
+zgenom autoupdate
+
+# if the init script doesn't exist
+if ! zgenom saved; then
+
+	# Prezto load
+	zgenom prezto
+
+	# Module options
+	zgenom prezto directory:alias skip "yes"
+	zgenom prezto git:alias skip "yes"
+	zgenom prezto history:alias skip "yes"
+	zgenom prezto history histsize 1048576
+	zgenom prezto utility:download helper "aria2c"
+	zgenom prezto utility safe-ops "no"
+	zgenom prezto prompt theme "powerlevel10k"
+	zgenom prezto prompt managed "yes"
+	zgenom prezto '*' color "yes"
+	zgenom prezto prompt pwd-length "short"
+
+	# Prezto modules
+	zgenom prezto archive
+	zgenom prezto directory
+	zgenom prezto git
+	zgenom prezto history
+	zgenom prezto pacman
+	zgenom prezto rsync
+	zgenom prezto utility
+	zgenom prezto completion
+	zgenom prezto syntax-highlighting
+	zgenom prezto history-substring-search
+	zgenom prezto prompt
+
+	# generate the init script from plugins above
+	zgenom save
+
+	# Compile all zsh script that need to be loaded at startup
+	zgenom compile "${HOME}/.zshrc"
+	zgenom compile "${HOME}/.zprofile"
+	zgenom compile "${HOME}/.zshenv"
+	zgenom compile "${SHELL_TOOL_DIR}"
+fi
+
+source "${SHELL_TOOL_DIR}/zsh/10-common-export.zsh"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

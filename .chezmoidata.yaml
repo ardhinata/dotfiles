@@ -1,0 +1,6 @@
+source_structure:
+  encryption_keys: ".encryption_keys"
+  helper: ".shell_helper"
+
+system_environment:
+  profile: ""  # Free-form machine profile, e.g. "home", "office", "work-laptop"

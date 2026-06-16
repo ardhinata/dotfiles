@@ -1,0 +1,10 @@
+{{- $profile := promptStringOnce . "system_environment.profile" "Which profile should be used?" -}}
+encryption: "age"
+age:
+  identities:
+{{ (glob (joinPath .chezmoi.sourceDir ".encryption_keys" "*.secret.key")) | toYaml | indent 4 }}
+  recipientsFiles:
+{{ (glob (joinPath .chezmoi.sourceDir ".encryption_keys" "*.public.key")) | toYaml | indent 4 }}
+data:
+  system_environment:
+    profile: {{ $profile | quote }}

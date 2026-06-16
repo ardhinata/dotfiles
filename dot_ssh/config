@@ -1,0 +1,13 @@
+Include config.d/*.single.conf
+Include config.d/*.group.conf
+Include config.d/*.general.conf
+
+## Apply to all host
+Host *
+    CheckHostIP yes
+    HashKnownHosts yes
+    HostKeyAlgorithms -ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384-cert-v01@openssh.com,ecdsa-sha2-nistp521-cert-v01@openssh.com,sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com
+    KexAlgorithms -ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group14-sha256
+    MACs -umac-64-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1
+    StrictHostKeyChecking accept-new
+    VisualHostKey yes
