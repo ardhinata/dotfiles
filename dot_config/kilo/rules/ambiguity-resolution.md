@@ -12,14 +12,15 @@ When executing a task, if you encounter ambiguity that could lead to an incorrec
 
 Use the `question` tool with an interactive multiple-choice format. Each question must:
 
-- Present a clear, specific header (30 chars max)
+- Present a clear, specific header (40 chars max)
 - Offer 2-5 distinct options, each with a short label and a brief description of the consequence
+- **Recommend one option** as the best choice based on best practices, simplicity, or elegance — place it first in the list and append `(Recommended)` to its label. If no option clearly stands out, pick the most pragmatic one.
 - Allow the user to provide a custom answer (enabled by default via `custom: true`)
 
 ## Limits
 
-- **Maximum 5 questions per task.** Gather related ambiguities and batch them into a single `question` call where possible.
-- If ambiguity persists after 5 questions, inform the user of what remains unclear, then proceed using the best interpretation based on all information gathered so far.
+- **Maximum 8 questions per task.** Gather related ambiguities and batch them into a single `question` call where possible.
+- If ambiguity persists after 8 questions, inform the user of what remains unclear, then proceed using the best interpretation based on all information gathered so far.
 
 ## Anti-Patterns
 

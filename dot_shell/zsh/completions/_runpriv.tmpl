@@ -1,0 +1,46 @@
+#compdef runpriv
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -C -s \
+  '--tag=-[filter by comma-separated tags]:tag:->tags' \
+  '1:process:->processes' \
+  '*:pass-through args:->passthrough' \
+  && ret=0
+
+case "$state" in
+  tags)
+    local -a tag_list
+    local json_store="${HOME}/.shell/store/{{ .system_environment.profile }}_environment_store.json"
+    if [[ -f "$json_store" ]]; then
+      tag_list=(${(f)"$(jq -r '[.[] | .tag // empty] | flatten | unique[]' "$json_store" 2>/dev/null)"})
+    fi
+    (( $#tag_list )) && _wanted tags expl 'tag' compadd -a tag_list
+    ;;
+
+  processes)
+    _command_names -e
+    ret=0
+    ;;
+
+  passthrough)
+    local process_name
+    for w in "${words[@]:1}"; do
+      [[ "$w" == --tag* ]] && continue
+      [[ "$w" == -* ]] && continue
+      process_name="$w"
+      break
+    done
+    if [[ -n "$process_name" ]] && (( $+commands[$process_name] )); then
+      shift words
+      (( CURRENT-- ))
+      _normal -p "$service"
+      ret=$?
+    else
+      _default && ret=0
+    fi
+    ;;
+esac
+
+return ret

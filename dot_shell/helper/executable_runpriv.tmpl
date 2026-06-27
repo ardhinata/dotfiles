@@ -60,6 +60,7 @@ MAPFILE_INPUT=$(jq -r --arg tags_str "$TAGS" --arg proc "$PROCESS" '
 ' "$JSON_STORE")
 
 ENV_ARRAY=()
+INJECTED_KEYS=()
 
 # 2. Decrypt each value on the fly and format into the array
 if [ -n "$MAPFILE_INPUT" ]; then
@@ -71,7 +72,12 @@ if [ -n "$MAPFILE_INPUT" ]; then
 
 		# Append to our environment array
 		ENV_ARRAY+=("$key=$decrypted_val")
+		INJECTED_KEYS+=("$key")
 	done <<<"$MAPFILE_INPUT"
+fi
+
+if [ ${#INJECTED_KEYS[@]} -gt 0 ]; then
+	ENV_ARRAY+=("RUNPRIV_VARS=$(IFS=,; echo "${INJECTED_KEYS[*]}")")
 fi
 
 # 3. Inject directly into the execution context (No eval, no leakage)

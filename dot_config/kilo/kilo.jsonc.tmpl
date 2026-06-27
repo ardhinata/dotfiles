@@ -4,7 +4,7 @@
     "bash": "allow",
   },
   "model": "openrouter/deepseek/deepseek-v4-pro",
-  "small_model": "openrouter/openai/gpt-oss-120b",
+  "small_model": "openrouter/deepseek/deepseek-v4-flash",
   "agent": {
     "orchestrator": {
       "disable": true,
@@ -15,13 +15,16 @@
   "share": "auto",
   "remote_control": true,
   "compaction": {
-    "prune": false,
+    "auto": true,
+    "prune": true,
+    "context_percent": 70,
   },
   "experimental": {
     "batch_tool": true,
     "codebase_search": false,
     "agent_manager_tool": true,
     "openTelemetry": true,
+    "mcp_timeout": 30000,
   },
   "mcp": {
     "talivy": {
@@ -52,7 +55,7 @@
       "headers": {
         "X-API-KEY": "{env:EXA_SEARCH_API_TOKEN}",
       },
-      "enabled": true,
+      "enabled": false,
     },
     // Conditionals for time MCP {{- if lookPath "uvx" }}
     "time": {
@@ -66,13 +69,21 @@
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "Bearer {env:GITHUB_TOKEN}"
+        "Authorization": "Bearer {env:GITHUB_TOKEN}",
       },
       "enabled": true,
+    },
+    "mdn": {
+      "type": "remote",
+      "url": "https://mcp.mdn.mozilla.net/",
+      "enabled": false,
     },
   },
   "provider": {
     "openrouter": {
+      "options": {
+        "apiKey": "{env:OPENROUTER_API_KILO_CLI}",
+      },
       "models": {
         "deepseek/deepseek-v4-flash": {
           "options": {
@@ -81,7 +92,7 @@
               "order": ["deepseek"],
             },
             "reasoning": {
-              "effort": "xhigh",
+              "effort": "high",
             },
           },
         },
@@ -92,7 +103,7 @@
               "order": ["deepseek"],
             },
             "reasoning": {
-              "effort": "high",
+              "effort": "medium",
             },
           },
         },
@@ -110,12 +121,38 @@
         },
       },
     },
+    "deepseek": {
+      "options": {
+        "apiKey": "{env:DEEPSEEK_API_KILO}",
+      },
+    },
+    "inception":{
+      "options": {
+        "apiKey": "{env:INCEPTION_API}"
+      }
+    },
+    "voyage":{
+      "options": {
+        "apiKey": "{env:VOYAGE_API}"
+      }
+    }
+  },
+  "indexing": {
+    "model": "qwen/qwen3-embedding-8b",
+    "dimension": 2560,
+    "provider": "openrouter",
+    "openrouter": {
+      "apiKey": "{env:OPENROUTER_API_KILO_INDEX}",
+      "specificProvider": "nebius",
+    },
+    "lancedb": {
+      "directory": "/home/ardhinata/.cache/kilo/index",
+    },
+    "searchMinScore": 0.5,
+    "searchMaxResults": 16,
+    "embeddingBatchSize": 100,
+    "scannerMaxBatchRetries": 5,
   },
   "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
-{{- $rulesGlob := ".config/kilo/rules/*.md" }}
-{{- $paths := list }}
-{{- range $file := glob $rulesGlob }}
-{{-   $paths = append $paths (printf "%s/%s" (env "HOME") $file) }}
-{{- end }}
-  "instructions": {{ $paths | toJson }},
+  "instructions": ["{{ .chezmoi.homeDir }}/.config/kilo/rules/*.md"],
 }

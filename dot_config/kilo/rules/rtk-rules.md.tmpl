@@ -5,7 +5,9 @@
 
 ## Rule
 
-Always prefix shell commands with `rtk` to minimize token consumption.
+Always prefix shell commands with `rtk` to minimize token consumption. Prioritize `rtk` on commands that produce output — commands with no or trivial output (e.g., `git add`, `mkdir`, `cd`) benefit less from `rtk` and can sometimes be run raw.
+
+When chaining commands with `&&` or `||`, wrap each output-producing sub-command with `rtk` individually. Do not wrap `rtk` around the entire chain.
 
 Examples:
 
@@ -17,6 +19,15 @@ rtk grep "pattern" src/
 rtk find "*.rs" .
 rtk docker ps
 rtk gh pr list
+```
+
+Chained commands:
+
+```bash
+git add . && git commit -m "msg" && rtk git push  # rtk only on push (the output-heavy step)
+rtk cargo build && rtk cargo test                 # both produce output worth filtering
+mkdir -p build && rtk cmake .. && rtk make        # skip silent/no-op commands
+rtk git log --oneline -10 && rtk git diff         # rtk on each output-producing command
 ```
 
 ## Meta Commands

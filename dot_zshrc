@@ -10,6 +10,8 @@ fi
 SHELL_TOOL_DIR="${HOME}/.shell"
 ZGENOM_DIR="${SHELL_TOOL_DIR}/zgenom"
 
+source "${SHELL_TOOL_DIR}/zsh/00-before-zgenom.zsh"
+
 # Disable Prezto autoload plugin
 export ZGEN_PREZTO_LOAD_DEFAULT=0
 
@@ -22,7 +24,7 @@ source "${ZGENOM_DIR}/zgenom.zsh"
 zgenom autoupdate
 
 # if the init script doesn't exist
-if ! zgenom saved; then
+if ! zgenom saved || [[ ! -f "${HOME}/.zshrc.zwc" ]]; then
 
 	# Prezto load
 	zgenom prezto
@@ -63,6 +65,7 @@ if ! zgenom saved; then
 fi
 
 source "${SHELL_TOOL_DIR}/zsh/10-common-export.zsh"
+source "${SHELL_TOOL_DIR}/zsh/15-zgenom-helper-func.zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

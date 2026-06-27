@@ -10,7 +10,7 @@ Personal dotfiles managed with [Chezmoi](https://chezmoi.io), using [age](https:
 - **Profile-based machine differentiation** — A machine profile (`personal-laptop`, `home`, `office`, etc.) drives which encrypted secrets and configurations are deployed to each machine.
 - **Dynamic key discovery** — Age encryption keys in `.encryption_keys/` are auto-discovered via glob patterns — no config changes needed when adding or removing keys.
 - **Smart file exclusion** — Encrypted files that cannot be decrypted with available keys are automatically ignored at apply time, preventing errors on machines without a full key set.
-- **Secure environment injection** — Environment variables for API tokens and secrets are encrypted at rest and injected on-demand at process launch via `runpriv.sh`, avoiding persistent token exposure in the shell environment.
+- **Secure environment injection** — Environment variables for API tokens and secrets are encrypted at rest and injected on-demand at process launch via `runpriv`, avoiding persistent token exposure in the shell environment.
 - **Plugin-driven Zsh** — Modular shell configuration via zgenom with Prezto modules: completion, syntax highlighting, history search, git, prompt, and more.
 - **Hardened SSH configuration** — Global SSH hardening (strong host key/KEX/MAC algorithms, strict host key checking) with encrypted per-host config includes and visual host keys.
 - **GPG-backed SSH agent** — SSH authentication via `gpg-agent` with automatic `SSH_AUTH_SOCK` setup.
@@ -118,7 +118,7 @@ chezmoi init --apply
 │   ├── zsh/
 │   │   └── 10-common-export.zsh     # EDITOR, SSH_AUTH_SOCK, runpriv alias
 │   ├── helper/
-│   │   ├── runpriv.sh.tmpl          # On-demand environment variable injector
+│   │   ├── runpriv.tmpl              # On-demand environment variable injector
 │   │   └── encrypt_store.sh.tmpl    # Secure environment variable encryption utility
 │   └── private_store/               # Encrypted environment variable JSON stores
 │       └── encrypted_private_<profile>_environment_store.json.age
@@ -182,17 +182,19 @@ This dotfiles repo supports per-machine profiles for managing environment-specif
 
 ### Secure environment injection
 
-The `runpriv.sh` helper launches processes with secrets injected from an encrypted JSON store:
+The `runpriv` helper launches processes with secrets injected from an encrypted JSON store:
 
 ```bash
 # Store an environment variable
 encrypt_store.sh set GITHUB_TOKEN "<value>" --tags github,api
 
 # Run a command with matching secrets injected
-runpriv.sh gh pr list  # injects all GITHUB_TOKEN-tagged secrets
+runpriv gh pr list  # injects all GITHUB_TOKEN-tagged secrets
 ```
 
 Environment variables are encrypted with OpenSSL ChaCha20 and stored in `~/.shell/store/`. Only the secrets matching the command's tags are exposed — never persisted in the shell environment or shell history.
+
+The injected process also receives `RUNPRIV_VARS`, a comma-separated list of the injected secret names (e.g., `GITHUB_TOKEN,NPM_TOKEN`), so scripts can introspect which secrets are available.
 
 ### SSH configuration workflow
 
