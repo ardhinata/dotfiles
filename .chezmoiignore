@@ -1,5 +1,6 @@
 **/README.md
 **/*.decrypted
+AGENTS.md
 
 ## Dynamic ignore for files that failed to be decrypted
 {{ $script := joinPath .chezmoi.sourceDir .source_structure.helper "check_decrypt.sh" -}}

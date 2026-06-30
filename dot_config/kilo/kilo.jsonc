@@ -57,21 +57,13 @@
       },
       "enabled": false,
     },
-    // Conditionals for time MCP {{- if lookPath "uvx" }}
-    "time": {
-      "type": "local",
-      "command": ["uvx", "mcp-server-time"],
-      "enabled": true,
-      "timeout": 10000,
-    },
-    // {{ end -}} Conditionals end
     "github": {
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
         "Authorization": "Bearer {env:GITHUB_TOKEN}",
       },
-      "enabled": true,
+      "enabled": false,
     },
     "mdn": {
       "type": "remote",

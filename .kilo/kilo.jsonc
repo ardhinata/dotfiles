@@ -3,5 +3,7 @@
   "indexing": {
     "enabled": true
   },
-    
+  "instructions": [
+    ".kilo/rules/*.md"
+  ]
 }
