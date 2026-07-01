@@ -1,46 +1,35 @@
 # Semantic Search (`semantic_search`)
 
-The `semantic_search` tool finds code by **meaning**, not exact text. It is low-cost, returns up to 16 results (min score 0.5), and should be used liberally.
+`semantic_search` finds code by **meaning**, not exact text. Low-cost; returns up to 16 results (min score 0.5 — matches `kilo.jsonc` `searchMinScore`/`searchMaxResults`). Use liberally for exploration.
 
-## Usage Guidelines
+## When to Use vs Alternatives
 
-### When to Use
+- Exact symbol / string / regex → `grep`
+- Filename / extension → `glob`
+- Contents of a known file → `read`
+- Exploring by intent before knowing identifiers, or finding related implementations → `semantic_search`
 
-- You are exploring an unfamiliar area of the codebase before knowing exact identifiers or file names
-- You need to find related implementations of a concept (e.g., "authentication flow", "error handling middleware", "database connection pooling")
-- You are searching by intent rather than by exact symbol or regex
-- You want to narrow a large codebase before following up with `Grep` or `Read`
-- Parallel discovery: launch `semantic_search` alongside `Grep` and `Glob` in the same batch to cover both meaning-based and pattern-based discovery simultaneously
+## Query Best Practices
 
-### When to Avoid
+- Natural English, specific to the concept (e.g. "session cookie parsing", not "cookies")
+- Constrain with the `path` parameter to a known subdirectory; only drop `path` after scoped results come back empty
 
-- Searching for an exact symbol, string literal, or regex → use `Grep`
-- Finding files by filename or extension → use `Glob`
-- Reading the contents of a known file → use `Read`
+## Capped-Results Recovery
 
-### Query Best Practices
+When results hit 16 and none are relevant:
 
-- Write queries in **natural English**
-- Be specific about the concept or behavior you are looking for (e.g., "session cookie parsing" rather than "cookies")
-- Limit scope with the `path` parameter when you know the relevant subdirectory
-- Use the `path` parameter to constrain search to a single subdirectory; do not set it to the entire workspace unless necessary
+1. Retry with a more targeted query — narrower concept, terminology you've seen in the codebase
+2. Add a `path` constraint
+3. Use `grep`/`glob` first to find candidate files, then `semantic_search` scoped to that path
 
-### Handling Capped Results
+## Parallel Discovery
 
-When the result count reaches the max of 16 and none of the returned items are relevant:
+Batch meaning-based and pattern-based discovery in one call:
 
-1. **Retry with a more targeted query** — narrow the concept description, include specific terminology you've seen in the codebase
-2. **Add a `path` constraint** — scope to a specific subdirectory instead of the full workspace
-3. **Combine with `Grep` or `Glob`** — use those tools first to identify candidate files, then run `semantic_search` with the discovered path to find related code
-
-### Parallel Usage Pattern
-
-```markdown
-To understand how feature X works:
-1. `semantic_search` query: "feature X implementation details"   ← meaning-based discovery
-2. `grep` pattern: "FeatureX\|feature_x\|featureXHandler"        ← exact symbol search
-3. `glob` pattern: "**/feature-x*"                                ← file name search
-All three run simultaneously in one batch.
-
-Prefer scoped queries first; only drop `path` after scoped results come back empty or off-topic.
+```text
+semantic_search: "feature X implementation details"
+grep:           "FeatureX|feature_x|featureXHandler"
+glob:           "**/feature-x*"
 ```
+
+Prefer scoped queries first; widen only when scoped results are empty or off-topic.

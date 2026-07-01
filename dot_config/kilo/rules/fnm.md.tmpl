@@ -1,51 +1,8 @@
 # Fast Node Manager (`fnm`)
-{{- if lookPath "fnm" }}
 
-Use `fnm` for all Node.js version management. Before any Node.js work, ensure fnm is active and the correct version is set.
+Node.js work requires `fnm`. Run `fnm use --install-if-missing` before any node/npm/pnpm/yarn/npx command. Full command reference and edge cases are in the **`fnm` skill** — load it when about to run Node tooling.
 
-## Setup
+{{- if not (lookPath "fnm") }}
 
-If `$FNM_DIR` is empty, bootstrap first:
-```bash
-eval "$(fnm env --shell zsh)"
-```
-
-## Version Detection
-
-fnm reads version from these files (priority order): `.node-version` > `.nvmrc` > `package.json#engines.node`. When a project has any of these, this rule applies.
-
-## Commands
-
-```bash
-fnm use --install-if-missing          # ← run this before any node/npm/npx/pnpm/yarn
-fnm install --lts                     # install latest LTS
-fnm install --latest                  # install latest release
-fnm install <version>                 # install specific version (e.g. 22, 20.5, lts/iron)
-fnm use <version>                     # switch to installed version
-fnm exec --using=<version> <cmd>      # one-off command with specific version
-fnm current                           # print active version
-fnm list                              # list installed versions
-fnm list-remote                       # list available versions
-fnm default <version>                 # set global default
-```
-
-If `fnm use --install-if-missing` fails (no dotfile), fall back to:
-```bash
-fnm install && fnm use
-```
-
-## Rules
-
-- Never use `nvm`, `n`, or `volta` — only `fnm`
-- Always run `fnm use --install-if-missing` before any Node command in a project with a dotfile
-- Use the project's existing package manager (`npm`, `pnpm`, `yarn`); do not switch
-- For `corepack` projects: `fnm install <version> --corepack-enabled`
-
-{{- else }}
-
-`fnm` is not installed. Check `.node-version`, `.nvmrc`, or `package.json#engines.node` for the required Node version. Recommend the user install `fnm` with:
-```bash
-curl -fsSL https://fnm.vercel.app/install | bash
-```
-Do NOT run the install command — only recommend it.
+`fnm` is not installed on this machine. Before Node work, surface the required version (`.node-version` / `.nvmrc` / `package.json#engines.node`) and recommend installing fnm — do not run the installer.
 {{- end }}

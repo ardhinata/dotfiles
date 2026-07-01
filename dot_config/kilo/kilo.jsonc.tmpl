@@ -95,7 +95,7 @@
               "order": ["deepseek"],
             },
             "reasoning": {
-              "effort": "medium",
+              "effort": "high",
             },
           },
         },
@@ -111,25 +111,31 @@
             },
           },
         },
+        "moonshotai/kimi-k2.7-code": {
+          "options": {
+            "provider": {
+              "only": ["deepinfra/fp4", "parasail/int4"],
+              "order": ["deepinfra/fp4", "parasail/int4"],
+            },
+            "reasoning": {
+              "effort": "medium",
+            },
+          },
+        },
+        "z-ai/glm-5.2": {
+          "options": {
+            "provider": {
+              "only": ["deepinfra/fp4", "gmicloud/fp8"],
+              "order": ["deepinfra/fp4", "gmicloud/fp8"],
+            },
+          },
+        },
       },
     },
-    "deepseek": {
-      "options": {
-        "apiKey": "{env:DEEPSEEK_API_KILO}",
-      },
-    },
-    "inception":{
-      "options": {
-        "apiKey": "{env:INCEPTION_API}"
-      }
-    },
-    "voyage":{
-      "options": {
-        "apiKey": "{env:VOYAGE_API}"
-      }
-    }
   },
   "indexing": {
+    // NOTE: dimension 2560 uses Qwen3 MRL truncation (native 4096).
+    // Changing `dimension` or `model` requires re-indexing ~/.cache/kilo/index.
     "model": "qwen/qwen3-embedding-8b",
     "dimension": 2560,
     "provider": "openrouter",

@@ -1,50 +1,8 @@
-# RTK - Rust Token Killer (Kilo Code)
+# RTK — Rust Token Killer
 
-## Why
+`rtk` is a token-optimized CLI proxy for shell commands (60-90% token savings). Prefix output-heavy shell commands with `rtk` — but **never** use it as a substitute for the dedicated `grep`/`glob`/`read`/`background_process` tools (those are already token-aware). Full command reference, the rtk-vs-dedicated-tool table, and chained-command examples are in the **`rtk` skill** — load it when about to run build/test/lint/git-log/docker-style output-heavy commands.
 
-RTK filters and compresses command output before it reaches the LLM context, saving 60-90% tokens on common operations. Prefer `rtk <cmd>` over raw commands.
+{{- if not (lookPath "rtk") }}
 
-{{- if lookPath "rtk" }}
-
-**Usage**: Token-optimized CLI proxy for shell commands.
-
-## Rule
-
-Default to prefixing shell commands with `rtk` to minimize token consumption. Prioritize `rtk` on commands that produce output — commands with no or trivial output (e.g., `git add`, `mkdir`, `cd`) benefit less from `rtk` and can sometimes be run raw.
-
-When chaining commands with `&&` or `||`, wrap each output-producing sub-command with `rtk` individually. Do not wrap `rtk` around the entire chain.
-
-Examples:
-
-```bash
-rtk git status
-rtk cargo test
-rtk ls src/
-rtk grep "pattern" src/
-rtk find "*.rs" .
-rtk docker ps
-rtk gh pr list
-```
-
-Chained commands:
-
-```bash
-git add . && git commit -m "msg" && rtk git push  # rtk only on push (the output-heavy step)
-rtk cargo build && rtk cargo test                 # both produce output worth filtering
-mkdir -p build && rtk cmake .. && rtk make        # skip silent/no-op commands
-rtk git log --oneline -10 && rtk git diff         # rtk on each output-producing command
-```
-
-## Meta Commands
-
-```bash
-rtk gain              # Show token savings
-rtk gain --history    # Command history with savings
-rtk discover          # Find missed RTK opportunities
-rtk proxy <cmd>       # Run raw (no filtering, for debugging)
-```
-
-{{- else }}
-
-`rtk` is not installed. Recommend the user install it to start reducing token usage on output-heavy commands.
+`rtk` is not installed on this machine. Recommend the user install it before output-heavy shell work — do not run the installer.
 {{- end }}
