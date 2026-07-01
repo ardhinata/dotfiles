@@ -25,12 +25,20 @@ Suggest creating an `AGENTS.md`. It should be agent-agnostic — describe the pr
 - **Testing**: framework, how to run, conventions
 - **Git workflow**: branch naming, commit style, PR process
 - **Boundaries**: files/folders never to modify
-- **Pointers**: link to detailed docs, `.kilo/rules/`, `.kilo/skills/`
+- **Pointers**: link to detailed docs, `.kilo/rules/`, `.kilo/skills/`, knowledge cache directory (e.g., `.kilo/cache/`)
 ```
 
 Target 40-60 lines total. The headings above should each be 1-4 lines — concise bullets, not paragraphs. Move deeper detail (security models, API specs, complex CI workflows) to pointer-referenced docs or on-demand `.kilo/skills/`.
 
 AGENTS.md is agent-agnostic — it describes the project, not a particular coding agent. Keep Kilo-specific instructions in `.kilo/rules/` and `.kilo/skills/`. Only add sections the agent consistently gets wrong — human-written AGENTS.md improves task success by ~4%, while LLM-generated fluff hurts performance.
+
+### Knowledge Cache
+
+Projects benefit from a **knowledge cache** — a directory where the agent stores facts it learned from the web that future sessions may need again (tool version quirks, API changes, deprecation notices). This avoids repeated web searches and reduces latency/cost.
+
+The AGENTS.md **Pointers** section should reference this directory. Common names: `.kilo/cache/`, `.help/`, or `docs/cache/`. File per topic, date-tagged entries. The agent discovers the location by reading AGENTS.md's Pointers — do not hardcode a path in tool rules.
+
+If the project has no cache directory yet, suggest creating one during Phase 1 setup. The `web-tools-priority.md` rule instructs the agent to use this directory after fetching fresh information from the web.
 
 ### Scenario B: CLAUDE.md exists, no AGENTS.md
 
