@@ -24,7 +24,7 @@ When results hit 16 and none are relevant:
 
 ## Parallel Discovery
 
-Batch meaning-based and pattern-based discovery in one call:
+Batch meaning-based and pattern-based discovery in one call (conceptual):
 
 ```text
 semantic_search: "feature X implementation details"

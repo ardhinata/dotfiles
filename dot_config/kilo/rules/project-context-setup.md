@@ -4,7 +4,7 @@ When starting work in a project, assess its agent-context and documentation stat
 
 ## Loading Model
 
-`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start — a shared token budget. Keep each file small; collectively under ~60 lines for typical projects. Move detailed subsystem knowledge to `.kilo/skills/` — skills load on demand only when a task matches.
+`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start — a shared token budget. Keep project-specific files small; the project's `AGENTS.md` should be under ~60 lines. (Kilo's own rules in `.kilo/rules/` are per-session overhead managed separately.) Move detailed subsystem knowledge to `.kilo/skills/` — skills load on demand only when a task matches.
 
 ## Phase 1: AGENTS.md / CLAUDE.md Detection
 
