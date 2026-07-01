@@ -41,4 +41,6 @@ To understand how feature X works:
 2. `grep` pattern: "FeatureX\|feature_x\|featureXHandler"        ← exact symbol search
 3. `glob` pattern: "**/feature-x*"                                ← file name search
 All three run simultaneously in one batch.
+
+Prefer scoped queries first; only drop `path` after scoped results come back empty or off-topic.
 ```

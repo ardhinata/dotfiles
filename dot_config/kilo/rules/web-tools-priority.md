@@ -21,7 +21,7 @@ When performing web searches, scraping, or research, follow this priority order:
 
 ## Knowledge Staleness: When to Prefer Web Tools
 
-Your training knowledge has a cutoff date. When the gap between that cutoff and the current time (`2026-07-01`) is large **relative to the volatility of the knowledge domain**, prefer web tools — even when you think you know the answer.
+Your training knowledge has a cutoff date. When the gap between that cutoff and the present is large **relative to the volatility of the knowledge domain**, prefer web tools — even when you think you know the answer.
 
 **Volatility heuristic** — estimate how fast the domain changes:
 
@@ -32,7 +32,7 @@ Your training knowledge has a cutoff date. When the gap between that cutoff and 
 | Language specs / stable protocols | **Low** (years) | Cached knowledge is likely fine |
 | Config formats / standards | **Very low** (decades) | Rarely need verification |
 
-**Decision rule**: If `(current_time - knowledge_cutoff) > typical_change_cycle` for the domain, use a web tool to verify. When unsure, **err on the side of fetching**.
+**Decision rule**: For fast-moving domains, verify with a web tool before relying on cached knowledge. When unsure, **err on the side of fetching**.
 
 Examples:
 - Asking about a CLI flag for a tool that released v2.0 last month → web search first
@@ -56,7 +56,8 @@ After fetching up-to-date information from the web, **cache it in the project** 
 
 ```markdown
 <!-- In the project's knowledge cache directory (see AGENTS.md Pointers) -->
-- **[2026-07-01]** Chezmoi v2.72.0: `chezmoi merge` now accepts `--source-path` flag (source: webfetch)
+<!-- Tag each entry with the date it was fetched. -->
+- **Chezmoi**: re-encrypt behavior changed in v2.70+; verify with webfetch before relying on cached syntax.
 ```
 
 **When NOT to cache**:

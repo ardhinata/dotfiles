@@ -1,11 +1,16 @@
 # RTK - Rust Token Killer (Kilo Code)
+
+## Why
+
+RTK filters and compresses command output before it reaches the LLM context, saving 60-90% tokens on common operations. Prefer `rtk <cmd>` over raw commands.
+
 {{- if lookPath "rtk" }}
 
 **Usage**: Token-optimized CLI proxy for shell commands.
 
 ## Rule
 
-Always prefix shell commands with `rtk` to minimize token consumption. Prioritize `rtk` on commands that produce output — commands with no or trivial output (e.g., `git add`, `mkdir`, `cd`) benefit less from `rtk` and can sometimes be run raw.
+Default to prefixing shell commands with `rtk` to minimize token consumption. Prioritize `rtk` on commands that produce output — commands with no or trivial output (e.g., `git add`, `mkdir`, `cd`) benefit less from `rtk` and can sometimes be run raw.
 
 When chaining commands with `&&` or `||`, wrap each output-producing sub-command with `rtk` individually. Do not wrap `rtk` around the entire chain.
 
@@ -39,11 +44,7 @@ rtk discover          # Find missed RTK opportunities
 rtk proxy <cmd>       # Run raw (no filtering, for debugging)
 ```
 
-## Why
-
-RTK filters and compresses command output before it reaches the LLM context, saving 60-90% tokens on common operations. Always use `rtk <cmd>` instead of raw commands.
-
 {{- else }}
 
-RTK filters and compresses command output before it reaches the LLM context. Recommend user to install `rtk` to begin reducing their token usage.
-{{ end }}
+`rtk` is not installed. Recommend the user install it to start reducing token usage on output-heavy commands.
+{{- end }}
