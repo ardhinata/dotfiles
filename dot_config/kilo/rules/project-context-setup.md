@@ -1,36 +1,12 @@
 # Project Context Setup
 
-When starting work in a project, assess its agent-context and documentation state. Do not modify files automatically — suggest to the user first.
+Before deep work in an unfamiliar project — or when context setup would unblock you — load the `project-context-setup` skill. Never modify project context files unilaterally; suggest first.
 
-## Loading Model
+## Load the skill eagerly when any of these is true
 
-`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start — a shared token budget. Keep project-specific files small; the project's `AGENTS.md` should be under ~60 lines. (Kilo's own rules in `.kilo/rules/` are per-session overhead managed separately.) Move detailed subsystem knowledge to `.kilo/skills/` — skills load on demand only when a task matches.
+- **Web discovery without a cache.** You're about to call `tavily_search`, `firecrawl_search`, `firecrawl_scrape`, or `context7_*` and the project has no knowledge cache directory (`.tmp/doc-cache/`, `.help/`, `docs/cache/`) — the skill tells you whether to set one up first and what to record.
+- **Stuck exploring.** You've spent several turns exploring a project and have no `AGENTS.md` / `CLAUDE.md` / project conventions to anchor on.
+- **New project session.** A session is starting in a project you've never seen and you have no orientation document.
+- **AGENTS.md / context-file maintenance.** The user asks to update, restructure, split, or modernize `AGENTS.md`, `CLAUDE.md`, or `CONTEXT.md`. Also trigger when the user asks to update the documentation cache, knowledge cache, `.help/` directory, or `.tmp/doc-cache/`. Catch-all phrases: "update project structure", "update old AGENTS.md", "update documentation cache", "restructure AGENTS.md", "refresh project docs", "clean up AGENTS.md", "add knowledge cache", "set up .help/", "update context file".
 
-## Phase 1: AGENTS.md / CLAUDE.md Detection
-
-Check for `AGENTS.md`, `CLAUDE.md`, or `CONTEXT.md` at the workspace root.
-
-- **A — None exists (clean project)**: suggest a concise (40–60 line), agent-agnostic `AGENTS.md` covering: Purpose, Stack, Commands (test/lint/build flags), Code-style deviations only, Project structure, Testing, Git workflow, Boundaries (never-modify files), Pointers to deeper docs. Bullets of 1–4 lines each. Human-written AGENTS.md improves task success; LLM fluff hurts — only add sections the agent consistently gets wrong.
-- **B — CLAUDE.md, no AGENTS.md**: CLAUDE.md works in Kilo, but `AGENTS.md` follows the [open standard](https://agents.md) and works across more tools. Suggest deriving a slimmer `AGENTS.md` (40–60 lines, agent-agnostic) and moving Kilo-specific conventions into `.kilo/rules/`. Complex subsystems → `.kilo/skills/<name>/SKILL.md`. For external repos, hide `.kilo/` and `AGENTS.md` via `.gitignore` / `.git/info/exclude`.
-- **C — AGENTS.md exists**: no action. Offer an update only if stale or incomplete.
-
-### Knowledge Cache
-
-Projects benefit from a knowledge-cache dir for date-tagged web-learned facts (tool version quirks, API changes, deprecations). Reference its location from AGENTS.md **Pointers**. Common names: `.kilo/cache/`, `.help/`, `docs/cache/`. If absent, suggest creating one. Caching convention: see `web-tools-priority.md`.
-
-## Phase 2: Project Documentation
-
-Look for existing docs (`CONTRIBUTING.md`, `ARCHITECTURE.md`, `docs/`, `SECURITY.md`, `README.md`). Don't duplicate — add pointer references from AGENTS.md. If no docs exist but conventions are non-obvious (security models, API specs, deployment playbooks), suggest narrowly-scoped files — one topic per file.
-
-## Phase 3: Rules and Skills Integration
-
-Keep Kilo-specific content in `.kilo/`, not in `AGENTS.md`. Add a pointer rule for deep docs; ensure `kilo.jsonc` lists `.kilo/rules/*.md` under `instructions`; create skills for reusable domain patterns (custom build pipelines, proprietary protocols, specialized test setups).
-
-## When to Suggest
-
-- First work in a project with no context files
-- Turn-1 discovery that context files would eliminate
-- Non-obvious conventions not visible from the directory structure
-- You've spent >2 turns explaining project-specific patterns
-
-Keep suggestions brief — e.g. "This project has no `AGENTS.md` and complex build/test conventions. Want me to draft one?"
+The skill covers: AGENTS.md/CLAUDE.md detection phases, project-docs survey, `.kilo/rules/` and `.kilo/skills/` integration, knowledge-cache conventions, and "when to suggest" timing.
