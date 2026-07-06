@@ -24,12 +24,10 @@ When results hit 16 and none are relevant:
 
 ## Parallel Discovery
 
-Batch meaning-based and pattern-based discovery in one call (conceptual):
+When you don't know whether the target is a concept, a symbol, or a filename, issue all three in the same turn — their structured results compose well:
 
-```text
-semantic_search: "feature X implementation details"
-grep:           "FeatureX|feature_x|featureXHandler"
-glob:           "**/feature-x*"
-```
+- `semantic_search` — concept / intent (e.g. "feature X implementation details")
+- `grep` — exact symbol, identifier, or regex (e.g. `FeatureX|feature_x|featureXHandler`)
+- `glob` — filename or extension pattern (e.g. `**/feature-x*`)
 
-Prefer scoped queries first; widen only when scoped results are empty or off-topic.
+Prefer scoped queries first; widen only when scoped results come back empty or off-topic.

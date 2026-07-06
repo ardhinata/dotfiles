@@ -1,16 +1,27 @@
 # Web Tool Priority
 
-Follow this priority for web search, scrape, and research. Tool names below show short form → actual exposed name.
+Tool names below show short form → actual exposed name.
+
+**Decision rule:** *Have a URL?* → **webfetch** first; failed / truncated / JS-empty? → **firecrawl_scrape** with `waitFor`. *No URL?* → **tavily_search** to find one. *Library/API question?* → **context7**.
 
 ## Priority
 
-1. **webfetch** (built-in, free) — `webfetch`. Simple fetches of a known URL (static HTML, blog posts, docs). Exhaust this first; zero billing. **Not for:** anything but a known URL.
+1. **webfetch** (built-in, free, zero billing) — `webfetch`. Fetches any known URL that returns readable content: HTML, markdown, JSON, plain text, READMEs, changelogs, release notes, RFCs, simple docs. Failure modes: JS-rendered SPAs, very long pages (truncation), paywalled content. **Always try this first when you have a URL.** **Not for:** URL discovery (use tavily).
 
 2. **tavily** (primary search) — tools prefixed `talivy_tavily_*` (`talivy_tavily_search`, `talivy_tavily_extract`, `talivy_tavily_research`, `talivy_tavily_crawl`, `talivy_tavily_map`). Pay-as-you-go. Use for web searches where you don't know the exact URL. Better disambiguation and snippet richness than firecrawl search (e.g. correctly separates "Next.js" from the clothing brand). **Not for:** known URLs (use webfetch or firecrawl_scrape).
 
 3. **firecrawl** (scrape/crawl) — tools prefixed `firecrawl_firecrawl_*` (`firecrawl_firecrawl_scrape`, `firecrawl_firecrawl_crawl`, `firecrawl_firecrawl_map`, `firecrawl_firecrawl_extract`, `firecrawl_firecrawl_search`). Free tier (limited credits). Use for **known URLs**, not search. Strengths: structured JSON extraction, screenshots, change tracking, monitoring, JS-rendered pages. Use `firecrawl_scrape` when `webfetch` is truncated or the page needs JS rendering; `firecrawl_crawl` for multi-page extraction. **Not for:** ambiguous queries (use tavily_search); API docs (use context7).
 
 4. **context7** (library/API docs) — tools prefixed `context7_*` (`context7_resolve-library-id`, `context7_query-docs`). Free. Library/API documentation lookups. Curated in-page snippets, structured API refs. ~70% less token usage and zero page chrome vs firecrawl scrape for docs. **Not for:** general web searches or non-library queries.
+
+## Verification
+
+Use the **cheapest tool that can answer**:
+
+- Have a specific URL? → `webfetch` to it. Re-read the page; do not trust the snippet.
+- Have only a claim? → `tavily_search` with the claim as a phrase. Prefer recency-tagged queries.
+- Library/API question? → `context7` (no need to search the public web).
+- CLI tool / framework API released < 6 months ago? → always re-verify; never rely on cached knowledge without a fresh fetch.
 
 ## Knowledge Staleness
 
@@ -29,7 +40,7 @@ Decision rule: for fast-moving domains, verify with a web tool before relying on
 
 After fetching up-to-date info, **cache it in the project** so future sessions don't re-search.
 
-- **Where**: the project's `AGENTS.md` **Pointers** section lists its knowledge-cache dirs (common: `.kilo/cache/`, `.help/`). If none is defined, suggest creating `.kilo/cache/` and adding a pointer. See `project-context-setup.md`.
+- **Where**: the project's `AGENTS.md` **Pointers** section lists its knowledge-cache dirs (common: `.tmp/doc-cache/`, `.help/`). If none is defined, suggest creating `.tmp/doc-cache/` and adding a pointer. See `project-context-setup.md`.
 - **What**: version-specific CLI changes, deprecated flags, API breaking changes, config-format updates — anything you had to web-search that may be asked again.
 - **Format**: concise bullets or short tables, tagged with the date fetched.
 - **When NOT to cache**: ephemeral data (news, prices), one-off answers, NDA/proprietary content.
