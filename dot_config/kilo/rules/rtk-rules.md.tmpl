@@ -1,6 +1,6 @@
 # RTK — Rust Token Killer
 
-`rtk` is a token-optimized CLI proxy for shell commands (60-90% token savings). Prefix output-heavy shell commands with `rtk` — but **never** use it as a substitute for the dedicated `grep`/`glob`/`read`/`background_process` tools (those are already token-aware). Full command reference, the rtk-vs-dedicated-tool table, and chained-command examples are in the **`rtk` skill** — load it when about to run build/test/lint/git-log/docker-style output-heavy commands.
+`rtk` is a token-optimized CLI proxy for shell commands (60-90% token savings). Prefix output-heavy shell commands with `rtk` — but **never** use it as a substitute for the dedicated `grep`/`glob`/`read`/`background_process` tools (those are already token-aware). Load the **`rtk` skill** before running any command that has an RTK native wrapper: build/test/lint/formatter tooling, version control (git/gh/glab/gt), containers (docker/kubectl/oc), package managers (cargo/npm/npx/pnpm/pip/go), CI runners (mvn/gradlew), test runners (pytest/jest/vitest/playwright/rspec/rake), linters/checkers (ruff/rubocop/golangci-lint/mypy/tsc/prettier/prisma), and CLI wrappers (curl/aws/psql/dotnet/ls/tree/find/diff/wget/wc). Full command reference, the rtk-vs-dedicated-tool table, and chained-command examples are in the skill.
 
 {{- if not (lookPath "rtk") }}
 

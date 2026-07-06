@@ -71,7 +71,7 @@ chezmoi init --apply
 │   └── zgenom.yaml             # External source: zgenom plugin manager (weekly refresh)
 │
 ├── .encrypted_data/            # Age-encrypted secret snippets
-│   └── tokens/                 # Profile-specific encrypted token exports (e.g., <profile>_<name>.zsh.age)
+│   └── tokens/                 # Profile-specific encrypted token exports (created by user, e.g. <profile>_<name>.zsh.age)
 │
 ├── .encryption_keys/           # Age encryption keys
 │   ├── README.md               # Key management documentation
@@ -82,7 +82,8 @@ chezmoi init --apply
 │   └── *.secret.key.asc        # GPG-encrypted private key backup (committed)
 │
 ├── .shell_helper/
-│   └── check_decrypt.sh        # Script to test which encrypted files are decryptable
+│   ├── check_decrypt.sh        # Script to test which encrypted files are decryptable
+│   └── README.md               # Helper script documentation
 │
 ├── .help/                      # AI agent reference materials
 │   ├── README.md
@@ -95,15 +96,27 @@ chezmoi init --apply
 ├── .kilo/                      # Kilo AI agent project config
 │   ├── kilo.jsonc              # Agent model, MCP server, and routing configuration
 │   ├── package.json            # Project dependencies (@kilocode/plugin)
-│   └── rules/
-│       └── chezmoi-source-project.md  # Project-specific agent rules
+│   ├── agent-manager.json      # Agent Manager worktree state and session metadata
+│   ├── rules/
+│   │   └── chezmoi-source-project.md  # Project-specific agent rules
+│   └── skills/
+│       └── chezmoi/            # Chezmoi skill (source-state conventions, template guidelines)
 │
 ├── dot_config/                 → ~/.config/
 │   └── kilo/
 │       ├── kilo.jsonc.tmpl     # Kilo agent configuration (templated)
-│       └── rules/
-│           ├── ambiguity-resolution.md    # Agent instruction: when to ask for clarification
-│           └── rtk-rules.md.tmpl          # RTK token-optimized CLI proxy rules
+│       ├── rules/
+│       │   ├── ambiguity-resolution.md        # Agent instruction: when to ask for clarification
+│       │   ├── fnm.md.tmpl                     # Fast Node Manager (fnm) rule
+│       │   ├── project-context-setup.md        # Project documentation setup rule
+│       │   ├── rtk-rules.md.tmpl               # RTK token-optimized CLI proxy rules
+│       │   ├── self-analysis.md                # Self-analysis (3-Why) rule
+│       │   ├── semantic-search.md              # Semantic search usage rule
+│       │   └── web-tools-priority.md           # Web tool selection priority rule
+│       └── skills/
+│           ├── fnm/                            # FNM skill (node version management)
+│           ├── project-context-setup/          # Project context setup skill
+│           └── rtk/                            # RTK skill (token-optimized CLI proxy)
 │
 ├── dot_gitconfig               → ~/.gitconfig
 │   # Git identity, signing key, aliases, conditional work include
@@ -116,10 +129,14 @@ chezmoi init --apply
 │
 ├── dot_shell/                  → ~/.shell/
 │   ├── zsh/
-│   │   └── 10-common-export.zsh     # EDITOR, SSH_AUTH_SOCK, runpriv alias
+│   │   ├── 00-before-zgenom.zsh        # Pre-plugin initialization
+│   │   ├── 10-common-export.zsh         # EDITOR, SSH_AUTH_SOCK, runpriv alias
+│   │   ├── 15-zgenom-helper-func.zsh   # Helper functions for zgenom-loaded plugins
+│   │   └── completions/
+│   │       └── _runpriv.tmpl            # Zsh completion for runpriv
 │   ├── helper/
-│   │   ├── runpriv.tmpl              # On-demand environment variable injector
-│   │   └── encrypt_store.sh.tmpl    # Secure environment variable encryption utility
+│   │   ├── executable_runpriv.tmpl              # On-demand environment variable injector
+│   │   └── executable_encrypt_store.sh.tmpl    # Secure environment variable encryption utility
 │   └── private_store/               # Encrypted environment variable JSON stores
 │       └── encrypted_private_<profile>_environment_store.json.age
 │

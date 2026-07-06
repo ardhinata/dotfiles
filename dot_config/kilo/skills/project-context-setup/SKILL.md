@@ -131,7 +131,7 @@ Exclude:
 - long tutorials or exhaustive file trees
 - obvious language conventions
 - speculative claims or anything you could not verify against the repo
-- content better stored in another file referenced via `kilo.json` `instructions`
+- content better stored in another file referenced via `kilo.jsonc` `instructions`
 - duplicate content that already lives in `README.md` or other docs — add pointers instead
 
 **When in doubt, omit.** Prefer short sections and bullets. If the repo is simple, keep the file simple. If the repo is large, summarize the few structural facts that actually change how an agent should work.
