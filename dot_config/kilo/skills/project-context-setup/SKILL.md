@@ -9,7 +9,7 @@ When starting work in a project, assess its agent-context and documentation stat
 
 `AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should stay under ~60 lines; deeper subsystem knowledge belongs in `.kilo/skills/` (on-demand). Kilo's own rules in `~/.config/kilo/rules/` are per-session overhead managed separately and do not compete with this budget.
 
-The whole point of these files is **hard-earned context an agent would likely miss without help**. Every line should answer: "Would an agent get this wrong without it?" If not, leave it out.
+The whole point of these files is **hard-earned context an agent would likely miss without help**. Every line should answer: "Would an agent get this wrong without it?" If not, leave it out. Note the cost: even human-written repository context files raise inference cost >20% and do not reliably improve task success vs no context; LLM-generated files are worse (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988). So curation — not volume — is what makes an AGENTS.md worth keeping.
 
 ## Phase 0: Investigation
 
@@ -44,7 +44,7 @@ Good `AGENTS.md` content is usually hard-earned context that took reading multip
 
 Check for `AGENTS.md`, `CLAUDE.md`, or `CONTEXT.md` at the workspace root.
 
-- **A — None exists (clean project)**: suggest a 40–60 line `AGENTS.md` filled from the **template below**, using only facts extracted in Phase 0. Do not invent your own structure. Human-written AGENTS.md improves task success; LLM-generated ones reduce it (Gloaguen et al., ICLR 2026 Workshop — arXiv:2602.11988).
+- **A — None exists (clean project)**: suggest a 40–60 line `AGENTS.md` filled from the **template below**, using only facts extracted in Phase 0. Do not invent your own structure. Caveat the user that context files are not free upside — they raise inference cost and only help when minimal and high-signal (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988); LLM-generated files specifically reduce task success, so the draft must be human-reviewed before commit.
 - **B — CLAUDE.md, no AGENTS.md**: CLAUDE.md works in Kilo, but `AGENTS.md` follows the [open standard](https://agents.md) (donated to the Agentic AI Foundation / Linux Foundation, Dec 2025; 60,000+ repos) and works across more tools. Suggest deriving a slimmer `AGENTS.md` (40–60 lines, agent-agnostic) and moving Kilo-specific conventions into `.kilo/rules/`. Complex subsystems → `.kilo/skills/<name>/SKILL.md`. For external repos, hide `.kilo/` and `AGENTS.md` via `.gitignore` / `.git/info/exclude`.
 - **C — AGENTS.md exists**: improve it in place rather than rewriting blindly. Preserve verified useful guidance, delete fluff or stale claims, and reconcile it with the current codebase. Offer an update only if stale or incomplete.
 
@@ -59,7 +59,7 @@ Projects benefit from a knowledge-cache dir for date-tagged web-learned facts (t
 
 ## AGENTS.md Template
 
-Use this skeleton when suggesting or drafting a new `AGENTS.md`. Drop sections that do not apply. Fill every line from Phase 0 extraction — never from imagination. Do **not** add a "Project structure" or "Architecture overview" section — agents navigate the tree themselves, and those sections measurably increase inference cost without improving task success (Gloaguen et al., 2026).
+Use this skeleton when suggesting or drafting a new `AGENTS.md`. Drop sections that do not apply. Fill every line from Phase 0 extraction — never from imagination. Do **not** add a "Project structure" or "Architecture overview" section — agents navigate the tree themselves, and those sections measurably increase inference cost without improving task success (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988).
 
 ```markdown
 # AGENTS.md
@@ -113,7 +113,7 @@ Use this skeleton when suggesting or drafting a new `AGENTS.md`. Drop sections t
 - Knowledge cache: `.tmp/doc-cache/` (see `web-tools-priority` rule)
 ```
 
-Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) — it is the pattern that consistently improves agent behavior across 2,500+ repos (GitHub Copilot analysis, 2025). Use **exact command flags** in the Commands section: `pnpm vitest run -t "name pattern"` is more useful than `pnpm test`. One real code snippet for style beats three paragraphs of style description.
+Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) — it is the pattern the GitHub Copilot analysis of 2,500+ `agents.md` files found in the best-performing ones (Matt Nigh, github.blog, Nov 2025). Use **exact command flags** in the Commands section: `pnpm vitest run -t "name pattern"` is more useful than `pnpm test`. One real code snippet for style beats three paragraphs of style description.
 
 ## Writing rules
 
@@ -142,7 +142,7 @@ For monorepos, place an `AGENTS.md` inside each package. The agent reads the **c
 
 ## Anti-patterns
 
-- **Do not auto-generate** with `/init` or equivalents and commit the output blind. LLM-generated AGENTS.md *reduces* task success by 0.5–2% and *increases* inference cost by over 20% (Gloaguen et al., 2026). Human-curated, verified content is the whole point.
+- **Do not auto-generate** with `/init` or equivalents and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20% and tend to reduce task success vs no context; LLM-generated files reduce it further (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
 - **Do not add a Project structure or Architecture overview section.** Agents navigate the tree themselves; restating it costs tokens without helping.
 - **Do not append rules reactively** ("add another rule when the agent makes a mistake"). Prune stale rules. Drift-and-append is the most common failure mode.
 - **Do not exceed 60 lines** in the root AGENTS.md. Past that, split into nested files.

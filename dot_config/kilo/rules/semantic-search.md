@@ -1,6 +1,6 @@
 # Semantic Search (`semantic_search`)
 
-`semantic_search` finds code by **meaning**, not exact text. Low-cost; returns up to 16 results (min score 0.5 — matches `kilo.jsonc` `searchMinScore`/`searchMaxResults`). Use liberally for exploration.
+`semantic_search` finds code by **meaning**, not exact text. Low-cost; returns a bounded result set filtered by a minimum score (values live in `kilo.jsonc` `indexing.searchMinScore` / `searchMaxResults` — do not restate them here, they drift). Use liberally for exploration.
 
 ## When to Use vs Alternatives
 

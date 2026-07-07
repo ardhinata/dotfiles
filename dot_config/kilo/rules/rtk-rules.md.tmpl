@@ -1,6 +1,34 @@
 # RTK — Rust Token Killer
 
-`rtk` is a token-optimized CLI proxy for shell commands (60-90% token savings). Prefix output-heavy shell commands with `rtk` — but **never** use it as a substitute for the dedicated `grep`/`glob`/`read`/`background_process` tools (those are already token-aware). Load the **`rtk` skill** before running any command that has an RTK native wrapper: build/test/lint/formatter tooling, version control (git/gh/glab/gt), containers (docker/kubectl/oc), package managers (cargo/npm/npx/pnpm/pip/go), CI runners (mvn/gradlew), test runners (pytest/jest/vitest/playwright/rspec/rake), linters/checkers (ruff/rubocop/golangci-lint/mypy/tsc/prettier/prisma), and CLI wrappers (curl/aws/psql/dotnet/ls/tree/find/diff/wget/wc). Full command reference, the rtk-vs-dedicated-tool table, and chained-command examples are in the skill.
+`rtk` is a token-optimized CLI proxy for shell commands (60-90% token savings). Prefix output-heavy shell commands with `rtk`.
+
+**Never wrap Kilo's dedicated tools** — `grep`, `glob`, `read`, `background_process` are already token-aware. `rtk` is for shell-only commands with heavy stdout/stderr. Commands with trivial output (`git add`, `mkdir`, `cd`, `touch`) gain nothing — run them raw.
+
+## When to use rtk
+
+Prefix these (and similar) with `rtk`:
+
+- **VCS**: `git status|diff|log|show|push`, `gh`, `glab`, `gt`
+- **Build/test**: `cargo build|test`, `pytest`, `jest`, `vitest`, `playwright`, `rspec`, `rake`, `mvn`, `gradlew`
+- **Lint/format**: `ruff`, `rubocop`, `golangci-lint`, `mypy`, `tsc`, `prettier`, `prisma`
+- **Package mgrs**: `npm`, `npx`, `pnpm`, `pip`, `go mod`
+- **Containers/CLI**: `docker`, `kubectl`, `oc`, `next`, `dotnet`, `aws`, `psql`, `curl`, `tree`, `wget`
+
+For filesystem inspection prefer Kilo's dedicated tools (`glob` for file discovery, `grep` for content search, `read` for file contents) — do **not** `rtk`-wrap `ls`/`find`/`diff`/`wc` unless the operation is genuinely shell-side (e.g. piping `find` output through `xargs`, or `diff`ing two generated artifacts with no dedicated-tool equivalent).
+
+## Chaining
+
+Wrap **each output-producing sub-command** individually, never the whole chain:
+
+```bash
+git add . && git commit -m "msg" && rtk git push
+rtk cargo build && rtk cargo test
+mkdir -p build && rtk cmake .. && rtk make
+```
+
+## Beyond the basics
+
+For diagnostics (`rtk gain`, `rtk discover`, `rtk session`), summary modes (`rtk err`, `rtk smart`, `rtk log`, `rtk json`), and flags (`-v`, `--ultra-compact`, `--skip-env`), run `rtk --help` or `rtk help <subcommand>` on demand.
 
 {{- if not (lookPath "rtk") }}
 
