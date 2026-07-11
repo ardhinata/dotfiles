@@ -20,7 +20,7 @@
   "compaction": {
     "auto": true,
     "prune": true,
-    "context_percent": 70,
+    "threshold_percent": 70,
   },
   "experimental": {
     "batch_tool": true,
@@ -30,12 +30,12 @@
     "mcp_timeout": 30000,
   },
   "mcp": {
-    "talivy": {
+    "tavily": {
       "type": "remote",
       "url": "https://mcp.tavily.com/mcp",
       "headers": {
         "Authorization": "Bearer {env:TAVILY_API_TOKEN}",
-        "DEFAULT_PARAMETERS": "{\"include_images\":true, \"search_depth\": \"basic\", \"max_results\": 16}",
+        "DEFAULT_PARAMETERS": "{\"include_images\":true, \"search_depth\": \"basic\", \"max_results\": 8}",
       },
       "enabled": true,
     },
@@ -145,19 +145,26 @@
         },
       },
     },
+    "minimax": {
+      "options": {
+        "apiKey": "{env:MINIMAX_SUBSCRIPTION_API}",
+      },
+    },
   },
   "indexing": {
-    // NOTE: dimension 2560 uses Qwen3 MRL truncation (native 4096).
-    // Changing `dimension` or `model` requires re-indexing ~/.cache/kilo/index.
-    "model": "qwen/qwen3-embedding-8b",
-    "dimension": 2560,
+    // FIXED 2026-07-11: `qwen/qwen3-embedding-8b` did not exist on OpenRouter
+    // (verified against anomalyco/models.dev@dev); switched to
+    // `openai/text-embedding-3-small` (1536-dim, supported on OpenRouter) and
+    // dropped the Qwen3-specific MRL dimension override. Changing `model`
+    // requires re-indexing ~/.cache/kilo/index.
+    "model": "openai/text-embedding-3-small",
     "provider": "openrouter",
     "openrouter": {
       "apiKey": "{env:OPENROUTER_API_KILO_INDEX}",
       "specificProvider": "nebius",
     },
     "lancedb": {
-      "directory": "/home/ardhinata/.cache/kilo/index",
+      "directory": "{{ .chezmoi.homeDir }}/.cache/kilo/index",
     },
     "searchMinScore": 0.5,
     "searchMaxResults": 16,

@@ -1,0 +1,25 @@
+[general]
+# General setting
+import = [
+	"~/.config/alacritty/themes/themes/nightfly.toml"
+]
+
+[env]
+# Environment setting
+
+[window]
+decorations = "None"
+opacity = 0.7
+blur = true
+
+[font]
+normal = {family = "Terminess Nerd Font Propo", style = "Medium"}
+bold = {style = "Bold"}
+italic = {style = "Italic"}
+bold_italic = {style = "Bold Italic"}
+size = 11.0
+# builtin_box_drawing = false
+
+[selection]
+save_to_clipboard = true
+

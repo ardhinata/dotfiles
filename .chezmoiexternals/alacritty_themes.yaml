@@ -1,0 +1,9 @@
+---
+.config/alacritty/themes:
+  type: git-repo
+  url: https://github.com/alacritty/alacritty-theme
+  refreshPeriod: 168h
+  pull:
+    args:
+      - --ff-only
+...
