@@ -30,6 +30,7 @@ For chezmoi templates, **load the `chezmoi` skill** — it covers prefix tables 
 - Load the `chezmoi` skill before editing any template file
 - Validate chezmoi behavior against `.help/chezmoi-docs/` or `.help/QUIRKS.md`
 - Run `bash .help/fetch_current_docs.sh` if `.help/chezmoi-docs/` is missing
+- After a structural refactor that adds, renames, or deletes files, run `git status --short`, stage, and commit the working tree before ending the session
 
 ### ⚠️ Ask first
 - Adding new encryption keys (triggers `chezmoi re-encrypt` across all files)

@@ -38,4 +38,4 @@ Decision rule: for fast-moving domains, verify with a web tool before relying on
 
 ## Knowledge Caching
 
-After fetching up-to-date info, **cache it in the project** so future sessions don't re-search. Conventions (location, format, when not to cache) live in the `project-context-setup` skill — load it before setting up a cache for the first time. The TL;DR: cache volatile-but-reusable facts (CLI/API changes, deprecations) under the project's knowledge-cache dir (common: `.tmp/doc-cache/`, `.help/`), one topic per file, ISO-date prefixed; do not cache ephemeral data, one-off answers, or secrets.
+After fetching up-to-date info, **cache it in the project** so future sessions don't re-search. Conventions (location, format, when not to cache) live in the `project-context` skill — load it before setting up a cache for the first time. The TL;DR: cache volatile-but-reusable facts (CLI/API changes, deprecations) under the project's knowledge-cache dir (common: `.tmp/doc-cache/`, `.help/`), one topic per file, ISO-date prefixed; do not cache ephemeral data, one-off answers, or secrets.

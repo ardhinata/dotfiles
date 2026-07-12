@@ -108,14 +108,14 @@ chezmoi init --apply
 │       ├── rules/
 │       │   ├── ambiguity-resolution.md        # Agent instruction: when to ask for clarification
 │       │   ├── fnm.md.tmpl                     # Fast Node Manager (fnm) rule
-│       │   ├── project-context-setup.md        # Project documentation setup rule
+│       │   ├── project-context.md              # Project context and documentation rule
 │       │   ├── rtk-rules.md.tmpl               # RTK token-optimized CLI proxy rules
 │       │   ├── self-analysis.md                # Self-analysis (3-Why) rule
 │       │   ├── semantic-search.md              # Semantic search usage rule
 │       │   └── web-tools-priority.md           # Web tool selection priority rule
 │       └── skills/
 │           ├── fnm/                            # FNM skill (node version management)
-│           ├── project-context-setup/          # Project context setup skill
+│           ├── project-context/                # Project context and documentation skill
 │           └── rtk/                            # RTK skill (token-optimized CLI proxy)
 │
 ├── dot_gitconfig               → ~/.gitconfig
