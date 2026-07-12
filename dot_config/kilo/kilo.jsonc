@@ -28,6 +28,7 @@
     "agent_manager_tool": true,
     "openTelemetry": true,
     "mcp_timeout": 30000,
+    "swe_pruner": true,
   },
   "mcp": {
     "tavily": {
@@ -152,25 +153,18 @@
     },
   },
   "indexing": {
-    // FIXED 2026-07-11: `qwen/qwen3-embedding-8b` did not exist on OpenRouter
-    // (verified against anomalyco/models.dev@dev); switched to
-    // `openai/text-embedding-3-small` (1536-dim, supported on OpenRouter) and
-    // dropped the Qwen3-specific MRL dimension override. Changing `model`
-    // requires re-indexing ~/.cache/kilo/index.
-    "model": "openai/text-embedding-3-small",
+    "model": "qwen/qwen3-embedding-8b",
     "provider": "openrouter",
     "openrouter": {
       "apiKey": "{env:OPENROUTER_API_KILO_INDEX}",
       "specificProvider": "nebius",
     },
-    "lancedb": {
-      "directory": "{{ .chezmoi.homeDir }}/.cache/kilo/index",
-    },
     "searchMinScore": 0.5,
     "searchMaxResults": 16,
     "embeddingBatchSize": 100,
     "scannerMaxBatchRetries": 5,
+    "dimension": 2560,
   },
   "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
-  "instructions": ["{{ .chezmoi.homeDir }}/.config/kilo/rules/*.md"],
+  "instructions": ["~/.config/kilo/rules/*.md"],
 }

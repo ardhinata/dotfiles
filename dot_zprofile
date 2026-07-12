@@ -1,1 +1,6 @@
 [[ -f ~/.profile ]] && emulate sh -c 'source ~/.profile'
+
+
+# Added by Toolbox App
+export PATH="$PATH:/home/ardhinata/.local/share/JetBrains/Toolbox/scripts"
+

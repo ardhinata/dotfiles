@@ -17,6 +17,7 @@ Surface a suggestion when any of the following is true:
 - About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in a project with no knowledge cache
 - Turn-1 discovery revealed non-obvious conventions an `AGENTS.md` would eliminate
 - Spent >2 turns explaining project-specific patterns
+- User asks to create, fix, or review a `.gitignore`
 
 `AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should stay under ~60 lines; deeper subsystem knowledge belongs in `.kilo/skills/` (on-demand). Kilo's own rules in `~/.config/kilo/rules/` are per-session overhead managed separately and do not compete with this budget.
 
@@ -116,6 +117,12 @@ For monorepos, place an `AGENTS.md` inside each package. The agent reads the **c
 ## Anti-patterns
 
 See [`references/anti-patterns.md`](references/anti-patterns.md).
+
+## References
+
+- [`references/AGENTS.md`](references/AGENTS.md) — copy-as-template for new project `AGENTS.md`.
+- [`references/knowledge-cache.md`](references/knowledge-cache.md) — date-tagged web-learned facts cache convention.
+- [`references/gitignore-toptal-api.md`](references/gitignore-toptal-api.md) — Toptal gitignore API workflow and pre-seeded template catalog. Use when generating, fixing, or reviewing `.gitignore`.
 
 ## Worked scenario
 

@@ -51,3 +51,4 @@ This file is *not* a project AGENTS.md and is not auto-loaded by Kilo. -->
 - Deeper docs: `<relative/path/to/ARCHITECTURE.md>`
 - Conventions: `<relative/path/to/CONTRIBUTING.md>`
 - Knowledge cache: `.tmp/doc-cache/` (see `web-tools-priority` rule)
+- `.gitignore` workflow: see the project's gitignore reference (template, Toptal API, OS/IDE/framework catalog).
