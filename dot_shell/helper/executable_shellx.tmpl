@@ -1,0 +1,716 @@
+#!/usr/bin/env python3
+# shellx — stealth-first secret manager for the chezmoi dotfiles repo.
+# Pure Python 3 stdlib (no pip, no venv). See dot_shell/helper/.help/ for docs.
+import argparse
+import errno
+import getpass
+import glob
+import hashlib
+import hmac
+import json
+import os
+import re
+import secrets
+import shutil
+import socket
+import stat
+import struct
+import subprocess
+import sys
+import tempfile
+import time
+from datetime import datetime, timezone
+
+# ---- Constants ------------------------------------------------------------
+
+SHELLX_VERSION = "1.0.0"
+SHELLX_STORE_MARKER = os.path.join(os.path.expanduser("~"), ".shellx-store")
+SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
+{{- /* Per-profile static password, identical derivation to the legacy runpriv helpers. */}}
+STATIC_PW = "chezmoi:{{- .system_environment.profile | sha512sum -}}"
+
+MAGIC = b"SHX1"
+VERSION = 1
+SCRYPT_N = 1 << 15
+SCRYPT_R = 8
+SCRYPT_P = 1
+SCRYPT_DKLEN = 64       # 32 enc + 32 mac
+SCRYPT_MAXMEM = 64 * 1024 * 1024   # 64 MiB (default 32 MiB is too tight for N=2^15, r=8)
+SALT_LEN = 16
+NONCE_LEN = 12
+TAG_LEN = 16
+
+# AAD prefix prepended to ciphertext before HMAC. Binds blob to its own header
+# + the variable name, preventing blob-swap attacks across entries.
+AAD_PREFIX = b"SHX1-AEAD1"
+
+# ---- Pure-Python ChaCha20 (RFC 7539) --------------------------------------
+# Tiny reference implementation. ~80 lines. ~5-20 MB/s on a modern CPU,
+# fine for sub-kilobyte token blobs.
+
+def _chacha20_quarter_round(state, a, b, c, d):
+    state[a] = (state[a] + state[b]) & 0xFFFFFFFF; state[d] ^= state[a]; state[d] = ((state[d] << 16) | (state[d] >> 16)) & 0xFFFFFFFF
+    state[c] = (state[c] + state[d]) & 0xFFFFFFFF; state[b] ^= state[c]; state[b] = ((state[b] << 12) | (state[b] >> 20)) & 0xFFFFFFFF
+    state[a] = (state[a] + state[b]) & 0xFFFFFFFF; state[d] ^= state[a]; state[d] = ((state[d] << 8)  | (state[d] >> 24)) & 0xFFFFFFFF
+    state[c] = (state[c] + state[d]) & 0xFFFFFFFF; state[b] ^= state[c]; state[b] = ((state[b] << 7)  | (state[b] >> 25)) & 0xFFFFFFFF
+
+def _chacha20_block(key, counter, nonce):
+    # RFC 7539 §2.3 state layout: constants(4) || key(8) || counter(1) || nonce(3)
+    state = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574]
+    for i in range(8):
+        state.append(struct.unpack("<I", key[i*4:(i+1)*4])[0])
+    state.append(counter)
+    state.append(0)
+    state.append(0)
+    state.append(struct.unpack("<I", nonce[0:4])[0])
+    state.append(struct.unpack("<I", nonce[4:8])[0])
+    state.append(struct.unpack("<I", nonce[8:12])[0])
+    working = list(state)
+    for _ in range(10):
+        for col in ((0,4,8,12),(1,5,9,13),(2,6,10,14),(3,7,11,15)):
+            _chacha20_quarter_round(working, *col)
+        for diag in ((0,5,10,15),(1,6,11,12),(2,7,8,13),(3,4,9,14)):
+            _chacha20_quarter_round(working, *diag)
+    out = b""
+    for i in range(16):
+        out += struct.pack("<I", (working[i] + state[i]) & 0xFFFFFFFF)
+    return out
+
+def chacha20_xor(key, nonce, data, counter=0):
+    out = bytearray(len(data))
+    for off in range(0, len(data), 64):
+        block = _chacha20_block(key, counter, nonce)
+        counter = (counter + 1) & 0xFFFFFFFF
+        chunk = data[off:off+64]
+        for i, b in enumerate(chunk):
+            out[off+i] = b ^ block[i]
+    return bytes(out)
+
+# ---- Crypto helpers --------------------------------------------------------
+
+def _derive_keys(static_pw: str, salt: bytes) -> tuple[bytes, bytes]:
+    raw = hashlib.scrypt(static_pw.encode(), salt=salt, n=SCRYPT_N, r=SCRYPT_R, p=SCRYPT_P, maxmem=SCRYPT_MAXMEM, dklen=SCRYPT_DKLEN)
+    return raw[:32], raw[32:]
+
+def _aad(var_name: str, salt: bytes, nonce: bytes) -> bytes:
+    return AAD_PREFIX + b"|" + salt + b"|" + nonce + b"|" + var_name.encode()
+
+def encrypt_blob(static_pw: str, var_name: str, plaintext: bytes) -> bytes:
+    salt = secrets.token_bytes(SALT_LEN)
+    nonce = secrets.token_bytes(NONCE_LEN)
+    enc_key, mac_key = _derive_keys(static_pw, salt)
+    ct = chacha20_xor(enc_key, nonce, plaintext, counter=0)
+    aad = _aad(var_name, salt, nonce)
+    tag = hmac.new(mac_key, aad + ct, hashlib.blake2b).digest()[:TAG_LEN]
+    return MAGIC + bytes([VERSION]) + salt + nonce + tag + ct
+
+def decrypt_blob(static_pw: str, var_name: str, blob: bytes) -> bytes:
+    if len(blob) < 4 + 1 + SALT_LEN + NONCE_LEN + TAG_LEN:
+        raise ValueError("blob too short")
+    if blob[:4] != MAGIC:
+        raise ValueError("bad magic")
+    if blob[4] != VERSION:
+        raise ValueError(f"unsupported version: {blob[4]}")
+    off = 5
+    salt = blob[off:off+SALT_LEN]; off += SALT_LEN
+    nonce = blob[off:off+NONCE_LEN]; off += NONCE_LEN
+    tag = blob[off:off+TAG_LEN]; off += TAG_LEN
+    ct = blob[off:]
+    enc_key, mac_key = _derive_keys(static_pw, salt)
+    aad = _aad(var_name, salt, nonce)
+    expected = hmac.new(mac_key, aad + ct, hashlib.blake2b).digest()[:TAG_LEN]
+    if not hmac.compare_digest(expected, tag):
+        raise ValueError("auth tag mismatch")
+    return chacha20_xor(enc_key, nonce, ct, counter=0)
+
+# ---- Store path + slug -----------------------------------------------------
+
+def _resolve_store_path() -> str:
+    marker = SHELLX_STORE_MARKER
+    if os.path.exists(marker):
+        with open(marker, "r") as f:
+            p = f.read().strip()
+        if p and os.path.isdir(p):
+            return p
+    _die("shellx is not initialized. Run `shellx init` first.", code=2)
+
+def _slug_path() -> str:
+    return _resolve_store_path()
+
+def _idx_path() -> str:
+    return os.path.join(_slug_path(), ".idx")
+
+def _sl_path() -> str:
+    return os.path.join(_slug_path(), ".sl")
+
+def _blob_name(var_name: str, slug: str) -> str:
+    h = hashlib.blake2b((var_name + "\0" + slug).encode(), digest_size=8).hexdigest()
+    return h
+
+def _read_slug() -> str:
+    with open(_sl_path(), "r") as f:
+        return f.read().strip()
+
+def _read_idx() -> dict:
+    p = _idx_path()
+    if not os.path.exists(p):
+        return {}
+    out = {}
+    with open(p, "r") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split("\t")
+            if len(parts) < 4:
+                continue
+            var, tags, procs, updated = parts[0], parts[1], parts[2], parts[3]
+            out[var] = {
+                "tag": [t for t in tags.split(",") if t],
+                "process": [p for p in procs.split(",") if p],
+                "updated": updated,
+            }
+    return out
+
+def _write_idx(idx: dict) -> None:
+    p = _idx_path()
+    tmp = p + ".tmp"
+    with open(tmp, "w") as f:
+        for var, meta in sorted(idx.items()):
+            f.write("{}\t{}\t{}\t{}\n".format(
+                var,
+                ",".join(meta.get("tag", [])),
+                ",".join(meta.get("process", [])),
+                meta.get("updated", ""),
+            ))
+    os.replace(tmp, p)
+    os.chmod(p, 0o600)
+
+# ---- Subcommands -----------------------------------------------------------
+
+def cmd_init(args) -> int:
+    if not args.slug_dir:
+        slug = secrets.token_hex(8)
+        parent = os.path.expanduser("~/.local/share")
+        os.makedirs(parent, exist_ok=True)
+        store = os.path.join(parent, slug)
+    else:
+        store = args.slug_dir
+
+    if os.path.exists(store):
+        if not os.path.isdir(store):
+            _die(f"path exists and is not a directory: {store}", code=2)
+        sl = os.path.join(store, ".sl")
+        if os.path.exists(sl):
+            print(f"already initialized at {store}", file=sys.stderr)
+            return 0
+
+    os.makedirs(store, exist_ok=True)
+    os.chmod(store, 0o700)
+    slug = os.path.basename(store)
+
+    with open(os.path.join(store, ".sl"), "w") as f:
+        f.write(slug + "\n")
+    os.chmod(os.path.join(store, ".sl"), 0o600)
+
+    if not os.path.exists(os.path.join(store, ".idx")):
+        with open(os.path.join(store, ".idx"), "w") as f:
+            pass
+        os.chmod(os.path.join(store, ".idx"), 0o600)
+
+    marker = SHELLX_STORE_MARKER
+    with open(marker, "w") as f:
+        f.write(store + "\n")
+    os.chmod(marker, 0o600)
+
+    print(f"shellx initialized at {store}")
+    print(f"slug: {slug}")
+    print()
+    print("Next steps:")
+    print("  shellx store VAR --tag=a,b --process=x,y   # value is read from stdin")
+    return 0
+
+def cmd_store(args) -> int:
+    var = args.var
+    if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", var):
+        _die(f"invalid variable name: {var}", code=2)
+
+    if sys.stdin.isatty():
+        val = getpass.getpass(f"Enter value for {var}: ")
+    else:
+        val = sys.stdin.read()
+    val = val.rstrip("\n")
+    if not val:
+        _die("empty value not allowed", code=2)
+
+    slug = _read_slug()
+    blob = encrypt_blob(STATIC_PW, var, val.encode())
+    blob_path = os.path.join(_slug_path(), _blob_name(var, slug))
+    tmp = blob_path + ".tmp"
+    with open(tmp, "wb") as f:
+        f.write(blob)
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, blob_path)
+
+    idx = _read_idx()
+    idx[var] = {
+        "tag": list(args.tag or []),
+        "process": list(args.process or []),
+        "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    _write_idx(idx)
+
+    val = "\x00" * len(val)
+    blob = b"\x00" * len(blob)
+
+    print(f"stored {var} ({len(args.tag or [])} tag(s), {len(args.process or [])} process(es))")
+    return 0
+
+def cmd_list(args) -> int:
+    idx = _read_idx()
+    if not idx:
+        print("(empty)", file=sys.stderr)
+        return 0
+    for var, meta in sorted(idx.items()):
+        tags = ",".join(meta.get("tag", []))
+        procs = ",".join(meta.get("process", []))
+        print(f"{var}\ttags={tags}\tprocess={procs}\tupdated={meta.get('updated','')}")
+    return 0
+
+def cmd_rm(args) -> int:
+    slug = _read_slug()
+    blob_path = os.path.join(_slug_path(), _blob_name(args.var, slug))
+    if os.path.exists(blob_path):
+        os.remove(blob_path)
+    idx = _read_idx()
+    if args.var in idx:
+        del idx[args.var]
+        _write_idx(idx)
+    print(f"removed {args.var}")
+    return 0
+
+def cmd_export(args) -> int:
+    slug = _read_slug()
+    store = _slug_path()
+    idx = _read_idx()
+    if not idx:
+        _die("nothing to export (empty store)", code=2)
+
+    entries = {}
+    for var, meta in idx.items():
+        blob_path = os.path.join(store, _blob_name(var, slug))
+        if not os.path.exists(blob_path):
+            _die(f"missing blob for {var}", code=2)
+        with open(blob_path, "rb") as f:
+            blob = f.read()
+        try:
+            pt = decrypt_blob(STATIC_PW, var, blob)
+        except Exception as e:
+            _die(f"failed to decrypt {var}: {e}", code=2)
+        entries[var] = {
+            "value": pt.decode("utf-8"),
+            "tag": meta.get("tag", []),
+            "process": meta.get("process", []),
+        }
+        blob = b"\x00" * len(blob)
+
+    host = socket.gethostname().split(".")[0]
+    now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    header = [
+        "// shellx_export: true",
+        "// shellx export — DO NOT EDIT by hand. Re-export with `shellx export`.",
+        "// Format version: 1",
+        "// Hostname:        " + host,
+        "// Profile:         " + os.environ.get("SHELLX_PROFILE", ""),
+        "// Slug:            " + slug,
+        "// Exported at:     " + datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "// Shellx version:  " + SHELLX_VERSION,
+        "// Original path:   " + store,
+        "{",
+    ]
+    body_lines = []
+    first = True
+    for var in sorted(entries.keys()):
+        e = entries[var]
+        meta = idx[var]
+        if not first:
+            body_lines.append(",")
+        first = False
+        meta_str = "tags: " + json.dumps(e["tag"]) + "  processes: " + json.dumps(e["process"]) + "  updated: " + meta.get("updated", "")
+        body_lines.append("  // var: " + var + "  " + meta_str)
+        body_lines.append("  " + json.dumps(var) + ": {")
+        body_lines.append('    "value": ' + json.dumps(e["value"]) + ",")
+        body_lines.append('    "tag": ' + json.dumps(e["tag"]) + ",")
+        body_lines.append('    "process": ' + json.dumps(e["process"]))
+        body_lines.append("  }")
+        e["value"] = "\x00" * len(e["value"])
+    body_lines.append("}")
+    text = "\n".join(header + body_lines) + "\n"
+
+    dest_dir = args.to
+    if not dest_dir:
+        dest_dir = _detect_export_dir()
+    os.makedirs(dest_dir, exist_ok=True)
+    label = args.label or f"{host}_{slug}_{now}"
+    base = f"encrypted_{label}.jsonc"
+    plain_path = os.path.join(dest_dir, base)
+    age_path = plain_path + ".age"
+
+    if args.no_encrypt:
+        with open(plain_path, "w") as f:
+            f.write(text)
+        os.chmod(plain_path, 0o600)
+        print(f"WARNING: wrote PLAINTEXT JSONC to {plain_path}", file=sys.stderr)
+        return 0
+
+    # Default: pipe plaintext into `chezmoi encrypt --output`. No plaintext
+    # ever touches disk. chezmoi resolves age recipients from its config.
+    result = subprocess.run(
+        ["chezmoi", "encrypt", "--output", age_path],
+        input=text.encode("utf-8"),
+        capture_output=True,
+    )
+    text = "\x00" * len(text)
+    if result.returncode != 0:
+        sys.stderr.write(result.stderr.decode("utf-8", errors="replace"))
+        _die(f"chezmoi encrypt failed (rc={result.returncode})", code=result.returncode)
+    if not os.path.exists(age_path):
+        _die(f"expected age file not produced: {age_path}", code=2)
+    os.chmod(age_path, 0o600)
+    print(f"exported to {age_path}")
+    return 0
+
+def _detect_export_dir() -> str:
+    """Resolve the chezmoi source dir's .encrypted_data/tokens/ path."""
+    src = os.environ.get("CHEZMOI_SOURCE_PATH", "").strip()
+    candidates = []
+    if src:
+        candidates.append(os.path.join(src, ".encrypted_data", "tokens"))
+    try:
+        out = subprocess.check_output(["chezmoi", "source-path"], text=True, stderr=subprocess.DEVNULL).strip()
+        if out:
+            candidates.append(os.path.join(out, ".encrypted_data", "tokens"))
+    except Exception:
+        pass
+    candidates.append(os.path.expanduser("~/.local/share/chezmoi/.encrypted_data/tokens"))
+    for c in candidates:
+        return c
+    return candidates[-1]
+
+def cmd_import(args) -> int:
+    src = args.path
+    if not os.path.exists(src):
+        _die(f"file not found: {src}", code=2)
+
+    if src.endswith(".age"):
+        text = _age_decrypt(src)
+    elif src.endswith(".jsonc") or src.endswith(".json"):
+        with open(src, "r") as f:
+            text = f.read()
+    else:
+        _die(f"unrecognized file extension (expected .jsonc, .json, .age): {src}", code=2)
+
+    parsed = _parse_jsonc(text)
+    header = parsed["__header__"]
+    payload = parsed["data"]
+    if not header.get("shellx_export"):
+        _die("file is not a shellx export (missing `shellx_export` header line)", code=2)
+    src_slug = header.get("slug", "")
+
+    if args.to:
+        target_dir = args.to
+        target_slug = args.slug or os.path.basename(target_dir.rstrip("/"))
+    else:
+        marker = SHELLX_STORE_MARKER
+        if os.path.exists(marker):
+            target_dir = _resolve_store_path()
+            target_slug = _read_slug()
+        else:
+            print("shellx: store not initialized; running init", file=sys.stderr)
+            cmd_init(argparse.Namespace(slug_dir=None))
+            target_dir = _resolve_store_path()
+            target_slug = _read_slug()
+
+    if args.slug and args.slug != target_slug:
+        _die("--slug and --to slug disagree", code=2)
+
+    if args.dry_run:
+        print(f"# would import {len(payload)} entries into {target_dir} (slug={target_slug})")
+        for var, e in sorted(payload.items()):
+            print(f"  - {var} tags={e.get('tag',[])} processes={e.get('process',[])} value_len={len(e.get('value',''))}")
+        return 0
+
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir, exist_ok=True)
+        os.chmod(target_dir, 0o700)
+    if not os.path.exists(os.path.join(target_dir, ".sl")):
+        with open(os.path.join(target_dir, ".sl"), "w") as f:
+            f.write(target_slug + "\n")
+        os.chmod(os.path.join(target_dir, ".sl"), 0o600)
+    if not os.path.exists(os.path.join(target_dir, ".idx")):
+        open(os.path.join(target_dir, ".idx"), "w").close()
+        os.chmod(os.path.join(target_dir, ".idx"), 0o600)
+    marker = SHELLX_STORE_MARKER
+    with open(marker, "w") as f:
+        f.write(target_dir + "\n")
+    os.chmod(marker, 0o600)
+
+    idx = _read_idx()
+    added, updated, skipped = 0, 0, 0
+    for var, e in sorted(payload.items()):
+        if var in idx and not args.force:
+            skipped += 1
+            continue
+        val = e["value"]
+        blob = encrypt_blob(STATIC_PW, var, val.encode())
+        blob_path = os.path.join(target_dir, _blob_name(var, target_slug))
+        tmp = blob_path + ".tmp"
+        with open(tmp, "wb") as f:
+            f.write(blob)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, blob_path)
+        idx[var] = {
+            "tag": e.get("tag", []),
+            "process": e.get("process", []),
+            "updated": e.get("updated") or datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        if var in idx and args.force:
+            updated += 1
+        else:
+            added += 1
+        val = "\x00" * len(val)
+        blob = b"\x00" * len(blob)
+    _write_idx(idx)
+
+    print(f"imported: added={added} updated={updated} skipped={skipped}")
+    return 0
+
+def _age_decrypt(path: str) -> str:
+    # Use chezmoi decrypt — it knows which age identities are configured
+    # (CHEZMOI_SOURCE_DIR/CHEZMOI_CONFIG_DIR etc.). Avoids hand-rolling
+    # identity discovery against $AGE_IDENTITY_FILE / ~/.config/age/keys.txt /
+    # <source>/.encryption_keys/*.secret.key.
+    result = subprocess.run(
+        ["chezmoi", "decrypt", path],
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        msg = result.stderr.decode("utf-8", errors="replace").strip()
+        _die(f"chezmoi decrypt failed: {msg}", code=result.returncode)
+    return result.stdout.decode("utf-8")
+
+def _parse_jsonc(text: str) -> dict:
+    header = {}
+    in_header = True
+    cleaned_lines = []
+    for line in text.splitlines():
+        if in_header:
+            stripped = line.strip()
+            if stripped.startswith("//"):
+                m = re.match(r"^//\s*([^:]+):\s*(.*)$", stripped)
+                if m:
+                    header[m.group(1).strip()] = m.group(2).strip()
+                continue
+            elif stripped == "" or stripped.startswith("{"):
+                in_header = False
+            else:
+                in_header = False
+        cleaned_lines.append(line)
+    cleaned = "\n".join(cleaned_lines)
+    cleaned = _strip_jsonc_comments(cleaned)
+    data = json.loads(cleaned)
+    return {"__header__": header, "data": data}
+
+def _strip_jsonc_comments(s: str) -> str:
+    out = []
+    i, n = 0, len(s)
+    in_str = False
+    esc = False
+    while i < n:
+        c = s[i]
+        if in_str:
+            out.append(c)
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            i += 1
+            continue
+        if c == '"':
+            in_str = True
+            out.append(c)
+            i += 1
+            continue
+        if c == "/" and i + 1 < n and s[i+1] == "/":
+            while i < n and s[i] != "\n":
+                i += 1
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+# ---- Runtime injection -----------------------------------------------------
+
+def cmd_exec(args) -> int:
+    target_tags = set(args.tags or [])
+    target_process = args.process or (args.pos_proc if hasattr(args, "pos_proc") else None)
+    if not target_tags and not target_process:
+        _die("execution requires --tag=... or --process=... or positional process name", code=2)
+
+    proc = args.pos_proc
+    passthrough = args.pos_args or []
+    if not proc and passthrough:
+        proc = passthrough[0]
+        passthrough = passthrough[1:]
+    if not proc:
+        _die("no process to execute", code=2)
+
+    idx = _read_idx()
+    slug = _read_slug()
+    matched = []
+    for var, meta in idx.items():
+        if target_tags:
+            if not set(meta.get("tag", [])) & target_tags:
+                continue
+        else:
+            if target_process not in meta.get("process", []):
+                continue
+        matched.append(var)
+    if not matched:
+        print(f"shellx: no secrets matched (tags={sorted(target_tags)} process={target_process})", file=sys.stderr)
+
+    env = dict(os.environ)
+    injected = []
+    for var in matched:
+        blob_path = os.path.join(_slug_path(), _blob_name(var, slug))
+        if not os.path.exists(blob_path):
+            print(f"shellx: warning: missing blob for {var}", file=sys.stderr)
+            continue
+        with open(blob_path, "rb") as f:
+            blob = f.read()
+        try:
+            pt = decrypt_blob(STATIC_PW, var, blob)
+        except Exception as e:
+            _die(f"auth failed for {var}: {e}", code=3)
+        env[var] = pt.decode("utf-8")
+        injected.append(var)
+        pt = b"\x00" * len(pt)
+        blob = b"\x00" * len(blob)
+    if injected:
+        env["RUNPRIV_VARS"] = ",".join(injected)
+
+    try:
+        os.execvpe(proc, [proc] + passthrough, env)
+    except OSError as e:
+        _die(f"exec {proc}: {e}", code=127)
+    return 0
+
+# ---- Misc helpers ----------------------------------------------------------
+
+def _die(msg: str, code: int = 1) -> None:
+    print(f"shellx: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+def _build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="shellx", description="Stealth-first secret manager (stdlib only).")
+    sub = p.add_subparsers(dest="cmd")
+
+    sp = sub.add_parser("init", help="Initialize the shellx store")
+    sp.add_argument("--slug-dir", help="Override store path (defaults to ~/.local/share/<random-slug>)")
+    sp.set_defaults(func=cmd_init)
+
+    sp = sub.add_parser("store", help="Store a secret (value via stdin)")
+    sp.add_argument("var")
+    sp.add_argument("--tag", action="append", help="Tag (repeatable)")
+    sp.add_argument("--process", action="append", help="Process name to match (repeatable)")
+    sp.set_defaults(func=cmd_store)
+
+    sp = sub.add_parser("list", help="List stored variables and their tags/processes")
+    sp.set_defaults(func=cmd_list)
+
+    sp = sub.add_parser("rm", help="Remove a stored variable")
+    sp.add_argument("var")
+    sp.set_defaults(func=cmd_rm)
+
+    sp = sub.add_parser("export", help="Export the store to an age-encrypted JSONC file in the chezmoi source tree")
+    sp.add_argument("--to", help="Destination directory (defaults to <source>/.encrypted_data/tokens/)")
+    sp.add_argument("--label", help="Filename label override (default: <host>_<slug>_<utc>)")
+    sp.add_argument("--no-encrypt", action="store_true", help="Write plaintext JSONC (WARNING: secret on disk)")
+    sp.set_defaults(func=cmd_export)
+
+    sp = sub.add_parser("import", help="Import a JSONC or .jsonc.age export")
+    sp.add_argument("path", help=".jsonc, .json, or .jsonc.age file")
+    sp.add_argument("--to", help="Target store directory (defaults to current live store)")
+    sp.add_argument("--slug", help="Target slug (defaults to basename of --to or live store)")
+    sp.add_argument("--force", action="store_true", help="Overwrite existing entries")
+    sp.add_argument("--dry-run", action="store_true", help="Show what would be imported without writing")
+    sp.set_defaults(func=cmd_import)
+
+    return p
+
+# ---- Main ------------------------------------------------------------------
+
+def main(argv: list) -> int:
+    if argv and not argv[0].startswith("-"):
+        if argv[0] in ("init", "store", "list", "rm", "export", "import", "help", "-h", "--help"):
+            pass
+        else:
+            return _exec_main(argv)
+    elif argv and argv[0].startswith("--") and argv[0] not in ("--help", "-h"):
+        return _exec_main(argv)
+
+    parser = _build_parser()
+    if not argv:
+        marker = SHELLX_STORE_MARKER
+        if not os.path.exists(marker):
+            return cmd_init(argparse.Namespace(slug_dir=None))
+        parser.print_help()
+        return 0
+    args = parser.parse_args(argv)
+    if args.cmd is None:
+        parser.print_help()
+        return 0
+    return args.func(args)
+
+def _exec_main(argv: list) -> int:
+    tags = []
+    process = None
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--":
+            i += 1
+            break
+        if a.startswith("--tag="):
+            tags.extend(t.strip() for t in a[len("--tag="):].split(",") if t.strip())
+        elif a == "--tag":
+            if i + 1 < len(argv):
+                tags.extend(t.strip() for t in argv[i+1].split(",") if t.strip())
+                i += 1
+        elif a.startswith("--process="):
+            process = a[len("--process="):].strip() or None
+        elif a == "--process":
+            if i + 1 < len(argv):
+                process = argv[i+1].strip() or None
+                i += 1
+        elif a in ("-h", "--help"):
+            print("Usage: shellx [--tag=a,b] [--process=NAME] [--] <proc> [args...]")
+            return 0
+        else:
+            break
+        i += 1
+    if i >= len(argv):
+        _die("execution requires a process name after the flags", code=2)
+    pos_proc = argv[i]
+    pos_args = argv[i+1:]
+    ns = argparse.Namespace(tags=tags, process=process, pos_proc=pos_proc, pos_args=pos_args)
+    return cmd_exec(ns)
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        print("interrupted", file=sys.stderr)
+        sys.exit(130)

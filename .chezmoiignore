@@ -2,6 +2,14 @@
 **/*.decrypted
 AGENTS.md
 
+## shellx documentation lives in the source tree only — not deployed.
+## These are reference docs for maintainers, not files the user needs in ~.
+dot_shell/helper/.help
+
+## shellx exports are intentionally not auto-restored.
+## Use `shellx import <file>` to explicitly restore secrets onto a machine.
+.encrypted_data/tokens/shellx*
+
 ## Dynamic ignore for files that failed to be decrypted
 {{ $script := joinPath .chezmoi.sourceDir .source_structure.helper "check_decrypt.sh" -}}
 {{ $keyDir := joinPath .chezmoi.sourceDir .source_structure.encryption_keys -}}

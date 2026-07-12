@@ -5,7 +5,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 
 ## Stack
 - **Config**: chezmoi v2.70.4+, `.chezmoi.yaml.tmpl` (age encryption, auto key discovery)
-- **Encryption**: age for files, gpg for age-key backups, openssl ChaCha20 for runpriv
+- **Encryption**: age for files, gpg for age-key backups, Python stdlib scrypt + ChaCha20 + HMAC-BLAKE2b for shellx (no pip/venv)
 - **Shell**: zsh, zgenom (plugin manager), powerlevel10k (prompt)
 
 ## Commands

@@ -1,0 +1,115 @@
+#compdef shellx
+# Zsh completion for the shellx secret manager.
+# Tag/process completion delegates to a tiny stdlib helper script
+# (`shellx_completion_helper`) instead of `jq` so the runtime has zero
+# third-party tool dependencies.
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+local -a subcommands
+subcommands=(
+  'init:Initialize the shellx store'
+  'store:Store a secret (value from stdin)'
+  'list:List stored variables'
+  'rm:Remove a stored variable'
+  'export:Export the store to JSONC (encrypted by default)'
+  'import:Import a JSONC or .jsonc.age export'
+  'help:Show usage'
+)
+
+local helper="${SHELL_TOOL_DIR:-{{ .chezmoi.homeDir }}/.shell}/helper/shellx_completion_helper"
+
+_arguments -C -s \
+  '1: :->cmd' \
+  '*::arg:->args' \
+  && ret=0
+
+case "$state" in
+  cmd)
+    _describe 'subcommand' subcommands
+    ret=0
+    ;;
+  args)
+    case $words[1] in
+      init)
+        _arguments '--slug-dir[Override store path]'
+        ret=0
+        ;;
+      store)
+        _arguments \
+          '1:var:_vars' \
+          '--tag[Tag (repeatable)]' \
+          '--process[Process name to match (repeatable)]'
+        ret=0
+        ;;
+      rm)
+        _arguments '1:var:_vars'
+        ret=0
+        ;;
+      export)
+        _arguments \
+          '--to[Destination directory]' \
+          '--label[Filename label override]' \
+          '--no-encrypt[Write plaintext JSONC (unsafe)]'
+        ret=0
+        ;;
+      import)
+        _arguments \
+          '1:file:_files -g "*.jsonc *.json *.age"' \
+          '--to[Target store directory]' \
+          '--slug[Target slug]' \
+          '--force[Overwrite existing entries]' \
+          '--dry-run[Show what would be imported]'
+        ret=0
+        ;;
+      help|--help|-h)
+        ret=0
+        ;;
+      *)
+        # Exec mode: shellx [--tag=a,b] [--] proc args...
+        local -a tags
+        if [[ -x "$helper" ]]; then
+          tags=(${(f)"$($helper tags 2>/dev/null)"})
+        fi
+        if (( $#tags )); then
+          _arguments \
+            '--tag[Filter by tag]:tag:->tags' \
+            '*::args:->rest'
+          case "$state" in
+            tags)
+              _wanted tags expl 'tag' compadd -a tags
+              ;;
+            rest)
+              local process_name
+              for w in "${words[@]:1}"; do
+                [[ "$w" == --tag* ]] && continue
+                [[ "$w" == -* ]] && continue
+                process_name="$w"
+                break
+              done
+              if [[ -n "$process_name" ]] && (( $+commands[$process_name] )); then
+                shift words
+                (( CURRENT-- ))
+                _normal -p "$service"
+                ret=$?
+              else
+                _default && ret=0
+              fi
+              ;;
+          esac
+        fi
+        ;;
+    esac
+    ;;
+esac
+
+return ret
+
+_vars() {
+  local -a vs
+  if [[ -x "$helper" ]]; then
+    vs=(${(f)"$($helper vars 2>/dev/null)"})
+  fi
+  (( $#vs )) && compadd -a vs
+}

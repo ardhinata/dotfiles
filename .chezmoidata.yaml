@@ -1,6 +1,17 @@
 source_structure:
   encryption_keys: ".encryption_keys"
   helper: ".shell_helper"
+  # shellx exports land in <source>/.encrypted_data/tokens/ (source-only).
+  # The exported JSONC blobs are written here as encrypted_<host>_<slug>_<utc>.jsonc.age
+  # and explicitly excluded from `chezmoi apply` via .chezmoiignore.
+  encrypted_data: ".encrypted_data"
+  shellx_export_subdir: "tokens"
 
 system_environment:
   profile: ""  # Free-form machine profile, e.g. "home", "office", "work-laptop"
+
+# shellx_slug is generated once on first init (by the shellx binary itself,
+# not the template) and persisted to ~/.shellx-store on disk. The shellx
+# script discovers it at runtime via that marker file.
+shellx:
+  slug: ""  # informational; the real slug lives in ~/.shellx-store

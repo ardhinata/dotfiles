@@ -38,7 +38,7 @@ This project uses a **guarded `output "bash" "-c"` pattern** instead of `decrypt
 3. Check the captured output against the failure marker
 4. Emit a diagnostic comment on failure instead of aborting
 
-Reference implementation: `dot_shell/helper/encrypt_store.sh.tmpl` (Chacha20-based encrypt/decrypt via openssl for the runtime environment store).
+Reference implementation: `dot_shell/helper/executable_shellx.tmpl` (scrypt + ChaCha20 + HMAC-BLAKE2b for the runtime environment store; pure Python 3 stdlib, no pip). The legacy `executable_runpriv.tmpl` / `executable_encrypt_store.sh.tmpl` remain in the tree during transition but are superseded by `shellx`.
 
 ```
 {{- $keys := glob (printf "%s/.encryption_keys/*.secret.key" .chezmoi.sourceDir) -}}

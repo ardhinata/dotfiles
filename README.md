@@ -10,7 +10,7 @@ Personal dotfiles managed with [Chezmoi](https://chezmoi.io), using [age](https:
 - **Profile-based machine differentiation** — A machine profile (`personal-laptop`, `home`, `office`, etc.) drives which encrypted secrets and configurations are deployed to each machine.
 - **Dynamic key discovery** — Age encryption keys in `.encryption_keys/` are auto-discovered via glob patterns — no config changes needed when adding or removing keys.
 - **Smart file exclusion** — Encrypted files that cannot be decrypted with available keys are automatically ignored at apply time, preventing errors on machines without a full key set.
-- **Secure environment injection** — Environment variables for API tokens and secrets are encrypted at rest and injected on-demand at process launch via `runpriv`, avoiding persistent token exposure in the shell environment.
+- **Secure environment injection** — Environment variables for API tokens and secrets are encrypted at rest and injected on-demand at process launch via `shellx`, avoiding persistent token exposure in the shell environment. `shellx` is a pure-Python-stdlib helper (no `pip`, no venv) with an opaque on-disk format, JSONC export/import to the chezmoi source tree, and zsh completion. See `dot_shell/helper/.help/` (source-only) for full documentation.
 - **Plugin-driven Zsh** — Modular shell configuration via zgenom with Prezto modules: completion, syntax highlighting, history search, git, prompt, and more.
 - **Hardened SSH configuration** — Global SSH hardening (strong host key/KEX/MAC algorithms, strict host key checking) with encrypted per-host config includes and visual host keys.
 - **GPG-backed SSH agent** — SSH authentication via `gpg-agent` with automatic `SSH_AUTH_SOCK` setup.
@@ -130,15 +130,18 @@ chezmoi init --apply
 ├── dot_shell/                  → ~/.shell/
 │   ├── zsh/
 │   │   ├── 00-before-zgenom.zsh        # Pre-plugin initialization
-│   │   ├── 10-common-export.zsh         # EDITOR, SSH_AUTH_SOCK, runpriv alias
+│   │   ├── 10-common-export.zsh         # EDITOR, SSH_AUTH_SOCK, shellx on PATH
 │   │   ├── 15-zgenom-helper-func.zsh   # Helper functions for zgenom-loaded plugins
 │   │   └── completions/
-│   │       └── _runpriv.tmpl            # Zsh completion for runpriv
+│   │       └── _shellx.tmpl            # Zsh completion for shellx
 │   ├── helper/
-│   │   ├── executable_runpriv.tmpl              # On-demand environment variable injector
-│   │   └── executable_encrypt_store.sh.tmpl    # Secure environment variable encryption utility
+│   │   ├── executable_shellx.tmpl               # Stealth-first secret manager (Python 3 stdlib)
+│   │   ├── executable_shellx_completion_helper.tmpl
+│   │   ├── .help/                               # shellx docs (source-only — not deployed)
+│   │   ├── executable_runpriv.tmpl              # LEGACY — superseded by shellx
+│   │   └── executable_encrypt_store.sh.tmpl    # LEGACY — superseded by shellx
 │   └── private_store/               # Encrypted environment variable JSON stores
-│       └── encrypted_private_<profile>_environment_store.json.age
+│       └── encrypted_private_<profile>_environment_store.json.age  # legacy; see dot_shell/helper/.help/ (source-only)
 │
 ├── dot_ssh/                    → ~/.ssh/
 │   ├── config                  # SSH client config with hardened defaults
@@ -199,19 +202,50 @@ This dotfiles repo supports per-machine profiles for managing environment-specif
 
 ### Secure environment injection
 
-The `runpriv` helper launches processes with secrets injected from an encrypted JSON store:
+The `shellx` helper launches processes with secrets injected from an
+opaque on-disk store. It replaces the older `runpriv` /
+`encrypt_store.sh` helpers with a Python 3 stdlib implementation that
+has no `pip` or venv dependency and avoids common credential-file
+signatures.
 
 ```bash
-# Store an environment variable
-encrypt_store.sh set GITHUB_TOKEN "<value>" --tags github,api
+# First-time setup (auto-runs on first invocation; explicit init is also fine).
+shellx init
 
-# Run a command with matching secrets injected
-runpriv gh pr list  # injects all GITHUB_TOKEN-tagged secrets
+# Store an environment variable (value is read from stdin or prompted).
+printf '%s' 'ghp_xxxxxxxxxxxxxxxxxxxx' \
+  | shellx store GH_TOKEN --tag=git,api --process=gh,glab
+
+# Run a command with matching secrets injected.
+shellx --tag=git gh pr list   # injects GH_TOKEN (and any other --tag=git vars)
 ```
 
-Environment variables are encrypted with OpenSSL ChaCha20 and stored in `~/.shell/store/`. Only the secrets matching the command's tags are exposed — never persisted in the shell environment or shell history.
+Secrets are encrypted with **scrypt + ChaCha20 + HMAC-BLAKE2b**
+(variable-name-bound AAD) and stored as opaque binary blobs under
+`~/.local/share/<random-16-hex-slug>/`. The slug and per-secret blob
+filenames are blake2b hashes — indistinguishable from app-cache noise
+to a static scanner. See `dot_shell/helper/.help/` (source-only) for
+the full design, crypto, and limitations.
 
-The injected process also receives `RUNPRIV_VARS`, a comma-separated list of the injected secret names (e.g., `GITHUB_TOKEN,NPM_TOKEN`), so scripts can introspect which secrets are available.
+The injected process also receives `RUNPRIV_VARS`, a comma-separated
+list of injected secret names, so scripts can introspect which secrets
+are available.
+
+#### Export / import to the chezmoi source tree
+
+```bash
+# Write an age-encrypted JSONC export to <source>/.encrypted_data/tokens/
+shellx export
+
+# Restore on another machine.
+shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age
+```
+
+Exports are JSONC (JSON with `//` comments) containing per-entry
+metadata in comments — readable, editable, diffable. By default the
+plaintext JSONC is piped directly through `chezmoi encrypt` and never
+touches disk. `.chezmoiignore` excludes these blobs from
+`chezmoi apply`, so restoration is **explicit** via `shellx import`.
 
 ### SSH configuration workflow
 
