@@ -18,7 +18,8 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - `bash .help/fetch_current_docs.sh` — refresh local chezmoi + sprig API docs
 
 ## Code style
-For chezmoi templates, **load the `chezmoi` skill** — it covers prefix tables (`dot_`, `encrypted_`), source-state attributes, and template function guidelines. Before making assumptions about chezmoi behavior, validate against `.help/chezmoi-docs/` and `.help/QUIRKS.md`.
+- For chezmoi templates: **load the `chezmoi` skill** — it covers prefix tables (`dot_`, `encrypted_`), source-state attributes, and template function guidelines. Validate assumptions against `.help/chezmoi-docs/` and `.help/QUIRKS.md`.
+- For agent-context files (`AGENTS.md`, `SKILL.md`): **load the `agent-context` skill** — it covers the agents.md open standard and the agentskills.io spec + best practices.
 
 ## Testing rules
 - Always run `chezmoi diff` before applying to verify expected output.
@@ -44,9 +45,10 @@ For chezmoi templates, **load the `chezmoi` skill** — it covers prefix tables 
 - Modify `.encryption_keys/` without understanding the re-encrypt workflow
 
 ## Pointers
-- Full conventions + prefix tables: `.kilo/skills/chezmoi/SKILL.md`
+- Project overview: `README.md`
+- Full chezmoi conventions + prefix tables: `.kilo/skills/chezmoi/SKILL.md`
 - Project rules: `.kilo/rules/chezmoi-source-project.md`
+- Agent-context conventions (AGENTS.md, SKILL.md): `.kilo/skills/agent-context/SKILL.md`
 - Edge cases (decrypt abort, etc.): `.help/QUIRKS.md`
 - Doc index (chezmoi + sprig): `.help/DOCS_MAP.md`
 - Knowledge cache: `.help/` (local chezmoi/sprig docs)
-- Project overview: `README.md`
