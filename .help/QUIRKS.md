@@ -38,7 +38,7 @@ This project uses a **guarded `output "bash" "-c"` pattern** instead of `decrypt
 3. Check the captured output against the failure marker
 4. Emit a diagnostic comment on failure instead of aborting
 
-Reference implementation: `dot_shell/helper/executable_shellx.tmpl` (scrypt + ChaCha20 + HMAC-BLAKE2b for the runtime environment store; pure Python 3 stdlib, no pip). The legacy `executable_runpriv.tmpl` / `executable_encrypt_store.sh.tmpl` remain in the tree during transition but are superseded by `shellx`.
+Reference implementation: `dot_shell/helper/executable_shellx` (scrypt + ChaCha20 + HMAC-BLAKE2b for the runtime environment store; pure Python 3 stdlib, no pip). The legacy `executable_runpriv.tmpl` / `executable_encrypt_store.sh.tmpl` remain in the tree during transition but are superseded by `shellx`. The shellx static password is derived from `chezmoi data --format json`'s `system_environment.nonce` at runtime, so the script ships as a plain (non-templated) executable.
 
 ```
 {{- $keys := glob (printf "%s/.encryption_keys/*.secret.key" .chezmoi.sourceDir) -}}

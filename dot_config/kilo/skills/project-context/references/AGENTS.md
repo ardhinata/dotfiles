@@ -50,5 +50,5 @@ This file is *not* a project AGENTS.md and is not auto-loaded by Kilo. -->
 - **`README.md`** — required. The project's human-facing narrative (problem, audience, getting started). `AGENTS.md` complements but never duplicates the README.
 - Deeper docs: `<relative/path/to/ARCHITECTURE.md>`
 - Conventions: `<relative/path/to/CONTRIBUTING.md>`
-- Knowledge cache: `.tmp/doc-cache/` (see `web-tools-priority` rule)
+- Knowledge cache: `<relative/path/to/.tmp/doc-cache>/README.md` index (see `web-tools-priority` rule and `references/knowledge-cache.md`)
 - `.gitignore` workflow: see the project's gitignore reference (template, Toptal API, OS/IDE/framework catalog).

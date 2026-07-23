@@ -65,7 +65,7 @@ shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.ag
 
 | Path (chezmoi source) | Purpose |
 |---|---|
-| `dot_shell/helper/executable_shellx.tmpl` | The Python 3 launcher + all subcommands. |
+| `dot_shell/helper/executable_shellx` | The Python 3 launcher + all subcommands. Plain (non-templated); reads `system_environment.nonce` from `chezmoi data` at runtime. |
 | `dot_shell/helper/executable_shellx_completion_helper.tmpl` | Tiny stdlib helper used by the zsh completion. |
 | `dot_shell/helper/.help/` | This documentation set (source-only — excluded from `chezmoi apply`). |
 | `dot_shell/zsh/completions/_shellx.tmpl` | zsh completion (`#compdef shellx`). |

@@ -1,8 +1,5 @@
-# Fast Node Manager (`fnm`)
-
-Node.js work requires `fnm`. Run `fnm use --install-if-missing` before any node/npm/pnpm/yarn/npx command. Full command reference and edge cases are in the **`fnm` skill** — load it when about to run Node tooling.
-
-{{- if not (lookPath "fnm") }}
-
-`fnm` is not installed on this machine. Before Node work, surface the required version (`.node-version` / `.nvmrc` / `package.json#engines.node`) and recommend installing fnm — do not run the installer.
-{{- end }}
+{{- if lookPath "fnm" -}}
+{{ include "dot_config/kilo/rules/.template-resources/fnm_installed.md" -}}
+{{- else -}}
+{{ include "dot_config/kilo/rules/.template-resources/fnm_not-installed.md" -}}
+{{- end -}}

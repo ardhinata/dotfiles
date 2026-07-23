@@ -1,0 +1,9 @@
+{{- if and (lookPath "docker") (lookPath "podman") -}}
+{{ include "dot_config/kilo/rules/.template-resources/container_both-installed.md" -}}
+{{- else if lookPath "podman" -}}
+{{ include "dot_config/kilo/rules/.template-resources/container_only-podman.md" -}}
+{{- else if lookPath "docker" -}}
+{{ include "dot_config/kilo/rules/.template-resources/container_only-docker.md" -}}
+{{- else -}}
+{{ include "dot_config/kilo/rules/.template-resources/container_neither-installed.md" -}}
+{{- end -}}

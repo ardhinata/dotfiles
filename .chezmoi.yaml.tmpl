@@ -1,4 +1,8 @@
 {{- $profile := promptStringOnce . "system_environment.profile" "Which profile should be used?" -}}
+{{- $nonce := dig "system_environment" "nonce" "" . | toString -}}
+{{- if ne (len (nospace $nonce)) 64 -}}
+{{-   $nonce = randAlphaNum 64 -}}
+{{- end -}}
 encryption: "age"
 age:
   identities:
@@ -8,3 +12,4 @@ age:
 data:
   system_environment:
     profile: {{ $profile | quote }}
+    nonce: {{ $nonce | quote }}

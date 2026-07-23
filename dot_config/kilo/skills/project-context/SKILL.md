@@ -1,6 +1,6 @@
 ---
 name: project-context
-description: Project agent-context and documentation convention. Use when starting work in a project that lacks AGENTS.md/CLAUDE.md or a standardized docs directory, or when about to fetch external info via tavily/firecrawl/context7 in a project that has no knowledge cache (`.help/`, `.tmp/doc-cache/`).
+description: Project agent-context and documentation convention. Use when starting work in a project that lacks AGENTS.md/CLAUDE.md or a standardized docs directory, or when about to fetch external info via tavily/firecrawl/context7 in a project that has no knowledge cache (`docs/`, `.tmp/doc-cache/`).
 ---
 
 # Project Context
@@ -100,7 +100,7 @@ Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`)
 
 ## Knowledge cache
 
-If the project has no knowledge cache for date-tagged web-learned facts, suggest creating one and referencing it from `AGENTS.md` → `Pointers`. Conventions: see `references/knowledge-cache.md` and the global rule `~/.config/kilo/rules/web-tools-priority.md`.
+If the project has no knowledge cache for date-tagged web-learned facts, suggest creating one with a `README.md` index and referencing the cache path from `AGENTS.md` → `Pointers`. Conventions: see `references/knowledge-cache.md` and the global rule `~/.config/kilo/rules/web-tools-priority.md`.
 
 ## Writing rules
 

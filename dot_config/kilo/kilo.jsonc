@@ -1,12 +1,27 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "permission": {
+    "bash": {
+      "*": "allow",
+    },
     "edit": {
       ".tmp/doc-cache/**": "allow",
     },
-    "bash": "allow",
+    "external_directory": {
+      "/tmp/kilo/*": "allow",
+      "/tmp/*": "allow",
+    },
+    "interactive_terminal": {
+      "*": "ask",
+    },
+    "kilo_memory_recall": {
+      "*": "allow",
+    },
+    "kilo_memory_save": {
+      "*": "allow",
+    },
   },
-  "model": "openrouter/deepseek/deepseek-v4-pro",
+  "model": "openrouter/minimax/minimax-m3",
   "small_model": "openrouter/deepseek/deepseek-v4-flash",
   "agent": {
     "orchestrator": {
@@ -29,6 +44,7 @@
     "openTelemetry": true,
     "mcp_timeout": 30000,
     "swe_pruner": true,
+    "swe_pruner_model": "openrouter/deepseek/deepseek-v4-pro",
   },
   "mcp": {
     "tavily": {
@@ -167,4 +183,8 @@
   },
   "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
   "instructions": ["~/.config/kilo/rules/*.md"],
+  "sandbox": {
+    "enabled": false,
+    "network": "allow",
+  },
 }

@@ -135,7 +135,7 @@ chezmoi init --apply
 │   │   └── completions/
 │   │       └── _shellx.tmpl            # Zsh completion for shellx
 │   ├── helper/
-│   │   ├── executable_shellx.tmpl               # Stealth-first secret manager (Python 3 stdlib)
+│   │   ├── executable_shellx                    # Stealth-first secret manager (Python 3 stdlib, no template)
 │   │   ├── executable_shellx_completion_helper.tmpl
 │   │   ├── .help/                               # shellx docs (source-only — not deployed)
 │   │   ├── executable_runpriv.tmpl              # LEGACY — superseded by shellx
