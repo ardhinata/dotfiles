@@ -17,7 +17,7 @@ human-readable metadata that the importer can parse:
 // Format version: 1
 // Hostname:        desktop-main
 // Profile:         personal-laptop
-// Slug:            a3f9c1d8
+// Slug:            a3f9c1d8b3c49201
 // Exported at:     2026-07-12T10:41:44+07:00
 // Shellx version:  1.0.0
 // Original path:   /home/user/.local/share/a3f9c1d8
@@ -94,12 +94,16 @@ subprocess's stderr is surfaced and the command exits non-zero.
 
 ## Import workflow
 
-```bash
-# Restore from the default chezmoi source tree:
-shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age
+`shellx import` takes a single file path. To import the most recent export
+from the default location, pass the latest file by name (filenames are
+timestamped, so `ls -t | head -1` picks the newest):
 
-# Restore from a custom location:
-shellx import /tmp/backups/encrypted_*.jsonc.age
+```bash
+# Restore the most recent export from the default chezmoi source tree:
+shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age | head -1)"
+
+# Restore a specific file from a custom location:
+shellx import /tmp/backups/encrypted_desktop-main_a3f9c1d8b3c49201_20260712T034144Z.jsonc.age
 
 # Dry-run (no writes):
 shellx import --dry-run /path/to/encrypted_*.jsonc.age
@@ -109,6 +113,14 @@ shellx import --force /path/to/encrypted_*.jsonc.age
 
 # Restore into a different store directory:
 shellx import --to ~/.local/share/NEW_SLUG /path/to/file.jsonc.age
+```
+
+To import multiple files, loop over the shell-expanded glob:
+
+```bash
+for f in ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age; do
+  shellx import "$f"
+done
 ```
 
 ### How decryption happens
@@ -150,6 +162,8 @@ may add fields; importers must reject unknown major versions.
 
 - **No plaintext at rest**: by default, `shellx export` does not leave
   plaintext on disk. Only use `--no-encrypt` for ephemeral review.
+  (`--no-encrypt` does not invoke `chezmoi` at all — only the
+  `chezmoi` *encrypt* path requires chezmoi.)
 - **No dedup**: each entry is encrypted as its own blob (so individual
   entries can be decrypted independently). An export contains all of
   them in one JSONC for portability.

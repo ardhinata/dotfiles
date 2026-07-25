@@ -169,3 +169,6 @@ tags
 /.continue
 /.opencode
 /.kiro
+
+# Python cache
+**/__pycache__/

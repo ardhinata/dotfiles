@@ -8,7 +8,7 @@ no separate install step is needed. The `shellx` binary lives at
 
 | Component | Version | Notes |
 |---|---|---|
-| Python 3 | ≥ 3.8 | `hashlib.scrypt`, `secrets`, `hmac.blake2b` required. Available on every modern Linux distro Python. |
+| Python 3 | ≥ 3.10 | `hashlib.scrypt`, `secrets`, `hashlib.blake2b` (passed to `hmac.new`) required. Available on every modern Linux distro Python. Uses PEP 604 `str | None` and PEP 585 built-in generics. |
 | `age` | any recent | Needed transitively via `chezmoi encrypt` (export) and `chezmoi decrypt` (import). Not needed for runtime secret injection. |
 | `chezmoi` | ≥ 2.70.4 | Needed for `export` and `import` subcommands. |
 | POSIX shell | — | Used to invoke `shellx` from `~/.shell/zsh/10-common-export.zsh`. |
@@ -74,7 +74,7 @@ Completion is auto-installed via the `#compdef shellx` autoload tag and
 rm -f ~/.zcompdump; exec zsh
 
 # Verify:
-shellx <TAB>          # → init, store, list, rm, export, import, help
+shellx <TAB>          # → init, store, list, rm, export, import
 shellx store <TAB>    # → existing var names
 shellx --tag=<TAB>    # → known tags
 ```

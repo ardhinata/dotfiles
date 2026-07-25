@@ -9,7 +9,7 @@ No `pip install`, no virtualenv, no third-party wheels.
 |---|---|---|
 | Password-based KDF | **scrypt** (`N=2¹⁵, r=8, p=1, dklen=64`) | `hashlib.scrypt` |
 | Stream cipher | **ChaCha20** (RFC 7539) | ~80-line reference impl inline |
-| Authentication | **HMAC-BLAKE2b-256** truncated to 128 bits | `hmac` + `hashlib.blake2b` |
+| Authentication | **HMAC-BLAKE2b** (default 64-byte digest = 512 bits) truncated to 128 bits | `hmac` + `hashlib.blake2b` |
 | Key length | 32 bytes (encryption) + 32 bytes (MAC) | derived via scrypt |
 
 The 64-byte scrypt output is split into:
@@ -21,21 +21,30 @@ derived[32:64]  → mac_key   (HMAC-BLAKE2b key)
 
 ## Password (STATIC_PW)
 
-Same value the legacy helpers used; rendered at chezmoi apply time:
+Resolved at runtime by `executable_shellx:_static_pw()` from `chezmoi data`:
 
 ```text
-STATIC_PW = sha256("chezmoi:" + sha512(profile))
+STATIC_PW = "chezmoi:shellx:" + profile + ":" + nonce
 ```
 
-`profile` is `system_environment.profile` from `.chezmoidata.yaml`. Two
-machines with different profiles produce different static passwords, so a
-store encrypted under one profile is unreadable on another — even if
-the blob files are copied.
+- `profile` is `system_environment.profile` from `.chezmoidata.yaml`.
+- `nonce` is `system_environment.nonce` from the rendered `.chezmoi.yaml`
+  (a 64-char `randAlphaNum` generated once at apply time).
 
-**Implication:** `shellx export` on profile `home` produces a blob that
-`shellx import` cannot restore on profile `work-laptop` unless the
-profile value is identical. This is by design — keep a per-profile
-export, or change the profile before importing.
+This is intentionally **not** hashed inside the script — the `nonce`
+already provides ≥384 bits of entropy, which subsumes any key-stretching
+a hash would buy. Both fields are read via `chezmoi data --format json` on
+each call (cached in a module-global), so the deployed script is plain
+Python and does not need to be re-templated per machine.
+
+Two machines with different profiles or different nonces produce
+different static passwords, so a store encrypted under one is
+unreadable on another — even if the blob files are copied.
+
+**Implication:** `shellx export` on machine `home` produces a blob that
+`shellx import` cannot restore on machine `work-laptop` unless **both**
+the profile and the nonce are identical. This is by design — keep a
+per-machine export, or align the profile + nonce before importing.
 
 ## Blob format (per-secret file)
 
@@ -55,6 +64,10 @@ export, or change the profile before importing.
 - **TAG** — `HMAC-BLAKE2b(key=mac_key, msg=AAD || CT)[:16]`.
 - **CT** — ChaCha20(key=enc_key, nonce=NONCE, counter=0, plaintext).
 
+The state layout is the RFC 7539 §2.3 vector: `constants(4) ‖ key(8) ‖
+counter(1) ‖ nonce(3)`. The `nonce` field is 96 bits (12 bytes) and is
+read as three little-endian 32-bit words.
+
 ## AAD construction
 
 The AAD (associated data) binds the blob to its own header and to the
@@ -66,6 +79,13 @@ that of `NPM_TOKEN` — authentication fails.
 AAD = b"SHX1-AEAD1" + b"|" + SALT + b"|" + NONCE + b"|" + VAR_NAME.encode()
 ```
 
+The `VAR_NAME` is encoded as UTF-8 bytes. The `b"\0"` separator used
+inside the on-disk **blob filename** (see `README.md` §"Files") is
+**not** used here — the AAD separator is `"|"`. The two spaces are
+intentionally distinct: the filename hash stops `slug` and `var_name`
+from colliding on disk, while the AAD binds the ciphertext to the
+`var_name` so a blob swap is detectable.
+
 `MAGIC` and `VERSION` are fixed, so they are not re-included in the AAD;
 the prefix `SHX1-AEAD1` plus the random SALT/NONCE provide domain
 separation.
@@ -75,7 +95,7 @@ separation.
 Argon2id is the modern recommendation but has no stdlib implementation
 in Python (would require `argon2-cffi`). scrypt via `hashlib.scrypt` is:
 
-- ✅ Available on every distro Python 3.8+ (this project's floor).
+- ✅ Available on every distro Python 3.10+ (this project's floor).
 - ✅ Memory-hard (`N=2¹⁵ × r=8 × 128 B ≈ 32 MiB` per derivation), which
   defeats GPU/ASIC brute force on the STATIC_PW.
 - ✅ Adequate for the static-password threat model (STATIC_PW is

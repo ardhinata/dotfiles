@@ -11,7 +11,6 @@ file is designed to be readable, editable, diffable, and parseable.
 // shellx export — DO NOT EDIT by hand. Re-export with `shellx export`.
 // Format version: 1                          ← required
 // Hostname:        <short hostname>          ← informational
-// OS/Arch:         <uname -srm>              ← informational (optional)
 // Profile:         <system_environment.profile>   ← informational
 // Slug:            <16-hex slug>             ← informational, not authoritative
 // Exported at:     <ISO 8601 UTC>            ← informational
@@ -31,12 +30,12 @@ file is designed to be readable, editable, diffable, and parseable.
 
 ## Required header fields
 
-The importer **rejects** files that are missing any of these:
+The importer **rejects** files that are missing either of these:
 
 | Header line | Why required |
 |---|---|
 | `// shellx_export: true` | Sanity check; ensures this is a shellx JSONC. |
-| `// Format version: <int>` | Forward-compat. Current major version: `1`. |
+| `// Format version: <int>` | Forward-compat. The importer parses the integer; the **major** version must equal `1` or the import is rejected. |
 
 ## Optional header fields
 
@@ -110,7 +109,6 @@ regenerated file.
 // shellx export — DO NOT EDIT by hand. Re-export with `shellx export`.
 // Format version: 1
 // Hostname:        desktop-main
-// OS/Arch:         Linux 6.5.0 x86_64
 // Profile:         personal-laptop
 // Slug:            a3f9c1d8b3c49201
 // Exported at:     2026-07-12T10:41:44+07:00

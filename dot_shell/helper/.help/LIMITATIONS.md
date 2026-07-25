@@ -82,10 +82,17 @@ back up only to encrypted offline storage.
 
 ### Profile-name leakage
 
-`STATIC_PW = sha256("chezmoi:" + sha512(profile))`. If your profile
-name is guessable (e.g., `personal-laptop`) and an attacker has a
-ciphertext, they can try candidate profiles. For high-value secrets,
-use a non-obvious profile name.
+`STATIC_PW = "chezmoi:shellx:<profile>:<nonce>"`. The `nonce` component
+is a 64-char random alphanumeric generated once at `chezmoi apply` time,
+so it has ~384 bits of entropy and is effectively unguessable. The
+`profile` component is the remaining surface: if it is guessable (e.g.,
+`personal-laptop`) and an attacker has a ciphertext, they can try
+candidate profiles — but each candidate still requires a full scrypt
+derivation (~100 ms, ~32 MiB) to test, so online guessing is impractical
+and offline brute force is bounded by profile-name entropy.
+
+For high-value secrets, use a non-obvious profile name; the random
+`nonce` already covers the rest.
 
 ### Side channels in ChaCha20 implementation
 
@@ -107,8 +114,8 @@ anywhere — it pipes directly through `chezmoi encrypt`.
 ### `chezmoi` not available
 
 `shellx export` requires `chezmoi` (for `chezmoi encrypt` and
-`chezmoi source-path`). If chezmoi is missing or misconfigured, the
-export fails with a clear error.
+`chezmoi source-path`) in the **default** (encrypt) mode. If chezmoi
+is missing or misconfigured, the export fails with a clear error.
 
 `shellx import` requires `chezmoi` (for `chezmoi decrypt`).
 

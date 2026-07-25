@@ -35,14 +35,16 @@ SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
 # No .tmpl substitution anymore — this file is plain Python; the nonce and
 # profile are read at runtime via `chezmoi data` so the deployed script is
 # independent of any per-machine template rendering.
-_STATIC_PW_CACHE: str | None = None
+_STATIC_PW_CACHE: Optional[str] = None
+_PROFILE_CACHE: Optional[str] = None
+_NONCE_CACHE: Optional[str] = None
 
 
-def _static_pw() -> str:
-    """Return the cached static password, loading it on first call."""
-    global _STATIC_PW_CACHE
+def _load_env() -> None:
+    """Read profile + nonce from `chezmoi data` and cache all three derived values."""
+    global _STATIC_PW_CACHE, _PROFILE_CACHE, _NONCE_CACHE
     if _STATIC_PW_CACHE is not None:
-        return _STATIC_PW_CACHE
+        return
     data: Dict[str, Any] = {}
     try:
         result: subprocess.CompletedProcess[str] = subprocess.run(
@@ -64,8 +66,23 @@ def _static_pw() -> str:
         _die("chezmoi data is missing system_environment.nonce", code=4)
     profile: str = (data.get("system_environment") or {}).get("profile") or ""
     profile = str(profile).strip()
+    _PROFILE_CACHE = profile
+    _NONCE_CACHE = nonce
     _STATIC_PW_CACHE = f"chezmoi:shellx:{profile}:{nonce}"
+
+
+def _static_pw() -> str:
+    """Return the cached static password, loading it on first call."""
+    _load_env()
+    assert _STATIC_PW_CACHE is not None
     return _STATIC_PW_CACHE
+
+
+def _profile() -> str:
+    """Return the cached system_environment.profile, loading it on first call."""
+    _load_env()
+    assert _PROFILE_CACHE is not None
+    return _PROFILE_CACHE
 
 MAGIC = b"SHX1"
 VERSION = 1
@@ -107,8 +124,6 @@ def _chacha20_block(key: bytes, counter: int, nonce: bytes) -> bytes:
     for i in range(8):
         state.append(struct.unpack("<I", key[i * 4 : (i + 1) * 4])[0])
     state.append(counter)
-    state.append(0)
-    state.append(0)
     state.append(struct.unpack("<I", nonce[0:4])[0])
     state.append(struct.unpack("<I", nonce[4:8])[0])
     state.append(struct.unpack("<I", nonce[8:12])[0])
@@ -404,7 +419,7 @@ def cmd_export(args) -> int:
         "// shellx export — DO NOT EDIT by hand. Re-export with `shellx export`.",
         "// Format version: 1",
         "// Hostname:        " + host,
-        "// Profile:         " + os.environ.get("SHELLX_PROFILE", ""),
+        "// Profile:         " + _profile(),
         "// Slug:            " + slug,
         "// Exported at:     "
         + datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -489,9 +504,7 @@ def _detect_export_dir() -> str:
     candidates.append(
         os.path.expanduser("~/.local/share/chezmoi/.encrypted_data/tokens")
     )
-    for c in candidates:
-        return c
-    return candidates[-1]
+    return candidates[0]
 
 
 def cmd_import(args) -> int:
@@ -515,6 +528,18 @@ def cmd_import(args) -> int:
     if not header.get("shellx_export"):
         _die(
             "file is not a shellx export (missing `shellx_export` header line)", code=2
+        )
+    fmt_raw = header.get("Format version")
+    if not fmt_raw:
+        _die("missing `Format version` header line", code=2)
+    try:
+        fmt_major = int(str(fmt_raw).split(".", 1)[0])
+    except ValueError:
+        _die(f"unparseable `Format version` header: {fmt_raw!r}", code=2)
+    if fmt_major != 1:
+        _die(
+            f"unsupported Format version: {fmt_raw} (this build of shellx understands major version 1)",
+            code=2,
         )
     src_slug = header.get("slug", "")
 

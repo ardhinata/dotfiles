@@ -6,6 +6,10 @@ AGENTS.md
 ## These are reference docs for maintainers, not files the user needs in ~.
 dot_shell/helper/.help
 
+## shellx unit tests live in the source tree only — run via
+## `python3 dot_shell/helper/test_shellx.py`, not deployed.
+dot_shell/helper/test_shellx.py
+
 ## shellx exports are intentionally not auto-restored.
 ## Use `shellx import <file>` to explicitly restore secrets onto a machine.
 .encrypted_data/tokens/shellx*

@@ -20,7 +20,7 @@ See `LIMITATIONS.md` for what shellx does *not* defend against.
 |---|---|
 | Bash + `openssl enc` + `jq` | Python 3 stdlib only (no `pip`, no venv) |
 | Plaintext JSON store at `~/.shell/store/` | Opaque binary blobs at `~/.local/share/<random-slug>/` |
-| Filename `store/<profile>_environment_store.json` greps as a credential file | Slug is random 16 hex; blob names are `blake2b(VAR+slug)` hex — indistinguishable from app cache noise |
+| Filename `store/<profile>_environment_store.json` greps as a credential file | Slug is random 16 hex; blob names are `blake2b(VAR + "\0" + slug)[:8]` hex — indistinguishable from app cache noise |
 | `runpriv` is recognizable by name | `shellx` is a single, neutral binary |
 | ChaCha20 stream cipher without authentication | scrypt KDF → ChaCha20 + HMAC-BLAKE2b (AEAD-equivalent construction) |
 | No round-trip with the chezmoi source tree | `export` / `import` subcommands produce JSONC encrypted by `chezmoi encrypt` / `chezmoi decrypt` |
@@ -44,7 +44,7 @@ shellx --tag=git gh pr list      # injects GH_TOKEN (and any other --tag=git var
 shellx export
 
 # 6. Restore on another machine.
-shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age
+shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age | head -1)"
 ```
 
 ## Subcommands
@@ -58,8 +58,13 @@ shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.ag
 | `shellx rm VAR` | Remove blob + idx line. |
 | `shellx export [--to DIR] [--label LABEL] [--no-encrypt]` | Generate JSONC, pipe through `chezmoi encrypt` to `<source>/.encrypted_data/tokens/encrypted_*.jsonc.age`. |
 | `shellx import PATH [--to DIR] [--slug S] [--force] [--dry-run]` | `chezmoi decrypt` + parse JSONC, re-encrypt into the live store. |
-| `shellx --tag=a,b -- proc args…` | Exec `proc` with matched secrets injected. |
-| `shellx -- proc args…` | Exec `proc` with secrets whose `process` list includes `proc`. |
+| `shellx --tag=a,b -- proc args…` | Exec `proc` with secrets matching any tag in `a,b` injected. |
+| `shellx --process=NAME -- proc args…` | Exec `proc` with secrets whose `process` list includes `NAME` injected. |
+| `shellx -- proc args…` | Shorthand: `proc` is used as the `--process` matcher. |
+
+When both `--tag` and `--process` are given, `--tag` wins (the
+`--process` filter is skipped). This is the same precedence as the
+legacy `runpriv` helper.
 
 ## Files
 
@@ -69,7 +74,7 @@ shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.ag
 | `dot_shell/helper/executable_shellx_completion_helper.tmpl` | Tiny stdlib helper used by the zsh completion. |
 | `dot_shell/helper/.help/` | This documentation set (source-only — excluded from `chezmoi apply`). |
 | `dot_shell/zsh/completions/_shellx.tmpl` | zsh completion (`#compdef shellx`). |
-| `.encrypted_data/tokens/` | Default export destination. `shellx export` writes `encrypted_*.jsonc.age` here. |
+| `.encrypted_data/tokens/` | Default export destination. `shellx export` writes `encrypted_<host>_<slug>_<utc>.jsonc.age` files here. |
 | `.chezmoiscripts/run_onchange_init-shellx-store.sh` | Post-apply hook that enforces `~/.local/share/` permissions. |
 | `.chezmoiignore` | `dot_shell/helper/.help` keeps docs source-only; `.encrypted_data/tokens/shellx*` prevents auto-restore of exports on apply. |
 
@@ -79,13 +84,13 @@ shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.ag
 ~/.local/share/<random-16-hex-slug>/
 ├── .sl          # 16-hex slug (sanity check; same as dir name)
 ├── .idx         # plaintext index: VAR<TAB>tags<TAB>procs<TAB>updated
-└── <16-hex>     # per-secret opaque blob (filename = blake2b(VAR,slug)[:8])
+└── <16-hex>     # per-secret opaque blob (filename = blake2b(VAR + "\0" + slug)[:8], 16 hex chars)
 ~/.shellx-store  # single line: absolute path to the store dir above
 ```
 
 ## Dependencies
 
-- **Python 3** ≥ 3.8 (uses `hashlib.scrypt`, `secrets.token_bytes`, `hmac.blake2b`).
+- **Python 3** ≥ 3.10 (uses `hashlib.scrypt`, `secrets.token_bytes`, `hashlib.blake2b` passed to `hmac.new`, plus PEP 604 `str | None` and PEP 585 built-in generics).
 - **`age`** — used transitively via `chezmoi encrypt` / `chezmoi decrypt` for
   export/import. Runtime secret injection (`--tag=… -- proc …`) does
   **not** need `age`.
