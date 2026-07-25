@@ -5,7 +5,11 @@
       "*": "allow",
     },
     "edit": {
-      ".tmp/doc-cache/**": "allow",
+      ".agents/docs/cache/**": "allow",
+      ".agents/docs/**": "allow",
+      ".agents/kilo/**": "allow",
+      ".agents/**": "allow",
+      ".tmp/**": "allow",
     },
     "external_directory": {
       "/tmp/kilo/*": "allow",
@@ -104,7 +108,7 @@
               "order": ["deepseek"],
             },
             "reasoning": {
-              "effort": "high",
+              "effort": "medium",
             },
           },
         },
@@ -115,31 +119,13 @@
               "order": ["deepseek"],
             },
             "reasoning": {
-              "effort": "high",
+              "effort": "medium",
             },
           },
         },
         "google/gemini-3.1-flash-lite": {
           "options": {
             "service_tier": "flex",
-          },
-        },
-        "openai/gpt-oss-120b": {
-          "options": {
-            "reasoning": {
-              "effort": "high",
-            },
-          },
-        },
-        "moonshotai/kimi-k2.7-code": {
-          "options": {
-            "provider": {
-              "only": ["deepinfra/fp4", "parasail/int4"],
-              "order": ["deepinfra/fp4", "parasail/int4"],
-            },
-            "reasoning": {
-              "effort": "medium",
-            },
           },
         },
         "z-ai/glm-5.2": {
@@ -152,11 +138,11 @@
         },
         "minimax/minimax-m3": {
           "options": {
-            "provider": {
-              "only": ["minimax/fp8"],
-            },
+            // "provider": {
+            //   "only": ["minimax/fp8"],
+            // },
             "reasoning": {
-              "effort": "high",
+              "effort": "medium",
             },
           },
         },
@@ -176,15 +162,18 @@
       "specificProvider": "nebius",
     },
     "searchMinScore": 0.5,
-    "searchMaxResults": 16,
-    "embeddingBatchSize": 100,
+    "searchMaxResults": 8,
+    "embeddingBatchSize": 240,
     "scannerMaxBatchRetries": 5,
-    "dimension": 2560,
+    "dimension": 4096,
   },
   "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
   "instructions": ["~/.config/kilo/rules/*.md"],
   "sandbox": {
     "enabled": false,
     "network": "allow",
+  },
+  "subagent_variant_overrides": {
+    "openrouter/deepseek/deepseek-v4-flash": "high",
   },
 }

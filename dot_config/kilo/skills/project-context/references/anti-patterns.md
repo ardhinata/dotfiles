@@ -6,9 +6,13 @@ Avoid all of the following when drafting, reviewing, or updating an `AGENTS.md`.
 
 Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20% and tend to reduce task success vs no context; LLM-generated files reduce it further (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
 
+## Do not duplicate README.md or `docs/`
+
+`AGENTS.md` complements, it does not restate. Re-stating the README's why or duplicating `docs/` content measurably reduces task success (the Gloaguen paper showed LLM-generated files only helped when *all* other docs were removed). Use pointers, not copies.
+
 ## Do not add a Project structure or Architecture overview section
 
-Agents navigate the tree themselves; restating it costs tokens without helping.
+Agents navigate the tree themselves; restating it costs tokens without helping. ETH Zurich found codebase overviews did not help agents find files faster.
 
 ## Do not append rules reactively
 
@@ -18,6 +22,18 @@ Agents navigate the tree themselves; restating it costs tokens without helping.
 
 Past that, split into nested per-package files (see `Monorepos` in `SKILL.md`).
 
-## Do not duplicate content that already lives in `README.md` or other docs
+## Do not rely on vendor-specific agent files
 
-Add pointers instead. Duplication costs both writers and readers.
+`CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`, `.github/copilot-instructions.md` are vendor lock-in. Put universal content in `AGENTS.md` and have the vendor file import it (e.g. `@AGENTS.md`). Vendor-specific overrides belong in `.agents/<vendor>/`, not at the root.
+
+## Do not write agent content into public `docs/`
+
+`docs/` is human-readable project documentation. Auto-generated API references, fetched references, and other agent-only material belong in `.agents/docs/` or `.agents/docs/cache/`. Keep `docs/` hand-written and on-topic.
+
+## Do not commit vendor symlinks
+
+After unifying `.kilo/` → `.agents/kilo/` (or any vendor), the root-level symlink must be in `.gitignore` so it is recreated locally on each clone — not committed as a checked-in symlink.
+
+## Do not skip the `✅ Always` vendor-symlink rule
+
+If the project unifies vendor directories under `.agents/`, `AGENTS.md` must include a `✅ Always` rule to recreate the symlink on fresh clones. Without it, the next session cannot find the vendor config.

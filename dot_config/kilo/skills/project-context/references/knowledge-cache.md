@@ -2,12 +2,23 @@
 
 Use a per-project cache directory to store date-tagged web-learned facts so future sessions do not re-search the same answers.
 
-Common cache locations (pick the project convention once and stick with it):
+## Standard path
 
-- `.tmp/doc-cache/` — transient, per-project
-- `docs/cache/` — discoverable from `docs/`
+**`.agents/docs/cache/`** is the standard project knowledge-cache location. It sits inside `.agents/` (the unified agent-only directory) so it is not confused with public `docs/`, and it is distinct from `.tmp/` (transient scratchpad).
 
-Pick the directory whose style matches the rest of the project; if the project uses multiple, use the most transient.
+Other acceptable locations and when to use them:
+
+- **`.agents/docs/cache/`** — preferred; aligns with the standard project layout and the AGENTS.md → Pointers reference
+- **`.tmp/doc-cache/`** — legacy; only when `.agents/` is not yet established in the project. Migrate to `.agents/docs/cache/` when convenient
+- **`docs/cache/`** — discoverable from `docs/`; acceptable when the project prefers a non-`.agents/` location
+
+Pick the path once and stick with it. Update `AGENTS.md` → `Pointers` to point at the chosen cache.
+
+## What goes where
+
+- `.agents/docs/cache/` — **persistent**, date-tagged, indexed web-learned facts. Should be referenced from `AGENTS.md`.
+- `.agents/docs/` — non-cache agent-only documentation (fetched references, canonical notes that do not fit the cache mold).
+- `.tmp/` — **transient** scratchpad documents, scripts, temp files. Distinct from the cache; not indexed, not referenced from `AGENTS.md`.
 
 ## Cache index
 
@@ -24,7 +35,9 @@ Pick the directory whose style matches the rest of the project; if the project u
 - A cache hit is a prior fetch tagged with a date — re-verify if the domain is volatile (CLI tool or framework API released less than 6 months ago).
 - Entry naming: `<cache-dir>/<topic>/YYYY-MM-DD-<short-slug>.md` — one topic per file, with an ISO date prefix so the tree sorts chronologically.
 
-If absent, suggest adding the cache directory and its `README.md` index to `.gitignore` when the cache is transient.
+## Git hygiene
+
+If the cache is transient (default), add the cache directory to `.gitignore`. If entries are intended to be shared across clones, keep them tracked but document that decision in the cache `README.md`.
 
 ## Reference
 

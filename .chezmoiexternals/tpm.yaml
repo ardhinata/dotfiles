@@ -1,0 +1,14 @@
+---
+# Tmux Plugin Manager (TPM): https://github.com/tmux-plugins/tpm
+# Cloned into ~/.tmux/plugins/tpm so the `run '~/.tmux/plugins/tpm/tpm'`
+# line in dot_tmux.conf can bootstrap plugins.
+# Refresh weekly; on update, fast-forward only (no merge commits).
+.tmux/plugins/tpm:
+  type: git-repo
+  url: https://github.com/tmux-plugins/tpm
+  refreshPeriod: 168h
+  pull:
+    args:
+      - --ff-only
+
+...

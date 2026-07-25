@@ -1,25 +1,47 @@
 ---
 name: project-context
-description: Project agent-context and documentation convention. Use when starting work in a project that lacks AGENTS.md/CLAUDE.md or a standardized docs directory, or when about to fetch external info via tavily/firecrawl/context7 in a project that has no knowledge cache (`docs/`, `.tmp/doc-cache/`).
+description: Project agent-context, layout, and documentation convention. Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an `AGENTS.md` would eliminate, when a vendor-specific directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) is found at the project root, or before fetching external info via tavily/firecrawl/context7 in a project without a knowledge cache (`.agents/docs/cache/`). Treats `AGENTS.md` as the only agent instruction standard — ignore vendor-specific files like `CLAUDE.md`; context must stay portable and agent-agnostic.
 ---
 
 # Project Context
 
-When starting work in a project, assess its agent-context and documentation state. When the project lacks agent-context or a standardized project document, suggest creating, fixing, or optimizing it.
+When starting work in a project, assess its agent-context and documentation state. When the project lacks agent-context, a standardized documentation layout, or a knowledge cache, **suggest** (do not auto-write) creating, fixing, or optimizing it.
+
+## Standard directory layout
+
+Treat the following as the convention every project should converge on. `AGENTS.md` is the only agent instruction file; vendor content unifies under `.agents/`; `docs/` carries project-level human-facing docs; `.agents/docs/cache/` is the knowledge cache; `.tmp/` is a transient scratchpad.
+
+| Path | Purpose |
+|---|---|
+| `AGENTS.md` | Project agent guide. Concise, agent-agnostic, pointer-only, ≤60 lines. Points to the supplemental documents agents need when executing tasks. Emphasizes the project `README.md` and the supplemental directory `README.md`. Uses the 3-tier Boundaries pattern (`✅ Always` / `⚠️ Ask first` / `🚫 Never`). If absent, tell the user to create it and explain the advantages. Use [`references/AGENTS.md`](references/AGENTS.md) as the base structure. |
+| `docs/` | Public, human-readable project documentation. Hand-written; do not put auto-generated documentation here (e.g. generated API references, LLM-written docs) unless the user explicitly asks. Contains any information that helps the agent when doing tasks, including specific project context. Organize it so the agent can easily find the necessary information. Read this directory and its subdirectories when executing tasks and you need more context. |
+| `README.md` | Project main README. Contains an overview of the project, including its purpose, goals, and how to get started. **Always** read this file first when you start working on a new project. Carries the *why* (problem, audience, intent) and the *how* for humans; `AGENTS.md` must NOT duplicate this content — add pointers instead. |
+| `.agents/` | Unified directory for agent-specific data. Consolidates vendor tool directories (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`) under one root. Not part of public documentation. Vendor content lives at `.agents/<vendor-name>/` (e.g., `.agents/kilo/`, `.agents/claude/`) and a symlink replaces the original vendor directory at the project root. |
+| `.agents/docs/cache/` | Knowledge cache. Date-tagged, gitignored. **Must include a `README.md` index** with relative links to entries (topic, source, capture date, freshness note). Naming convention: `.agents/docs/cache/<topic>/YYYY-MM-DD-<short-slug>.md` — one topic per file, ISO date prefix. Sibling of `.agents/docs/` for non-cache agent-only documentation (fetched references, canonical notes). |
+| `.tmp/` | Temporary scratchpad for users and agentic AI. Default gitignored. Place scratchpad documents, scripts, and any temp file here instead of using `/tmp`. **Distinct from the knowledge cache** — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`. |
+
+## Proactive caching default
+
+After any web lookup that produces reusable or volatile information, write a date-tagged entry under `.agents/docs/cache/` (not `.tmp/`) and update its `README.md` index. Prefer verified web sources over training-data recall. This is a global default, not a per-project `AGENTS.md` directive.
+
+## AGENTS.md-only standard
+
+`AGENTS.md` is the open format stewarded by the [Agentic AI Foundation](https://aaif.io/projects/agents-md/) under the Linux Foundation (Dec 2025); it works across 30+ agents (Codex, Claude Code via `@AGENTS.md`, Cursor, Copilot, Aider, opencode, Zed, Warp, etc.). **Treat `AGENTS.md` as the only agent instruction standard.** Do not write to, copy from, or rely on `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurfrules`, `GEMINI.md`, etc. — when present, point them at `AGENTS.md` via an import (`@AGENTS.md`) so one canonical file drives every tool. New work goes in `AGENTS.md`; vendor-specific overrides belong in `.agents/<vendor>/`.
 
 ## Trigger checklist
 
 Surface a suggestion when any of the following is true:
 
-- `AGENTS.md` or `CLAUDE.md` is missing
+- `AGENTS.md` is missing
 - `README.md` is missing or lacks project-specific info (background, problem statement, tech stack)
 - No `docs/` directory (or similar) is listed from `README.md` / `AGENTS.md`
-- About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in a project with no knowledge cache
+- About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in a project with no knowledge cache (`.agents/docs/cache/`)
 - Turn-1 discovery revealed non-obvious conventions an `AGENTS.md` would eliminate
 - Spent >2 turns explaining project-specific patterns
 - User asks to create, fix, or review a `.gitignore`
+- A vendor-specific directory is found at the project root (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`)
 
-`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should stay under ~60 lines; deeper subsystem knowledge belongs in `.kilo/skills/` (on-demand). Kilo's own rules in `~/.config/kilo/rules/` are per-session overhead managed separately and do not compete with this budget.
+`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should stay under ~60 lines; deeper subsystem knowledge belongs in `.kilo/skills/` (on-demand) or in `docs/`. Kilo's own rules in `~/.config/kilo/rules/` are per-session overhead managed separately and do not compete with this budget.
 
 The whole point of these files is **hard-earned context an agent would likely miss without help**. Every line should answer: "Would an agent get this wrong without it?" If not, leave it out. Note the cost: even human-written repository context files raise inference cost >20% and do not reliably improve task success vs no context; LLM-generated files are worse (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988). So curation — not volume — is what makes an `AGENTS.md` worth keeping.
 
@@ -40,8 +62,9 @@ Before drafting or editing anything, gather facts from executable sources of tru
 - `README*`, root manifests, workspace config, lockfiles
 - build, test, lint, formatter, typecheck, and codegen config
 - CI workflows and pre-commit / task runner config
-- existing instruction files (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, `.cursorrules`, `.github/copilot-instructions.md`)
+- existing instruction files (only read `AGENTS.md`; ignore vendor-specific files like `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` — they are out of scope per the AGENTS.md-only rule above)
 - repo-local Kilo config such as `kilo.json` / `kilo.jsonc`
+- `.agents/docs/` for prior cached research and references
 
 If architecture is still unclear after reading config and docs, inspect a **small number of representative code files** to find the real entrypoints, package boundaries, and execution flow. Prefer files that show how the system is wired together over random leaf files.
 
@@ -66,17 +89,16 @@ If Phase 0 leaves gaps that affect correctness — undocumented conventions, bra
 
 This is the only place in the skill where clarification questions are encouraged. The cost caveat earlier in the file is the reason: every clarifying question must be high-signal, repo-specific, and unanswerable from `Phase 0` sources.
 
-### Phase 1: AGENTS.md / CLAUDE.md Detection
+### Phase 1: AGENTS.md detection
 
-Check for `AGENTS.md`, `CLAUDE.md`, or `CONTEXT.md` at the workspace root.
+Check for `AGENTS.md` at the workspace root. **Ignore `CLAUDE.md`, `.cursorrules`, `GEMINI.md`, `.windsurfrules`, `.github/copilot-instructions.md`** — they are not part of the standard. If they exist, point them at `AGENTS.md` (e.g. Claude Code: `@AGENTS.md` import).
 
 - **A — None exists (clean project)**: suggest a 40–60 line `AGENTS.md` filled from the [template](references/AGENTS.md), using only facts extracted in Phase 0 and user input if present. Do not invent your own structure. Caveat the user that context files are not free upside — they raise inference cost and only help when minimal and high-signal (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988); LLM-generated files specifically reduce task success, so the draft must be human-reviewed before commit.
-- **B — CLAUDE.md, no AGENTS.md**: `AGENTS.md` follows the [open standard](https://agents.md) (donated to the Agentic AI Foundation / Linux Foundation, Dec 2025; 60,000+ repos) and works across more tools. Suggest deriving a slimmer `AGENTS.md` (40–60 lines, agent-agnostic) and moving Kilo-specific conventions into `.kilo/rules/`. Complex subsystems → `.kilo/skills/<name>/SKILL.md`. For external repos, hide `.kilo/` and `AGENTS.md` via `.gitignore` / `.git/info/exclude`.
-- **C — AGENTS.md exists**: improve it in place rather than rewriting blindly. Preserve verified useful guidance, delete fluff or stale claims, and reconcile it with the current codebase. Offer an update only if stale or incomplete.
+- **B — AGENTS.md exists**: improve it in place rather than rewriting blindly. Preserve verified useful guidance, delete fluff or stale claims, and reconcile it with the current codebase. Offer an update only if stale or incomplete.
 
-### Phase 2: Project Documentation
+### Phase 2: Project documentation
 
-Look for existing docs (`CONTRIBUTING.md`, `ARCHITECTURE.md`, `docs/`, `SECURITY.md`, `README.md`). Do not duplicate — add pointer references from `AGENTS.md`. If no docs exist but conventions are non-obvious (security models, API specs, deployment playbooks), suggest narrowly-scoped files — one topic per file.
+Look for existing docs (`CONTRIBUTING.md`, `ARCHITECTURE.md`, `docs/`, `SECURITY.md`, `README.md`). Do not duplicate — add pointer references from `AGENTS.md`. If no docs exist but conventions are non-obvious (security models, API specs, deployment playbooks), suggest narrowly-scoped files in `docs/` — one topic per file. Auto-generated docs do not belong in `docs/`; put those in a generator output directory or in `.agents/docs/` instead.
 
 #### README.md vs AGENTS.md
 
@@ -88,19 +110,30 @@ README scope, per [GitHub Docs](https://docs.github.com/en/repositories/managing
 
 If `README.md` is missing, suggest the GitHub five-question template (`what / why / how / help / maintainers`) plus a license pointer. Never duplicate README content into `AGENTS.md`; reference it instead, and use relative Markdown links so the relationship survives clones.
 
-### Phase 3: Rules and Skills Integration
+### Phase 3: Vendor directory unification
 
-Keep Kilo-specific content in `.kilo/`, not in `AGENTS.md`. Add a pointer rule for deep docs; ensure `kilo.jsonc` lists `.kilo/rules/*.md` under `instructions`; create skills for reusable domain patterns (custom build pipelines, proprietary protocols, specialized test setups).
+When the project root contains a vendor-specific directory (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`, etc.):
 
-## AGENTS.md Template
+1. Move its contents to `.agents/<vendor-name>/` (e.g. `.kilo/` → `.agents/kilo/`).
+2. Create a symlink `<vendor-name>/` → `.agents/<vendor-name>/` at the project root so vendor tools keep finding their config.
+3. Add the symlink pattern to `.gitignore` so it is not committed.
+4. Add a `✅ Always` rule to `AGENTS.md` > Boundaries stating: *recreate the symlink if it is missing on a fresh clone* (i.e. `ln -s .agents/<vendor> <vendor>`).
+
+If the symlink is missing when you arrive, recreate it before reading the vendor config.
+
+### Phase 4: Rules and skills integration
+
+Keep Kilo-specific content in `.agents/kilo/` (or `.kilo/` if not yet unified), not in `AGENTS.md`. Add a pointer rule for deep docs; ensure `kilo.jsonc` lists `~/.config/kilo/rules/*.md` under `instructions`; create skills for reusable domain patterns (custom build pipelines, proprietary protocols, specialized test setups).
+
+## AGENTS.md template
 
 Use the template at [`references/AGENTS.md`](references/AGENTS.md) when suggesting or drafting a new `AGENTS.md`. Drop sections that do not apply. Fill every line from Phase 0 extraction — never from imagination. Do **not** add a "Project structure" or "Architecture overview" section — agents navigate the tree themselves, and those sections measurably increase inference cost without improving task success (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988).
 
-Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) — it is the pattern the GitHub Copilot analysis of 2,500+ `agents.md` files found in the best-performing ones (Matt Nigh, github.blog, Nov 2025). Use **exact command flags** in the Commands section: `pnpm vitest run -t "name pattern"` is more useful than `pnpm test`. One real code snippet for style beats three paragraphs of style description.
+Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) — it is the pattern the GitHub Copilot analysis of 2,500+ `agents.md` files found in the best-performing ones (Matt Nigh, github.blog, Nov 2025). The Boundaries section also includes a placeholder `✅ Always` line for **recreating the vendor symlink on fresh clones** (see Phase 3). Use **exact command flags** in the Commands section: `pnpm vitest run -t "name pattern"` is more useful than `pnpm test`. One real code snippet for style beats three paragraphs of style description.
 
 ## Knowledge cache
 
-If the project has no knowledge cache for date-tagged web-learned facts, suggest creating one with a `README.md` index and referencing the cache path from `AGENTS.md` → `Pointers`. Conventions: see `references/knowledge-cache.md` and the global rule `~/.config/kilo/rules/web-tools-priority.md`.
+If the project has no knowledge cache at `.agents/docs/cache/`, suggest creating one with a `README.md` index and referencing the cache path from `AGENTS.md` → `Pointers`. Conventions: see `references/knowledge-cache.md` and the global rule `~/.config/kilo/rules/web-tools-priority.md`. Date-tagged web-learned facts go in `.agents/docs/cache/`; transient scratchpads go in `.tmp/` (distinct).
 
 ## Writing rules
 
@@ -109,6 +142,19 @@ Include only high-signal, repo-specific guidance: exact commands and shortcuts t
 Exclude: generic software advice, long tutorials, exhaustive file trees, obvious language conventions, speculative claims you could not verify against the repo, content better stored in another file referenced via `kilo.jsonc` `instructions`, and duplicates of `README.md` / other docs (add pointers instead).
 
 **When in doubt, omit.** Prefer short sections and bullets. If the repo is simple, keep the file simple. If the repo is large, summarize the few structural facts that actually change how an agent should work.
+
+## External references
+
+Load these before drafting a new `AGENTS.md` from the template — they justify the template's structure and the writing rules above. Prefer `webfetch` over memory; the AGENTS.md-impact paper in particular informs the "every line must earn its place" stance.
+
+- [AGENTS.md spec](https://agents.md/) — open format, LF/AAIF, 30+ agents
+- [A Complete Guide to AGENTS.md](https://gist.github.com/skyzyx/c91d9be9e5050c85e81ccbcca022ff6b) (full guide)
+- [Writing a good CLAUDE.md (also applicable to AGENTS.md)](https://www.humanlayer.dev/blog/writing-a-good-claude-md) — progressive disclosure, <60 lines, linters over instructions
+- [Writing a Good AGENTS.md](https://www.philschmid.de/writing-good-agents) — ETH Zurich paper summary, what to include vs not
+- [What Goes in AGENTS.md (and What Doesn't)](https://ro14nd.de/what-goes-in-agents-md/) — empirical checklist, redundant docs hurt more than help
+- [On the Impact of AGENTS.md Files on the Efficiency of AI Coding Agents](https://arxiv.org/html/2601.20404v2) — curated minimal files cut wall-clock 28% and output tokens 16%
+- [How to Build AGENTS.md (2026) — Augment Code](https://www.augmentcode.com/guides/how-to-build-agents-md) — write only what agents cannot discover independently
+- [Evaluating AGENTS.md — ETH Zurich, arXiv:2602.11988](https://arxiv.org/abs/2602.11988) — Gloaguen et al., ICLR 2026 Workshop; the LLM-generated AGENTS.md source for the cost caveat
 
 ## Monorepos: nested AGENTS.md
 
@@ -120,14 +166,15 @@ See [`references/anti-patterns.md`](references/anti-patterns.md).
 
 ## References
 
-- [`references/AGENTS.md`](references/AGENTS.md) — copy-as-template for new project `AGENTS.md`.
-- [`references/knowledge-cache.md`](references/knowledge-cache.md) — date-tagged web-learned facts cache convention.
+- [`references/AGENTS.md`](references/AGENTS.md) — copy-as-template for new project `AGENTS.md`. Includes a `✅ Always` placeholder for vendor-symlink recreation.
+- [`references/knowledge-cache.md`](references/knowledge-cache.md) — `.agents/docs/cache/` date-tagged web-learned facts cache convention.
+- [`references/anti-patterns.md`](references/anti-patterns.md) — do/don't checklist for drafting `AGENTS.md`.
 - [`references/gitignore-toptal-api.md`](references/gitignore-toptal-api.md) — Toptal gitignore API workflow and pre-seeded template catalog. Use when generating, fixing, or reviewing `.gitignore`.
 
 ## Worked scenario
 
-User opens a project. You find: no `AGENTS.md`, a `package.json` with `next@15`, no `.kilo/`, no knowledge cache. After ~2 turns of Phase 0 investigation:
+User opens a project. You find: no `AGENTS.md`, a `package.json` with `next@15`, no `.agents/`, no knowledge cache, and a `.kilo/` directory at the root. After ~2 turns of Phase 0 investigation:
 
-> "No `AGENTS.md` and no `.tmp/doc-cache/`. Want me to draft a 40-line `AGENTS.md` from the template (Stack / Commands / Boundaries) and add a `.tmp/doc-cache/` pointer so future web fetches get cached here?"
+> "No `AGENTS.md` and no `.agents/docs/cache/`. Want me to draft a 40-line `AGENTS.md` from the template (Stack / Commands / Boundaries) — and unify `.kilo/` under `.agents/kilo/` with a symlink back, so future web fetches get cached here too?"
 
-Short, references the template, surfaces both the `AGENTS.md` and the cache (the second eager trigger).
+Short, references the template, surfaces the `AGENTS.md`, the cache (second eager trigger), and the vendor-unification opportunity (Phase 3 trigger).
