@@ -276,9 +276,10 @@ class TestStaticPasswordCache(unittest.TestCase):
     def test_profile_and_pw_consistent(self):
         pw = shellx._static_pw()
         profile = shellx._profile()
+        nonce = shellx._NONCE_CACHE  # populated by _load_env()
         self.assertIn(profile, pw)
         self.assertTrue(pw.startswith("chezmoi:shellx:"))
-        self.assertTrue(pw.endswith(":" + shellx._nonce()))
+        self.assertTrue(pw.endswith(":" + nonce))
 
 
 if __name__ == "__main__":
