@@ -4,6 +4,6 @@
     "enabled": true
   },
   "instructions": [
-    ".kilo/rules/*.md"
+    ".agents/kilo/rules/*.md"
   ]
 }

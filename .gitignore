@@ -158,3 +158,14 @@ tags
 
 # Migration staging
 .tmp/
+
+# Vendor symlinks — recreate locally on a fresh clone (see AGENTS.md → Boundaries)
+# Tracked content lives under .agents/<vendor>/; the root symlink is untracked.
+/.kilo
+/.claude
+/.cursor
+/.aider
+/.windsurf
+/.continue
+/.opencode
+/.kiro

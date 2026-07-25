@@ -7,6 +7,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **Config**: chezmoi v2.70.4+, `.chezmoi.yaml.tmpl` (age encryption, auto key discovery)
 - **Encryption**: age for files, gpg for age-key backups, Python stdlib scrypt + ChaCha20 + HMAC-BLAKE2b for shellx (no pip/venv)
 - **Shell**: zsh, zgenom (plugin manager), powerlevel10k (prompt)
+- **Agent tooling**: Kilo (rules/skills/managed under `.agents/kilo/`; root `.kilo/` is a local symlink)
 
 ## Commands
 - `chezmoi apply` — apply changes; add `--dry-run` to preview
@@ -26,12 +27,12 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - After `chezmoi re-encrypt`, run `chezmoi apply --dry-run` first to catch decryption failures.
 
 ## Boundaries
-
 ### ✅ Always
 - Load the `chezmoi` skill before editing any template file
 - Validate chezmoi behavior against `.help/chezmoi-docs/` or `.help/QUIRKS.md`
 - Run `bash .help/fetch_current_docs.sh` if `.help/chezmoi-docs/` is missing
 - After a structural refactor that adds, renames, or deletes files, run `git status --short`, stage, and commit the working tree before ending the session
+- **Recreate the vendor symlink if missing on a fresh clone**, e.g. `ln -s .agents/kilo .kilo` — the root-level `.kilo/`, `.claude/`, etc. are untracked symlinks into `.agents/`. If `ls .kilo/` fails, fix the link before reading vendor config.
 
 ### ⚠️ Ask first
 - Adding new encryption keys (triggers `chezmoi re-encrypt` across all files)
@@ -43,13 +44,13 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Commit plaintext secrets, keys, tokens, or credentials
 - Encrypt a file without running `chezmoi re-encrypt` afterwards
 - Modify `.encryption_keys/` without understanding the re-encrypt workflow
+- Commit the `.kilo` (or any vendor) symlink — it is gitignored; only `.agents/<vendor>/` content is tracked
 
 ## Pointers
-- Project overview: `README.md`
-- Full chezmoi conventions + prefix tables: `.kilo/skills/chezmoi/SKILL.md`
-- Project rules: `.kilo/rules/chezmoi-source-project.md`
-- Agent-context conventions (AGENTS.md, SKILL.md): `.kilo/skills/agent-context/SKILL.md`
-- Knowledge cache convention and required `README.md` index: `dot_config/kilo/skills/project-context/references/knowledge-cache.md`
-- Local documentation index: `.help/README.md`
-- Edge cases (decrypt abort, etc.): `.help/QUIRKS.md`
-- Doc index (chezmoi + sprig): `.help/DOCS_MAP.md`
+- **`README.md`** — human-facing project overview, features, installation, usage, contributing
+- Full chezmoi conventions + prefix tables: `.agents/kilo/skills/chezmoi/SKILL.md`
+- Project rules: `.agents/kilo/rules/chezmoi-source-project.md`
+- Agent-context conventions (AGENTS.md, SKILL.md): `.agents/kilo/skills/agent-context/SKILL.md`
+- Knowledge cache convention and required `README.md` index: `.agents/docs/cache/README.md` (also `dot_config/kilo/skills/project-context/references/knowledge-cache.md` for the full spec)
+- Local chezmoi/sprig documentation: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
+- Vendor config: `.agents/kilo/` — root `.kilo/` is a symlink to it
