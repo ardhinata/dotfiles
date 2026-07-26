@@ -17,7 +17,7 @@ human-readable metadata that the importer can parse:
 // Format version: 1
 // Hostname:        desktop-main
 // Profile:         personal-laptop
-// Slug:            a3f9c1d8b3c49201
+// Slug:            a3f9c1d8b3c49201eedd001122334455
 // Exported at:     2026-07-12T10:41:44+07:00
 // Shellx version:  1.0.0
 // Original path:   /home/user/.local/share/a3f9c1d8
@@ -103,7 +103,7 @@ timestamped, so `ls -t | head -1` picks the newest):
 shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age | head -1)"
 
 # Restore a specific file from a custom location:
-shellx import /tmp/backups/encrypted_desktop-main_a3f9c1d8b3c49201_20260712T034144Z.jsonc.age
+shellx import /tmp/backups/encrypted_desktop-main_a3f9c1d8b3c49201eedd001122334455_20260712T034144Z.jsonc.age
 
 # Dry-run (no writes):
 shellx import --dry-run /path/to/encrypted_*.jsonc.age

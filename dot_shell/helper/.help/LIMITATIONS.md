@@ -15,7 +15,7 @@ honest list of what it does and does not defend against.
 - ✅ **Plaintext tokens in shell rc files** (no rc writes).
 - ✅ **Plaintext tokens in well-known config paths** (`~/.aws/credentials`,
   `~/.netrc`, `~/.npmrc`, `~/.config/gh/hosts.yml`) — they live only in
-  the random-slugged store.
+  the derived-slug store.
 - ✅ **Offline brute force of the on-disk ciphertext** (scrypt 2¹⁵/8/1
   ≈ 32 MiB per attempt).
 - ✅ **Blob-swap attacks** (AAD binds ciphertext to its variable name).

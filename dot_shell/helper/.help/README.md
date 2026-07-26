@@ -19,16 +19,17 @@ See `LIMITATIONS.md` for what shellx does *not* defend against.
 | Old helper | New `shellx` |
 |---|---|
 | Bash + `openssl enc` + `jq` | Python 3 stdlib only (no `pip`, no venv) |
-| Plaintext JSON store at `~/.shell/store/` | Opaque binary blobs at `~/.local/share/<random-slug>/` |
-| Filename `store/<profile>_environment_store.json` greps as a credential file | Slug is random 16 hex; blob names are `blake2b(VAR + "\0" + slug)[:8]` hex — indistinguishable from app cache noise |
+| Plaintext JSON store at `~/.shell/store/` | Opaque binary blobs at `~/.local/share/<derived-slug>/` |
+| Filename `store/<profile>_environment_store.json` greps as a credential file | Slug is a 32-hex blake2b of the per-profile static password; blob names are `blake2b(VAR + "\0" + slug)[:8]` hex — indistinguishable from app cache noise to a viewer who doesn't know your profile + nonce |
 | `runpriv` is recognizable by name | `shellx` is a single, neutral binary |
 | ChaCha20 stream cipher without authentication | scrypt KDF → ChaCha20 + HMAC-BLAKE2b (AEAD-equivalent construction) |
 | No round-trip with the chezmoi source tree | `export` / `import` subcommands produce JSONC encrypted by `chezmoi encrypt` / `chezmoi decrypt` |
+| `~/.shellx-store` marker file pointing at the store | No marker — the store path is derived from your profile + nonce, so it is reproducible across machines sharing the same chezmoi config |
 
 ## Quick start
 
 ```bash
-# 1. First run initializes the store automatically (after `chezmoi apply`).
+# 1. Initialize the store (one-time, after `chezmoi apply`).
 shellx init
 
 # 2. Add a secret (value is read from stdin, or prompted if stdin is a TTY).
@@ -51,8 +52,8 @@ shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*
 
 | Command | Purpose |
 |---|---|
-| `shellx` (no args) | If uninitialized: auto-init. Else: print help. |
-| `shellx init` | Create `~/.local/share/<slug>/` with `.sl` (slug) and `.idx` (index). |
+| `shellx` (no args) | Print help. |
+| `shellx init` | Create `~/.local/share/<derived-slug>/` with `.sl` (slug) and `.idx` (index). The slug is `blake2b(STATIC_PW)[:16].hex()` — reproducible across machines sharing your profile + nonce. |
 | `shellx store VAR --tag=a,b --process=x,y` | Encrypt value from stdin → blob + idx entry. |
 | `shellx list` | Print `VAR → tags/processes/updated`. |
 | `shellx rm VAR` | Remove blob + idx line. |
@@ -81,12 +82,19 @@ legacy `runpriv` helper.
 ## Live (runtime) layout
 
 ```
-~/.local/share/<random-16-hex-slug>/
-├── .sl          # 16-hex slug (sanity check; same as dir name)
+~/.local/share/<derived-32-hex-slug>/
+├── .sl          # 32-hex derived slug (sanity check; equals basename)
 ├── .idx         # plaintext index: VAR<TAB>tags<TAB>procs<TAB>updated
 └── <16-hex>     # per-secret opaque blob (filename = blake2b(VAR + "\0" + slug)[:8], 16 hex chars)
-~/.shellx-store  # single line: absolute path to the store dir above
 ```
+
+The slug is `blake2b(STATIC_PW)[:16].hex()` — 32 hex chars. The directory
+name is the slug; the `.sl` file is a redundant copy so a viewer can
+verify the directory is "the right one" without re-deriving it. There is
+no marker file: any machine with the same chezmoi profile + nonce will
+compute the same slug and land at the same path. Legacy stores (1.0)
+that have a `.sl` containing a different slug continue to work — see
+[`CHANGELOG.md`](./CHANGELOG.md) for the migration note.
 
 ## Dependencies
 

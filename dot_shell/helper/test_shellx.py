@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Unit tests for shellx crypto + JSONC parsing.
 
 Run with:
@@ -21,8 +20,8 @@ import importlib.util
 import json
 import os
 import struct
-import sys
 import unittest
+import unittest.mock
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
@@ -214,7 +213,7 @@ class TestJsoncParsing(unittest.TestCase):
             "// Format version: 1\n"
             "// Hostname:        desktop-main\n"
             "// Profile:         personal-laptop\n"
-            "// Slug:            a3f9c1d8b3c49201\n"
+            "// Slug:            a3f9c1d8b3c49201eedd001122334455\n"
             '{\n'
             '  // var: GH  tags: ["git"]  processes: ["gh"]  updated: 2026-07-11\n'
             '  "GH_TOKEN": {\n'
@@ -232,7 +231,7 @@ class TestJsoncParsing(unittest.TestCase):
         self.assertEqual(h["Format version"], "1")
         self.assertEqual(h["Hostname"], "desktop-main")
         self.assertEqual(h["Profile"], "personal-laptop")
-        self.assertEqual(h["Slug"], "a3f9c1d8b3c49201")
+        self.assertEqual(h["Slug"], "a3f9c1d8b3c49201eedd001122334455")
 
     def test_parse_payload(self):
         parsed = shellx._parse_jsonc(self.sample)
@@ -280,6 +279,67 @@ class TestStaticPasswordCache(unittest.TestCase):
         self.assertIn(profile, pw)
         self.assertTrue(pw.startswith("chezmoi:shellx:"))
         self.assertTrue(pw.endswith(":" + nonce))
+
+
+class TestDerivedSlug(unittest.TestCase):
+    """The store slug is derived from _STATIC_PW, so no marker file is needed."""
+
+    def setUp(self):
+        # Replace _static_pw so the test doesn't depend on `chezmoi data`.
+        # _derived_slug calls _static_pw() — we mock the module-level
+        # function for the duration of the test.
+        self._original_static_pw = shellx._static_pw
+        shellx._static_pw = lambda: self._fake_pw
+        shellx._STATIC_PW_CACHE = None
+
+    def tearDown(self):
+        shellx._static_pw = self._original_static_pw
+        shellx._STATIC_PW_CACHE = None
+
+    def test_derived_slug_is_deterministic(self):
+        """Same static_pw → same slug, always."""
+        self._fake_pw = "fake-static-pw"
+        self.assertEqual(shellx._derived_slug(), shellx._derived_slug())
+
+    def test_derived_slug_changes_with_password(self):
+        """Different static_pw → different slug."""
+        self._fake_pw = "alpha"
+        slug_a = shellx._derived_slug()
+        self._fake_pw = "beta"
+        slug_b = shellx._derived_slug()
+        self.assertNotEqual(slug_a, slug_b)
+
+    def test_derived_slug_format(self):
+        """Slug is 32 hex chars (16 bytes of blake2b)."""
+        self._fake_pw = "test"
+        slug = shellx._derived_slug()
+        self.assertEqual(len(slug), 32)
+        self.assertTrue(all(c in "0123456789abcdef" for c in slug))
+
+    def test_legacy_sl_file_wins_over_derived(self):
+        """A legacy `.sl` file preserves the original (pre-1.1) random slug."""
+        import tempfile
+        from pathlib import Path
+
+        self._fake_pw = "test"
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            legacy_slug = "deadbeefcafebabe"  # 16-hex, like 1.0 init output
+            sl_path = tmp_path / ".sl"
+            sl_path.write_text(legacy_slug + "\n")
+            with unittest.mock.patch.object(shellx, "_sl_path", return_value=str(sl_path)):
+                self.assertEqual(shellx._read_slug(), legacy_slug)
+
+    def test_falls_back_to_derived_when_sl_missing(self):
+        """If `.sl` is absent, _read_slug returns the derived slug."""
+        import tempfile
+        from pathlib import Path
+
+        self._fake_pw = "test"
+        with tempfile.TemporaryDirectory() as tmp:
+            sl_path = str(Path(tmp) / ".sl")  # does not exist
+            with unittest.mock.patch.object(shellx, "_sl_path", return_value=sl_path):
+                self.assertEqual(shellx._read_slug(), shellx._derived_slug())
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ file is designed to be readable, editable, diffable, and parseable.
 // Format version: 1                          ← required
 // Hostname:        <short hostname>          ← informational
 // Profile:         <system_environment.profile>   ← informational
-// Slug:            <16-hex slug>             ← informational, not authoritative
+// Slug:            <32-hex slug>             ← informational, not authoritative
 // Exported at:     <ISO 8601 UTC>            ← informational
 // Shellx version:  <X.Y.Z>                  ← informational
 // Original path:   <absolute store path>     ← informational
@@ -110,10 +110,10 @@ regenerated file.
 // Format version: 1
 // Hostname:        desktop-main
 // Profile:         personal-laptop
-// Slug:            a3f9c1d8b3c49201
+// Slug:            a3f9c1d8b3c49201eedd001122334455
 // Exported at:     2026-07-12T10:41:44+07:00
 // Shellx version:  1.0.0
-// Original path:   /home/ardhinata/.local/share/a3f9c1d8b3c49201
+// Original path:   /home/ardhinata/.local/share/a3f9c1d8b3c49201eedd001122334455
 {
   // var: GH  tags: ["git","api"]  processes: ["gh","glab"]  updated: 2026-07-11T22:10:03+07:00
   "GH": {

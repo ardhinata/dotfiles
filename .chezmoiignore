@@ -11,6 +11,11 @@ dot_shell/helper/.help
 **/test_shellx.py
 **/__pycache__/**
 
+## Ruff config for the helper scripts lives in the source tree only — keeps
+## `~/.shell/helper/pyproject.toml` out of $HOME. Run `ruff check
+## dot_shell/helper/` from the repo root to lint.
+**/pyproject.toml
+
 ## shellx exports are intentionally not auto-restored.
 ## Use `shellx import <file>` to explicitly restore secrets onto a machine.
 .encrypted_data/tokens/shellx*

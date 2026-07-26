@@ -24,16 +24,17 @@ After the first `chezmoi apply`:
 # 1. Verify shellx is on PATH.
 which shellx        # → /home/<you>/.shell/helper/shellx
 
-# 2. Run init (or invoke `shellx` with no args; auto-init runs).
+# 2. Run init.
 shellx init
 
 # 3. Confirm the store was created.
 ls -la ~/.local/share/
-cat ~/.shellx-store
 ```
 
-Output of step 3 will show a single `XXXXXXXXXXXXXXXX/` directory (random
-16-hex slug) plus the `~/.shellx-store` marker file.
+Output of step 3 will show a single `<64-hex-chars>/` directory. The name
+is `blake2b("chezmoi:shellx:<profile>:<nonce>")[:16].hex()` — deterministic
+from your chezmoi config, so the same profile + nonce on another machine
+will resolve to the same path. No marker file is needed.
 
 ## First secret
 
@@ -86,17 +87,19 @@ run `shellx init` once.
 
 `shellx init` is interactive only by default (it just prints, no prompt).
 For headless first-time setup on a CI box where you already know the
-slug, write the marker directly:
+profile and nonce, compute the derived slug and create the directory by
+hand:
 
 ```bash
-mkdir -p ~/.local/share/DEADBEEFCAFEBABE
-chmod 700 ~/.local/share/DEADBEEFCAFEBABE
-printf 'DEADBEEFCAFEBABE\n' > ~/.local/share/DEADBEEFCAFEBABE/.sl
-chmod 600 ~/.local/share/DEADBEEFCAFEBABE/.sl
-: > ~/.local/share/DEADBEEFCAFEBABE/.idx
-chmod 600 ~/.local/share/DEADBEEFCAFEBABE/.idx
-echo "$HOME/.local/share/DEADBEEFCAFEBABE" > ~/.shellx-store
-chmod 600 ~/.shellx-store
+# Compute the derived slug for the current profile + nonce.
+SLUG=$(python3 -c 'import hashlib; print(hashlib.blake2b(b"chezmoi:shellx:<profile>:<nonce>", digest_size=16).hexdigest())')
+
+mkdir -p ~/.local/share/"$SLUG"
+chmod 700 ~/.local/share/"$SLUG"
+printf '%s\n' "$SLUG" > ~/.local/share/"$SLUG"/.sl
+chmod 600 ~/.local/share/"$SLUG"/.sl
+: > ~/.local/share/"$SLUG"/.idx
+chmod 600 ~/.local/share/"$SLUG"/.idx
 ```
 
 Then `shellx import <path>` to populate from an existing export.
@@ -106,9 +109,9 @@ Then `shellx import <path>` to populate from an existing export.
 To wipe a store and start fresh:
 
 ```bash
-STORE="$(cat ~/.shellx-store)"
-rm -rf "${STORE}" ~/.shellx-store
-shellx init    # creates a new random slug
+SLUG=$(python3 -c 'import hashlib; print(hashlib.blake2b(b"chezmoi:shellx:<profile>:<nonce>", digest_size=16).hexdigest())')
+rm -rf "$HOME/.local/share/$SLUG"
+shellx init    # recreates the derived-slug store
 ```
 
 This does **not** affect chezmoi source tree (exports live in

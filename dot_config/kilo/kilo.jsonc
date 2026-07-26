@@ -49,6 +49,7 @@
     "mcp_timeout": 30000,
     "swe_pruner": true,
     "swe_pruner_model": "openrouter/deepseek/deepseek-v4-pro",
+    "continue_loop_on_deny": true,
   },
   "mcp": {
     "tavily": {
@@ -138,11 +139,8 @@
         },
         "minimax/minimax-m3": {
           "options": {
-            // "provider": {
-            //   "only": ["minimax/fp8"],
-            // },
-            "reasoning": {
-              "effort": "medium",
+            "provider": {
+              "only": ["minimax/fp8"],
             },
           },
         },
