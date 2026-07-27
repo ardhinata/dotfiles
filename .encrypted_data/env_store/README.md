@@ -1,4 +1,4 @@
-# `.encrypted_data/tokens/`
+# `.encrypted_data/env_store/`
 
 This directory holds **age-encrypted secret snippets** that are
 checked into the chezmoi source tree. Two kinds of files live here:
@@ -21,7 +21,7 @@ Created by `shellx export` (see
 These contain the full encrypted secret store in JSONC format, encrypted
 via `chezmoi encrypt` with the recipients in `.encryption_keys/`.
 
-`.chezmoiignore` excludes `.encrypted_data/tokens/shellx*` from
+`.chezmoiignore` excludes `.encrypted_data/env_store/shellx*` from
 `chezmoi apply` — restore is **explicit** via
 `shellx import <file>`. A fresh `chezmoi apply` on a new machine will
 not silently recreate your secret store.
@@ -34,10 +34,10 @@ shellx export
 
 # Stage the new file.
 cd ~/.local/share/chezmoi
-git add .encrypted_data/tokens/encrypted_*.jsonc.age
+git add .encrypted_data/env_store/encrypted_*.jsonc.age
 
 # On another machine, after pulling:
-shellx import .encrypted_data/tokens/encrypted_*.jsonc.age
+shellx import .encrypted_data/env_store/encrypted_*.jsonc.age
 ```
 
 See [`dot_shell/helper/.help/`](../../dot_shell/helper/.help/) for

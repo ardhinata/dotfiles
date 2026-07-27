@@ -13,7 +13,7 @@ Treat the following as the convention every project should converge on. `AGENTS.
 
 | Path | Purpose |
 |---|---|
-| `AGENTS.md` | Project agent guide. Concise, agent-agnostic, pointer-only, ≤80 lines. Points to the supplemental documents agents need when executing tasks. Emphasizes the project `README.md` and the supplemental directory `README.md`. Uses the 3-tier Boundaries pattern (`✅ Always` / `⚠️ Ask first` / `🚫 Never`). If absent, tell the user to create it and explain the advantages. Use [`references/AGENTS.md`](references/AGENTS.md) as the base structure. |
+| `AGENTS.md` | Project agent guide. Concise, agent-agnostic, pointer-only, soft target ~40–80 lines; hard ceiling 150. Points to the supplemental documents agents need when executing tasks. Emphasizes the project `README.md` and the supplemental directory `README.md`. Uses the 3-tier Boundaries pattern (`✅ Always` / `⚠️ Ask first` / `🚫 Never`). If absent, tell the user to create it and explain the advantages. Use [`references/AGENTS.md`](references/AGENTS.md) as the base structure. |
 | `docs/` | Public, human-readable project documentation. Hand-written; do not put auto-generated documentation here (e.g. generated API references, LLM-written docs) unless the user explicitly asks. Contains any information that helps the agent when doing tasks, including specific project context. Organize it so the agent can easily find the necessary information. Read this directory and its subdirectories when executing tasks and you need more context. |
 | `README.md` | Project main README. Contains an overview of the project, including its purpose, goals, and how to get started. **Always** read this file first when you start working on a new project. Carries the *why* (problem, audience, intent) and the *how* for humans; `AGENTS.md` must NOT duplicate this content — add pointers instead. |
 | `.agents/` | Unified directory for agent-specific data. Consolidates vendor tool directories (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`) under one root. Not part of public documentation. Vendor content lives at `.agents/<vendor-name>/` (e.g., `.agents/kilo/`, `.agents/claude/`) and a symlink replaces the original vendor directory at the project root. |
@@ -41,7 +41,7 @@ Surface a suggestion when any of the following is true:
 - User asks to create, fix, or review a `.gitignore`
 - A vendor-specific directory is found at the project root (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`)
 
-`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should stay under ~80 lines; deeper subsystem knowledge belongs in `.kilo/skills/` (on-demand) or in `docs/`. Kilo's own rules in `~/.config/kilo/rules/` are per-session overhead managed separately and do not compete with this budget.
+`AGENTS.md`, `.kilo/rules/`, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should target ~40–80 lines, hard ceiling 150 lines; deeper subsystem knowledge belongs in `.kilo/skills/` (on-demand) or in `docs/`. Kilo's own rules in `~/.config/kilo/rules/` are per-session overhead managed separately and do not compete with this budget.
 
 The whole point of these files is **hard-earned context an agent would likely miss without help**. Every line should answer: "Would an agent get this wrong without it?" If not, leave it out. Note the cost: even human-written repository context files raise inference cost >20% and do not reliably improve task success vs no context; LLM-generated files are worse (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988). So curation — not volume — is what makes an `AGENTS.md` worth keeping.
 
@@ -93,7 +93,7 @@ This is the only place in the skill where clarification questions are encouraged
 
 Check for `AGENTS.md` at the workspace root. **Ignore `CLAUDE.md`, `.cursorrules`, `GEMINI.md`, `.windsurfrules`, `.github/copilot-instructions.md`** — they are not part of the standard. If they exist, point them at `AGENTS.md` (e.g. Claude Code: `@AGENTS.md` import).
 
-- **A — None exists (clean project)**: suggest a 40–80 line `AGENTS.md` filled from the [template](references/AGENTS.md), using only facts extracted in Phase 0 and user input if present. Do not invent your own structure. Caveat the user that context files are not free upside — they raise inference cost and only help when minimal and high-signal (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988); LLM-generated files specifically reduce task success, so the draft must be human-reviewed before commit.
+- **A — None exists (clean project)**: suggest a 40–80 line `AGENTS.md` filled from the [template](references/AGENTS.md), using only facts extracted in Phase 0 and user input if present. Do not invent your own structure. The file may grow toward 150 when keeping guidance co-located helps the project more than fragmenting across supplemental files. Caveat the user that context files are not free upside — they raise inference cost and only help when minimal and high-signal (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988); LLM-generated files specifically reduce task success, so the draft must be human-reviewed before commit.
 - **B — AGENTS.md exists**: improve it in place rather than rewriting blindly. Preserve verified useful guidance, delete fluff or stale claims, and reconcile it with the current codebase. Offer an update only if stale or incomplete.
 
 ### Phase 2: Project documentation
@@ -158,7 +158,7 @@ Load these before drafting a new `AGENTS.md` from the template — they justify 
 
 ## Monorepos: nested AGENTS.md
 
-For monorepos, place an `AGENTS.md` inside each package. The agent reads the **closest file to the file being edited**; subpackage files override the root. Do not duplicate — point to the root and add only the package-specific deltas. Past ~150–200 lines in the root file, split it up.
+For monorepos, place an `AGENTS.md` inside each package. The agent reads the **closest file to the file being edited**; subpackage files override the root. Do not duplicate — point to the root and add only the package-specific deltas. Past ~150 lines in the root file, split it up.
 
 ## Anti-patterns
 

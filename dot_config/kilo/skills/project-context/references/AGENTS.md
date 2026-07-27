@@ -1,4 +1,4 @@
-<!-- Template only — copy verbatim into the project root as `AGENTS.md`. Keep ≤60 lines; ≤150 in monorepos. -->
+<!-- Template only — copy verbatim into the project root as `AGENTS.md`. Target ~40–80 lines; allow up to 150 when keeping guidance co-located helps the project. Past 150, split per-package (see SKILL.md → Monorepos). -->
 
 # AGENTS.md
 

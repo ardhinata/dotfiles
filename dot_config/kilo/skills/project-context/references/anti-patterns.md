@@ -18,9 +18,9 @@ Agents navigate the tree themselves; restating it costs tokens without helping. 
 
 "Add another rule when the agent makes a mistake" leads to drift-and-append, the most common failure mode. Prune stale rules.
 
-## Do not exceed 60 lines in the root AGENTS.md
+## Stay under 150 lines in the root AGENTS.md
 
-Past that, split into nested per-package files (see `Monorepos` in `SKILL.md`).
+Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found a mean of 142 lines — 150 is the empirical boundary between "monolithic works fine" and "start fragmenting." Allow growth up to 150 when the project genuinely benefits from keeping guidance co-located rather than splitting it into supplemental files. Past 150, split into nested per-package files (see `Monorepos` in `SKILL.md`). Augment Code's real-world upper bound for monolithic files is ~200 lines; HumanLayer's outer cap is ~300; both flag that beyond ~200, modular organization becomes necessary for token-budget reasons (Gloaguen et al., arXiv:2602.11988; Lulla et al., arXiv:2601.20404).
 
 ## Do not rely on vendor-specific agent files
 
