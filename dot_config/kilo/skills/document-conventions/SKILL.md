@@ -53,8 +53,8 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 
 | You want to… | Write |
 |---|---|
-| Capture a verified, non-obvious, reusable finding during a task | **Note** — `.tmp/notes/<task-slug>-<YYYY-MM-DD>.md` |
-| Plan a multi-step task that may not survive compaction | **Transient plan** — `.tmp/plans/<task-slug>-<YYYY-MM-DD>.md` |
+| Capture a verified, non-obvious, reusable finding during a task | **Note** — `.tmp/notes/<YYYY-MM-DD>-<task-slug>.md` |
+| Plan a multi-step task that may not survive compaction | **Transient plan** — `.tmp/plans/<YYYY-MM-DD>-<task-slug>.md` |
 | Plan a multi-step task the user wants to keep | **Persistent plan** — user-specified path |
 | Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
@@ -110,8 +110,8 @@ otherwise:
 | `CONTRIBUTING.md` | Contribution workflow |
 | `CHANGELOG.md` | Release-by-release change log |
 | `LICENSE` | License file |
-| `.tmp/notes/<task-slug>-<YYYY-MM-DD>.md` | Transient task note |
-| `.tmp/plans/<task-slug>-<YYYY-MM-DD>.md` | Transient plan |
+| `.tmp/notes/<YYYY-MM-DD>-<task-slug>.md` | Transient task note |
+| `.tmp/plans/<YYYY-MM-DD>-<task-slug>.md` | Transient plan |
 | `.tmp/scratch/<anything>` | Throwaway scratch (gitignored) |
 | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Knowledge-cache entry |
 | `.agents/docs/cache/<topic>/README.md` | Topic README (cache index) |

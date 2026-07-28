@@ -110,8 +110,8 @@ CHANGELOG.md
 CONTRIBUTING.md
 LICENSE
 
-.tmp/notes/<task-slug>-YYYY-MM-DD.md
-.tmp/plans/<task-slug>-YYYY-MM-DD.md
+.tmp/notes/YYYY-MM-DD-<task-slug>.md
+.tmp/plans/YYYY-MM-DD-<task-slug>.md
 .tmp/scratch/<anything>                   # no convention
 
 .agents/docs/cache/README.md

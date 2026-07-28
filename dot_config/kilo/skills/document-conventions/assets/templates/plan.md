@@ -1,6 +1,6 @@
 # Transient Plan Template
 
-Copy to `.tmp/plans/<task-slug>-YYYY-MM-DD.md`. Per the
+Copy to `.tmp/plans/YYYY-MM-DD-<task-slug>.md`. Per the
 `personal-quirks` planning rule. **Pre-planning duplicate scan is
 mandatory.**
 
@@ -64,7 +64,7 @@ findings here with enough context to act later.>
 **Length:** < 300 lines target; 500 hard ceiling. Split into phases
 if longer.
 
-**Filename:** `<task-slug>-YYYY-MM-DD.md`. Lowercase + hyphens. No
+**Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. No
 collisions — pre-create scan mandated by `personal-quirks.md`.
 
 **Update cadence:** at every checkpoint / milestone. Don't let the file

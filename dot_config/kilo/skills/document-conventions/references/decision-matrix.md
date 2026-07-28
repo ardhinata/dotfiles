@@ -23,9 +23,9 @@ finding is web-sourced and may go stale.
 
 | Intent | Scope / audience | Type | Path |
 |---|---|---|---|
-| Capture a verified, non-obvious, reusable finding | This task, this session | **Note** | `.tmp/notes/<task-slug>-<YYYY-MM-DD>.md` |
+| Capture a verified, non-obvious, reusable finding | This task, this session | **Note** | `.tmp/notes/<YYYY-MM-DD>-<task-slug>.md` |
 | Capture a verified finding but cannot pause safely | This task, deferred | **Deferred note** (block in active plan or scratchpad) | `.tmp/plans/...` or task scratchpad |
-| Multi-step plan, ephemeral | This session, may not survive compaction | **Transient plan** | `.tmp/plans/<task-slug>-<YYYY-MM-DD>.md` |
+| Multi-step plan, ephemeral | This session, may not survive compaction | **Transient plan** | `.tmp/plans/<YYYY-MM-DD>-<task-slug>.md` |
 | Multi-step plan, kept with the repo | Repo, user-approved | **Persistent plan** | user-specified (e.g. `docs/plans/<slug>.md`) |
 | Decision with options + consequences, needs to be discoverable later | Repo, durable | **ADR** | `docs/adr/NNNN-<slug>.md` |
 | Design proposal, needs team review | Repo, durable, reviewable | **RFC** | `docs/rfcs/NNNN-<slug>.md` |

@@ -1,6 +1,6 @@
 # Transient Note Template
 
-Copy to `.tmp/notes/<task-slug>-YYYY-MM-DD.md`. Per the
+Copy to `.tmp/notes/YYYY-MM-DD-<task-slug>.md`. Per the
 `proactive-note-capture` rule, the section order below is **mandatory**.
 
 ```markdown
@@ -47,13 +47,13 @@ YYYY-MM-DD
 
 ## See also
 
-- [related note](./other-note-YYYY-MM-DD.md)
-- [related plan](../../plans/plan-YYYY-MM-DD.md)
+- [related note](./YYYY-MM-DD-other-note.md)
+- [related plan](../../plans/YYYY-MM-DD-plan.md)
 ```
 
 **Length:** < 150 lines.
 
-**Filename:** `<task-slug>-YYYY-MM-DD.md`. Lowercase + hyphens. Avoid
+**Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. Avoid
 collisions with a pre-create scan (the rule mandates this).
 
 **Hard rules:**

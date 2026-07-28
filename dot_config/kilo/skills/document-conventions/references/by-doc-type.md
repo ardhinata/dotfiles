@@ -188,7 +188,7 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `.tmp/notes/<task-slug>-<YYYY-MM-DD>.md` |
+| Path | `.tmp/notes/<YYYY-MM-DD>-<task-slug>.md` |
 | Frontmatter | Optional. Recommended: `task`, `status` (`open`/`captured`/`promoted`) |
 | Required sections | H1, `## Finding`, `## Evidence`, `## Why it matters`, `## Scope`, `## Uncertainty`, `## Recommended destination`, `## Date captured` |
 | Optional sections | `## Next action`, `## See also` |
@@ -203,7 +203,7 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `.tmp/plans/<task-slug>-<YYYY-MM-DD>.md` |
+| Path | `.tmp/plans/<YYYY-MM-DD>-<task-slug>.md` |
 | Frontmatter | Optional. Recommended: `status`, `goal`, `owner`, `last-updated` |
 | Required sections | H1, `## Goal`, `## Scope`, `## Steps` (or `## Implementation steps`), `## Current status`, `## Risks` |
 | Optional sections | `## Open questions`, `## Decisions`, `## Deferred notes`, `## Captured …` |
