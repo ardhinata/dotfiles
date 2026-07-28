@@ -39,7 +39,7 @@ disclosure).
 |---|---|
 | [`references/decision-matrix.md`](references/decision-matrix.md) | Choosing *what kind* of doc to write |
 | [`references/by-doc-type.md`](references/by-doc-type.md) | The full per-type tables (filename, frontmatter, sections, length) |
-| [`references/title-and-filename.md`](references/title-and-filename.md) | Slug rules, date formats, numbering, case |
+| [`references/title-and-filename.md`](references/title-and-filename.md) | Slug rules, date formats, numbering, case, and when **not** to apply kebab-case |
 | [`references/frontmatter.md`](references/frontmatter.md) | Frontmatter policies per type, YAML rules, exceptions |
 | [`references/structure-and-length.md`](references/structure-and-length.md) | Required sections, ordering, length budgets |
 | [`references/cross-references.md`](references/cross-references.md) | Linking style, anchors, path citations |
@@ -83,7 +83,12 @@ otherwise:
 4. **Lowercase, hyphenated slugs.** Lowercase a–z, digits, hyphens. No
    spaces, underscores, capitals, or special chars in filenames. Hyphens
    are the word separator; *never* use underscores or camelCase in
-   filenames.
+   filenames. **This applies only to files where *you* choose the name.**
+   Established stems (`README.md`, `AGENTS.md`, `CHANGELOG.md`,
+   `LICENSE`), tool-fixed names (`Makefile`, `Dockerfile`,
+   `package.json`), and project prefixes (`dot_*`, `executable_*`,
+   `*.tmpl`) keep their widely-recognised form. See
+   [title-and-filename.md § Principle](references/title-and-filename.md#principle-use-the-right-convention-for-the-file-type).
 5. **Relative links** between docs in the same repo. Relative links keep
    the relationship working on clones and in editors. Use absolute URLs
    only for external sources.
