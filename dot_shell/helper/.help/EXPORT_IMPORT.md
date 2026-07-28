@@ -42,22 +42,22 @@ or manual commit, with a loud stderr warning).
 Exports follow the chezmoi `encrypted_` source-state prefix convention:
 
 ```
-.encrypted_data/tokens/encrypted_<host>_<slug>_<utc-timestamp>.jsonc.age
+.encrypted_data/env_store/encrypted_<host>_<slug>_<utc-timestamp>.jsonc.age
 ```
 
 Example:
 ```
-.encrypted_data/tokens/encrypted_desktop-main_a3f9c1d8_20260712T034144Z.jsonc.age
+.encrypted_data/env_store/encrypted_desktop-main_a3f9c1d8_20260712T034144Z.jsonc.age
 ```
 
 When you `chezmoi add` this file, it remains encrypted at rest and is
-excluded from `chezmoi apply` by the `.encrypted_data/tokens/shellx*`
+excluded from `chezmoi apply` by the `.encrypted_data/env_store/shellx*`
 rule in `.chezmoiignore`. Restore is **explicit** via `shellx import`.
 
 ## Export workflow
 
 ```bash
-# Default: writes encrypted_*.jsonc.age to <source>/.encrypted_data/tokens/
+# Default: writes encrypted_*.jsonc.age to <source>/.encrypted_data/env_store/
 shellx export
 
 # Custom destination:
@@ -75,7 +75,7 @@ less /tmp/audit/encrypted_*.jsonc
 
 1. `$CHEZMOI_SOURCE_PATH` environment variable (if set).
 2. `chezmoi source-path` subprocess (preferred — guaranteed correct).
-3. Fallback: `~/.local/share/chezmoi/.encrypted_data/tokens/`.
+3. Fallback: `~/.local/share/chezmoi/.encrypted_data/env_store/`.
 
 If chezmoi is unavailable and the env var is unset, the fallback is used
 silently.
@@ -100,7 +100,7 @@ timestamped, so `ls -t | head -1` picks the newest):
 
 ```bash
 # Restore the most recent export from the default chezmoi source tree:
-shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age | head -1)"
+shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/env_store/encrypted_*.jsonc.age | head -1)"
 
 # Restore a specific file from a custom location:
 shellx import /tmp/backups/encrypted_desktop-main_a3f9c1d8b3c49201eedd001122334455_20260712T034144Z.jsonc.age
@@ -118,7 +118,7 @@ shellx import --to ~/.local/share/NEW_SLUG /path/to/file.jsonc.age
 To import multiple files, loop over the shell-expanded glob:
 
 ```bash
-for f in ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age; do
+for f in ~/.local/share/chezmoi/.encrypted_data/env_store/encrypted_*.jsonc.age; do
   shellx import "$f"
 done
 ```

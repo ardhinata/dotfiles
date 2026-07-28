@@ -45,7 +45,7 @@ shellx --tag=git gh pr list      # injects GH_TOKEN (and any other --tag=git var
 shellx export
 
 # 6. Restore on another machine.
-shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age | head -1)"
+shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/env_store/encrypted_*.jsonc.age | head -1)"
 ```
 
 ## Subcommands
@@ -57,7 +57,7 @@ shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*
 | `shellx store VAR --tag=a,b --process=x,y` | Encrypt value from stdin → blob + idx entry. |
 | `shellx list` | Print `VAR → tags/processes/updated`. |
 | `shellx rm VAR` | Remove blob + idx line. |
-| `shellx export [--to DIR] [--label LABEL] [--no-encrypt]` | Generate JSONC, pipe through `chezmoi encrypt` to `<source>/.encrypted_data/tokens/encrypted_*.jsonc.age`. |
+| `shellx export [--to DIR] [--label LABEL] [--no-encrypt]` | Generate JSONC, pipe through `chezmoi encrypt` to `<source>/.encrypted_data/env_store/encrypted_*.jsonc.age`. |
 | `shellx import PATH [--to DIR] [--slug S] [--force] [--dry-run]` | `chezmoi decrypt` + parse JSONC, re-encrypt into the live store. |
 | `shellx --tag=a,b -- proc args…` | Exec `proc` with secrets matching any tag in `a,b` injected. |
 | `shellx --process=NAME -- proc args…` | Exec `proc` with secrets whose `process` list includes `NAME` injected. |
@@ -75,9 +75,9 @@ legacy `runpriv` helper.
 | `dot_shell/helper/executable_shellx_completion_helper.tmpl` | Tiny stdlib helper used by the zsh completion. |
 | `dot_shell/helper/.help/` | This documentation set (source-only — excluded from `chezmoi apply`). |
 | `dot_shell/zsh/completions/_shellx.tmpl` | zsh completion (`#compdef shellx`). |
-| `.encrypted_data/tokens/` | Default export destination. `shellx export` writes `encrypted_<host>_<slug>_<utc>.jsonc.age` files here. |
+| `.encrypted_data/env_store/` | Default export destination. `shellx export` writes `encrypted_<host>_<slug>_<utc>.jsonc.age` files here. |
 | `.chezmoiscripts/run_onchange_init-shellx-store.sh` | Post-apply hook that enforces `~/.local/share/` permissions. |
-| `.chezmoiignore` | `dot_shell/helper/.help` keeps docs source-only; `.encrypted_data/tokens/shellx*` prevents auto-restore of exports on apply. |
+| `.chezmoiignore` | `dot_shell/helper/.help` keeps docs source-only; `.encrypted_data/env_store/shellx*` prevents auto-restore of exports on apply. |
 
 ## Live (runtime) layout
 

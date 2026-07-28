@@ -115,4 +115,4 @@ shellx init    # recreates the derived-slug store
 ```
 
 This does **not** affect chezmoi source tree (exports live in
-`.encrypted_data/tokens/` and must be removed separately if desired).
+`.encrypted_data/env_store/` and must be removed separately if desired).

@@ -1,11 +1,11 @@
 source_structure:
   encryption_keys: ".encryption_keys"
   helper: ".shell_helper"
-  # shellx exports land in <source>/.encrypted_data/tokens/ (source-only).
+  # shellx exports land in <source>/.encrypted_data/env_store/ (source-only).
   # The exported JSONC blobs are written here as encrypted_<host>_<slug>_<utc>.jsonc.age
   # and explicitly excluded from `chezmoi apply` via .chezmoiignore.
   encrypted_data: ".encrypted_data"
-  shellx_export_subdir: "tokens"
+  shellx_export_subdir: "env_store"
 
 system_environment:
   profile: ""  # Free-form machine profile, e.g. "home", "office", "work-laptop"

@@ -71,7 +71,7 @@ chezmoi init --apply
 │   └── zgenom.yaml             # External source: zgenom plugin manager (weekly refresh)
 │
 ├── .encrypted_data/            # Age-encrypted secret snippets
-│   └── tokens/                 # Profile-specific encrypted token exports (created by user, e.g. <profile>_<name>.zsh.age)
+│   └── env_store/              # Profile-specific encrypted env-var exports (created by user, e.g. <profile>_<name>.zsh.age, plus shellx JSONC)
 │
 ├── .encryption_keys/           # Age encryption keys
 │   ├── README.md               # Key management documentation
@@ -191,11 +191,11 @@ This dotfiles repo supports per-machine profiles for managing environment-specif
      profile: "home"   # or "office", "work-laptop", etc.
    ```
 
-2. Create encrypted token files matching the profile name in `.encrypted_data/tokens/`:
+2. Create encrypted token files matching the profile name in `.encrypted_data/env_store/`:
    ```bash
    printf 'export TOKEN_NAME="secret-value"\n' \
      | age -e -a -R .encryption_keys/<recipient>.public.key \
-       -o ".encrypted_data/tokens/<profile>_<name>.zsh.age"
+       -o ".encrypted_data/env_store/<profile>_<name>.zsh.age"
    ```
 
 3. Tokens are automatically decrypted and sourced at shell startup.
@@ -234,11 +234,11 @@ are available.
 #### Export / import to the chezmoi source tree
 
 ```bash
-# Write an age-encrypted JSONC export to <source>/.encrypted_data/tokens/
+# Write an age-encrypted JSONC export to <source>/.encrypted_data/env_store/
 shellx export
 
 # Restore on another machine.
-shellx import ~/.local/share/chezmoi/.encrypted_data/tokens/encrypted_*.jsonc.age
+shellx import ~/.local/share/chezmoi/.encrypted_data/env_store/encrypted_*.jsonc.age
 ```
 
 Exports are JSONC (JSON with `//` comments) containing per-entry

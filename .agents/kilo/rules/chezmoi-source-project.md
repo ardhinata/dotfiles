@@ -8,7 +8,7 @@ This is a [Chezmoi](https://chezmoi.io) dotfiles source project. For full conven
 
 ## Sensitive File Handling
 
-Never read or include content from files matching: `.age`, `.asc`, `.decrypted` extensions; `encrypted_` prefix; paths containing `token`, `secret`, `credential`, `password`, `key`, `cert`, `pem`; files in `.encryption_keys/`, `.encrypted_data/tokens/`, or `dot_ssh/keys/`.
+Never read or include content from files matching: `.age`, `.asc`, `.decrypted` extensions; `encrypted_` prefix; paths containing `token`, `secret`, `credential`, `password`, `key`, `cert`, `pem`; files in `.encryption_keys/`, `.encrypted_data/env_store/`, or `dot_ssh/keys/`.
 
 ## Quick Reference
 

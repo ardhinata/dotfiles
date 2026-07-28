@@ -3,6 +3,38 @@
 All notable changes to `shellx` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] — 2026-07-27
+
+### Changed
+
+- **Default export destination renamed**: `shellx export` now writes to
+  `<source>/.encrypted_data/env_store/` (was `.encrypted_data/tokens/`).
+  The new name better reflects that the directory holds general
+  environment-variable exports — not just OAuth-style tokens. The wire
+  format, JSONC schema, and import path detection are unchanged.
+- `.chezmoiignore` updated to match: excludes
+  `.encrypted_data/env_store/shellx*` from `chezmoi apply`.
+
+### Fixed
+
+- `shellx export` (with no `--to`) crashed with `ValueError: stdout and
+  stderr arguments may not be used with capture_output` because
+  `_detect_export_dir` set both `capture_output=True` and
+  `stderr=subprocess.DEVNULL`. Switched to `stdout=subprocess.PIPE`,
+  which is compatible with the explicit stderr redirect.
+
+### Migration from 1.1
+
+- **Existing exports need to be moved**:
+  `git mv .encrypted_data/tokens .encrypted_data/env_store` (or just
+  re-run `shellx export` after the upgrade — old files at the old path
+  are still importable by passing an explicit path).
+- **No data loss**: `shellx import` accepts any `.jsonc.age` file by
+  path; only the *default* destination changed.
+- The empty `.gitkeep` and `README.md` have been relocated from
+  `tokens/` to `env_store/`. If you had your own files there, move them
+  too.
+
 ## [1.1.0] — 2026-07-26
 
 ### Changed

@@ -22,7 +22,7 @@ from typing import Any, NoReturn
 
 # ---- Constants ------------------------------------------------------------
 
-SHELLX_VERSION = "1.1.0"
+SHELLX_VERSION = "1.2.0"
 SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
 # Static password derived from chezmoi's `system_environment.nonce` and
 # `system_environment.profile`. Format: `chezmoi:shellx:<profile>:<nonce>` —
@@ -498,14 +498,14 @@ def cmd_export(args) -> int:
 
 
 def _detect_export_dir() -> str:
-    """Resolve the chezmoi source dir's .encrypted_data/tokens/ path."""
+    """Resolve the chezmoi source dir's .encrypted_data/env_store/ path."""
     src = os.environ.get("CHEZMOI_SOURCE_PATH", "").strip()
     candidates = []
     if src:
-        candidates.append(os.path.join(src, ".encrypted_data", "tokens"))
+        candidates.append(os.path.join(src, ".encrypted_data", "env_store"))
     proc = subprocess.run(
         ["chezmoi", "source-path"],
-        capture_output=True,
+        stdout=subprocess.PIPE,
         text=True,
         check=False,
         stderr=subprocess.DEVNULL,
@@ -513,9 +513,9 @@ def _detect_export_dir() -> str:
     if proc.returncode == 0:
         out = proc.stdout.strip()
         if out:
-            candidates.append(os.path.join(out, ".encrypted_data", "tokens"))
+            candidates.append(os.path.join(out, ".encrypted_data", "env_store"))
     candidates.append(
-        os.path.expanduser("~/.local/share/chezmoi/.encrypted_data/tokens")
+        os.path.expanduser("~/.local/share/chezmoi/.encrypted_data/env_store")
     )
     return candidates[0]
 
@@ -793,7 +793,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     sp.add_argument(
         "--to",
-        help="Destination directory (defaults to <source>/.encrypted_data/tokens/)",
+        help="Destination directory (defaults to <source>/.encrypted_data/env_store/)",
     )
     sp.add_argument(
         "--label", help="Filename label override (default: <host>_<slug>_<utc>)"
