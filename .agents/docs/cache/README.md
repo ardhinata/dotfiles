@@ -11,7 +11,10 @@ Date-tagged, reusable facts learned from web research in this project. Persisten
 
 ## Entries
 
-_No entries yet. Add the first one when external research produces a reusable fact._
+### agent-skills-ecosystem
+
+- [2026-07-28 — skills.sh / agentskills.io vs Kilo](agent-skills-ecosystem/2026-07-28-skills-sh-vs-kilo-comparison.md) — open skills format spec; Kilo's local skills are already spec-compliant. Sources: skills.sh, agentskills.io, anthropics/skills, vercel-labs/skills.
+- [2026-07-28 — `.kilocode/skills/` is legacy; `.kilo/skills/` is canonical](agent-skills-ecosystem/2026-07-28-kilo-skill-path-canonicalization.md) — `.kilocode/` still hosts modes + MCP, but skills/rules moved to `.kilo/`. `vercel-labs/skills` CLI agent-target table is stale on this point. Sources: kilo.ai docs, Kilo-Org/kilocode#7886, kilo.ai migration guide.
 
 ## Related
 
