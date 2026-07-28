@@ -42,7 +42,7 @@
     "threshold_percent": 70,
   },
   "experimental": {
-    "batch_tool": true,
+    "batch_tool": false,
     "codebase_search": false,
     "agent_manager_tool": true,
     "openTelemetry": true,
