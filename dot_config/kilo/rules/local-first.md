@@ -1,6 +1,8 @@
 # Local First, Don't Assume
 
-When the user asks something, read the project's readily-available docs **before assuming or searching the web**. (Filename is `local-first`, not an ordering guarantee — `instructions: [".../*.md"]` loads as an unordered glob. The name just signals the behavior: prefer local sources first.) Do this on the first turn, not after guessing.
+When the user asks something, read the project's readily-available docs **before assuming or searching the web**. Apply this on the **first turn** of any project-scoped question — before web tools (see `web-tools-priority.md`) and before clarifying questions. (Filename is `local-first`, not an ordering guarantee — `instructions: [".../*.md"]` loads as an unordered glob. The name just signals the behavior: prefer local sources first.)
+
+This rule owns the **priority order of local sources**. The `project-context` skill's Phase 0 applies a similar order specifically to AGENTS.md drafting — that skill cross-references this list. Timing for *when* to leave local sources is in `web-tools-priority.md` §"Startup rule".
 
 ## Priority
 
@@ -15,16 +17,6 @@ In roughly this order — read what exists, skip what doesn't:
 7. **`.env.example` / `.env.template`** — required env vars (no secrets exposed). Check before assuming defaults.
 8. **`docs/` index** — skim filenames/titles only, not contents. Tells you where deeper knowledge lives so you can target a single file later.
 9. **Code itself** — when the above don't cover it, read the relevant source/config.
-
-## When
-
-- On the **first turn** of any project-scoped question — before searching the web or asking the user.
-- Before `tavily_search`, `firecrawl_*`, or `context7` — the answer is usually local and more authoritative.
-- Before a clarifying question the docs may already answer.
-
-## Heuristic
-
-Prefer **executable truth over prose**: manifests and task runners beat README paragraphs about "how to build". Prefer **agent-instruction files over general docs**: they're written for you. Prefer **recent (`CHANGELOG`) over comprehensive** when your cutoff is stale.
 
 ## Anti-Patterns
 

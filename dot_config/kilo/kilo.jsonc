@@ -100,6 +100,9 @@
     "openrouter": {
       "options": {
         "apiKey": "{env:OPENROUTER_API_KILO_CLI}",
+        "provider": {
+          "sort": "price",
+        },
       },
       "models": {
         "deepseek/deepseek-v4-flash": {
@@ -127,14 +130,6 @@
         "google/gemini-3.1-flash-lite": {
           "options": {
             "service_tier": "flex",
-          },
-        },
-        "z-ai/glm-5.2": {
-          "options": {
-            "provider": {
-              "only": ["streamlake/fp8", "novita/fp8"],
-              "order": ["streamlake/fp8", "novita/fp8"],
-            },
           },
         },
         "minimax/minimax-m3": {

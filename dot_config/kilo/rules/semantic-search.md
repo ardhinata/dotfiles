@@ -16,7 +16,7 @@
 
 ## Capped-Results Recovery
 
-When results hit 16 and none are relevant:
+When results hit the cap (see `kilo.jsonc` `indexing.searchMaxResults`) and none are relevant:
 
 1. Retry with a more targeted query — narrower concept, terminology you've seen in the codebase
 2. Add a `path` constraint
