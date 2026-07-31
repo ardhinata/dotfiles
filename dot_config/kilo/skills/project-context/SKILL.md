@@ -1,6 +1,6 @@
 ---
 name: project-context
-description: Project agent-context, layout, and documentation convention. Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an `AGENTS.md` would eliminate, when a vendor-specific directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) is found at the project root, or before fetching external info via tavily/firecrawl/context7 in a project without a knowledge cache (`.agents/docs/cache/`). Treats `AGENTS.md` as the only agent instruction standard — ignore vendor-specific files like `CLAUDE.md`; context must stay portable and agent-agnostic.
+description: Project-level agent guidance and the AGENTS.md lifecycle. Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an AGENTS.md would eliminate, when a vendor-specific directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) is found at the project root, or when integrating Kilo rules and skills under `.agents/kilo/`. Treats `AGENTS.md` as the only agent instruction standard — ignores vendor-specific files like `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`. For project directory layout, `.tmp/` subroles, vendor path unification, and knowledge-cache placement, load the `project-layout` skill instead.
 ---
 
 # Project Context
@@ -9,20 +9,11 @@ When starting work in a project, assess its agent-context and documentation stat
 
 ## Standard directory layout
 
-Treat the following as the convention every project should converge on. `AGENTS.md` is the only agent instruction file; vendor content unifies under `.agents/`; `docs/` carries project-level human-facing docs; `.agents/docs/cache/` is the knowledge cache; `.tmp/` is a transient scratchpad.
-
-| Path | Purpose |
-|---|---|
-| `AGENTS.md` | Project agent guide. Concise, agent-agnostic, pointer-only, soft target ~40–80 lines; hard ceiling 150. Points to the supplemental documents agents need when executing tasks. Emphasizes the project `README.md` and the supplemental directory `README.md`. Uses the 3-tier Boundaries pattern (`✅ Always` / `⚠️ Ask first` / `🚫 Never`). If absent, tell the user to create it and explain the advantages. Use [`references/AGENTS.md`](references/AGENTS.md) as the base structure. |
-| `docs/` | Public, human-readable project documentation. Hand-written; do not put auto-generated documentation here (e.g. generated API references, LLM-written docs) unless the user explicitly asks. Contains any information that helps the agent when doing tasks, including specific project context. Organize it so the agent can easily find the necessary information. Read this directory and its subdirectories when executing tasks and you need more context. |
-| `README.md` | Project main README. Contains an overview of the project, including its purpose, goals, and how to get started. **Always** read this file first when you start working on a new project. Carries the *why* (problem, audience, intent) and the *how* for humans; `AGENTS.md` must NOT duplicate this content — add pointers instead. |
-| `.agents/` | Unified directory for agent-specific data. Consolidates vendor tool directories (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`) under one root. Not part of public documentation. Vendor content lives at `.agents/<vendor-name>/` (e.g., `.agents/kilo/`, `.agents/claude/`) and a symlink replaces the original vendor directory at the project root. |
-| `.agents/docs/cache/` | Knowledge cache. Date-tagged, gitignored. **Must include a `README.md` index** with relative links to entries (topic, source, capture date, freshness note). Naming convention: `.agents/docs/cache/<topic>/YYYY-MM-DD-<short-slug>.md` — one topic per file, ISO date prefix. Sibling of `.agents/docs/` for non-cache agent-only documentation (fetched references, canonical notes). |
-| `.tmp/` | Temporary scratchpad for users and agentic AI. Default gitignored. Place scratchpad documents, scripts, and any temp file here instead of using `/tmp`. **Distinct from the knowledge cache** — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`. |
+For the canonical on-disk layout of an agentic-driven project (`AGENTS.md`, `README.md`, `docs/`, `.agents/`, `.agents/docs/cache/`, `.tmp/{notes,plans}/`, vendor unification), **load the `project-layout` skill**. This skill owns the AGENTS.md lifecycle and README↔AGENTS separation; the layout itself is a single source of truth in `project-layout`.
 
 ## Proactive caching default
 
-After any web lookup that produces reusable or volatile information, write a date-tagged entry under `.agents/docs/cache/` (not `.tmp/`) and update its `README.md` index. Prefer verified web sources over training-data recall. This is a global default, not a per-project `AGENTS.md` directive.
+After any web lookup that produces reusable or volatile information, write a date-tagged entry under the project's knowledge cache (see the `project-layout` skill for canonical placement and naming) and update its `README.md` index. Prefer verified web sources over training-data recall. This is a global default, not a per-project `AGENTS.md` directive.
 
 ## AGENTS.md-only standard
 
@@ -35,7 +26,7 @@ Surface a suggestion when any of the following is true:
 - `AGENTS.md` is missing
 - `README.md` is missing or lacks project-specific info (background, problem statement, tech stack)
 - No `docs/` directory (or similar) is listed from `README.md` / `AGENTS.md`
-- About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in a project with no knowledge cache (`.agents/docs/cache/`)
+- About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in a project with no knowledge cache
 - Turn-1 discovery revealed non-obvious conventions an `AGENTS.md` would eliminate
 - Spent >2 turns explaining project-specific patterns
 - User asks to create, fix, or review a `.gitignore`
@@ -57,14 +48,12 @@ $ARGUMENTS
 
 ### Phase 0: Investigation
 
-Before drafting or editing anything, gather facts from executable sources of truth. Read the highest-value sources first, in roughly this order:
+Before drafting or editing anything, gather facts from executable sources of truth. Phase 0 applies the priority from the global `local-first.md` rule (which lists the canonical local-source order — do not duplicate that list here) with a tighter lens: it is the priority used specifically to *build* project context, not to answer a question. Add these Phase-0-only sources on top:
 
-- `README*`, root manifests, workspace config, lockfiles
-- build, test, lint, formatter, typecheck, and codegen config
-- CI workflows and pre-commit / task runner config
-- existing instruction files (only read `AGENTS.md`; ignore vendor-specific files like `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` — they are out of scope per the AGENTS.md-only rule above)
 - repo-local Kilo config such as `kilo.json` / `kilo.jsonc`
 - `.agents/docs/` for prior cached research and references
+- CI workflows and pre-commit / task runner config (these are executable truth that the AGENTS.md must capture)
+- existing instruction files (only read `AGENTS.md`; ignore vendor-specific files like `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` — they are out of scope per the AGENTS.md-only rule above)
 
 If architecture is still unclear after reading config and docs, inspect a **small number of representative code files** to find the real entrypoints, package boundaries, and execution flow. Prefer files that show how the system is wired together over random leaf files.
 
@@ -133,7 +122,7 @@ Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`)
 
 ## Knowledge cache
 
-If the project has no knowledge cache at `.agents/docs/cache/`, suggest creating one with a `README.md` index and referencing the cache path from `AGENTS.md` → `Pointers`. Conventions: see `references/knowledge-cache.md` and the global rule `~/.config/kilo/rules/web-tools-priority.md`. Date-tagged web-learned facts go in `.agents/docs/cache/`; transient scratchpads go in `.tmp/` (distinct).
+If the project has no knowledge cache, suggest creating one with a `README.md` index and referencing the cache path from `AGENTS.md` → `Pointers`. For canonical placement, subrole, and naming convention see the `project-layout` skill; for authoring rules (date tag, source, freshness note) see `references/knowledge-cache.md`; for the write-trigger see the global rule `~/.config/kilo/rules/web-tools-priority.md`.
 
 ## Writing rules
 
@@ -175,6 +164,6 @@ See [`references/anti-patterns.md`](references/anti-patterns.md).
 
 User opens a project. You find: no `AGENTS.md`, a `package.json` with `next@15`, no `.agents/`, no knowledge cache, and a `.kilo/` directory at the root. After ~2 turns of Phase 0 investigation:
 
-> "No `AGENTS.md` and no `.agents/docs/cache/`. Want me to draft a 40-line `AGENTS.md` from the template (Stack / Commands / Boundaries) — and unify `.kilo/` under `.agents/kilo/` with a symlink back, so future web fetches get cached here too?"
+> "No `AGENTS.md` and no knowledge cache (see the `project-layout` skill for the canonical layout). Want me to draft a 40-line `AGENTS.md` from the template (Stack / Commands / Boundaries) — and unify `.kilo/` under `.agents/kilo/` with a symlink back?"
 
 Short, references the template, surfaces the `AGENTS.md`, the cache (second eager trigger), and the vendor-unification opportunity (Phase 3 trigger).

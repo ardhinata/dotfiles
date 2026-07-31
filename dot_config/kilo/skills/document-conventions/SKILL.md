@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Document conventions and authoring standards for every doc type the agent creates or edits — AGENTS.md, README.md, SKILL.md, Kilo rule files, knowledge-cache entries, plans, notes, ADRs, RFCs, CHANGELOG, scratch files. Use when starting a new document, choosing between doc types, validating naming or frontmatter, or aligning structure to project and open-spec rules. Loads decision matrix + per-type tables; ignores files in `.gitignore`; never edits encrypted secrets.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, Kilo rule, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill.
 ---
 
 # Document Conventions
@@ -66,7 +66,7 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 | Introduce a doc subtree | **topic README.md** |
 | Record release-by-release changes | **CHANGELOG.md** |
 | Document contribution workflow | **CONTRIBUTING.md** |
-| Park throwaway work | **`.tmp/scratch/...`** — no convention beyond "delete when done" |
+| Park throwaway work | **`.tmp/<ad-hoc>/...`** — no convention beyond "delete when done"; `.tmp/` subroles `notes/` and `plans/` are canonical, others are ad-hoc (see the `project-layout` skill) |
 
 ## Universally applicable rules
 
