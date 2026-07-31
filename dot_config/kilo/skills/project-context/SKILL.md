@@ -82,7 +82,7 @@ This is the only place in the skill where clarification questions are encouraged
 
 Check for `AGENTS.md` at the workspace root. **Ignore `CLAUDE.md`, `.cursorrules`, `GEMINI.md`, `.windsurfrules`, `.github/copilot-instructions.md`** — they are not part of the standard. If they exist, point them at `AGENTS.md` (e.g. Claude Code: `@AGENTS.md` import).
 
-- **A — None exists (clean project)**: suggest a 40–80 line `AGENTS.md` filled from the [template](references/AGENTS.md), using only facts extracted in Phase 0 and user input if present. Do not invent your own structure. The file may grow toward 150 when keeping guidance co-located helps the project more than fragmenting across supplemental files. Caveat the user that context files are not free upside — they raise inference cost and only help when minimal and high-signal (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988); LLM-generated files specifically reduce task success, so the draft must be human-reviewed before commit.
+- **A — None exists (clean project)**: suggest a 40–80 line `AGENTS.md` filled from the [template](../assets/templates/agents.md), using only facts extracted in Phase 0 and user input if present. Do not invent your own structure. The file may grow toward 150 when keeping guidance co-located helps the project more than fragmenting across supplemental files. Caveat the user that context files are not free upside — they raise inference cost and only help when minimal and high-signal (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988); LLM-generated files specifically reduce task success, so the draft must be human-reviewed before commit.
 - **B — AGENTS.md exists**: improve it in place rather than rewriting blindly. Preserve verified useful guidance, delete fluff or stale claims, and reconcile it with the current codebase. Offer an update only if stale or incomplete.
 
 ### Phase 2: Project documentation
@@ -116,7 +116,7 @@ Keep Kilo-specific content in `.agents/kilo/` (or `.kilo/` if not yet unified), 
 
 ## AGENTS.md template
 
-Use the template at [`references/AGENTS.md`](references/AGENTS.md) when suggesting or drafting a new `AGENTS.md`. Drop sections that do not apply. Fill every line from Phase 0 extraction — never from imagination. Do **not** add a "Project structure" or "Architecture overview" section — agents navigate the tree themselves, and those sections measurably increase inference cost without improving task success (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988).
+Use the template at [`assets/templates/agents.md`](../assets/templates/agents.md) when suggesting or drafting a new `AGENTS.md`. Drop sections that do not apply. Fill every line from Phase 0 extraction — never from imagination. Do **not** add a "Project structure" or "Architecture overview" section — agents navigate the tree themselves, and those sections measurably increase inference cost without improving task success (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988).
 
 Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) — it is the pattern the GitHub Copilot analysis of 2,500+ `agents.md` files found in the best-performing ones (Matt Nigh, github.blog, Nov 2025). The Boundaries section also includes a placeholder `✅ Always` line for **recreating the vendor symlink on fresh clones** (see Phase 3). Use **exact command flags** in the Commands section: `pnpm vitest run -t "name pattern"` is more useful than `pnpm test`. One real code snippet for style beats three paragraphs of style description.
 
@@ -155,7 +155,7 @@ See [`references/anti-patterns.md`](references/anti-patterns.md).
 
 ## References
 
-- [`references/AGENTS.md`](references/AGENTS.md) — copy-as-template for new project `AGENTS.md`. Includes a `✅ Always` placeholder for vendor-symlink recreation.
+- [`assets/templates/agents.md`](../assets/templates/agents.md) — copy-as-template for new project `AGENTS.md`. Includes a `✅ Always` placeholder for vendor-symlink recreation.
 - [`references/knowledge-cache.md`](references/knowledge-cache.md) — `.agents/docs/cache/` date-tagged web-learned facts cache convention.
 - [`references/anti-patterns.md`](references/anti-patterns.md) — do/don't checklist for drafting `AGENTS.md`.
 - [`references/gitignore-toptal-api.md`](references/gitignore-toptal-api.md) — Toptal gitignore API workflow and pre-seeded template catalog. Use when generating, fixing, or reviewing `.gitignore`.

@@ -87,6 +87,6 @@ When the deviation is structural (a path that contradicts the tree), surface it 
 - `~/.config/kilo/skills/project-context/SKILL.md` — AGENTS.md lifecycle, README↔AGENTS separation, vendoring trigger.
 - `~/.config/kilo/skills/document-conventions/SKILL.md` — per-doc-type filename, frontmatter, section order.
 - `~/.config/kilo/skills/project-context/references/knowledge-cache.md` — knowledge-cache authoring rules (date tag, source, freshness note).
-- `~/.config/kilo/skills/project-context/references/AGENTS.md` — AGENTS.md template.
+- `~/.config/kilo/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
 - `~/.config/kilo/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
 - `.agents/docs/cache/README.md` — required cache index (per topic as well).

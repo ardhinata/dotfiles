@@ -13,7 +13,7 @@ Router rule. Triggers load the `project-context` skill **and** the `project-layo
 ## Load `project-context` alone (no project-layout trigger)
 
 - AGENTS.md-only standard enforcement (pointing `CLAUDE.md`, `.cursorrules`, `GEMINI.md`, `.windsurfrules` at `AGENTS.md` via `@AGENTS.md` import).
-- Drafting or critiquing an `AGENTS.md` against the template at `references/AGENTS.md`.
+- Drafting or critiquing an `AGENTS.md` against the template at `assets/templates/agents.md` (from the `project-context` skill).
 - Triggering the README↔AGENTS.md separation.
 
 ## Load `project-layout` alone (no project-context trigger)

@@ -20,7 +20,7 @@ Load when creating, reviewing, or improving `AGENTS.md` or `SKILL.md` files. Cov
 
 ### Structure
 
-Use the Kilo template at `~/.config/kilo/skills/project-context/references/AGENTS.md` as starting material. Fill every section from verified project facts, never imagination:
+Use the Kilo template at `~/.config/kilo/skills/project-context/assets/templates/agents.md` as starting material. Fill every section from verified project facts, never imagination:
 
 | Section | Purpose |
 |---|---|
@@ -117,7 +117,7 @@ Run the skill against real tasks, read agent execution traces (not just final ou
 ## Workflow for Creating/Updating Agent Context
 
 1. **Investigate first**: Read `README.md`, root manifests, build config, CI, existing instruction files. Prefer executable truth over prose.
-2. **Draft from template**: Use `~/.config/kilo/skills/project-context/references/AGENTS.md` for AGENTS.md; follow the spec above for SKILL.md.
+2. **Draft from template**: Use `~/.config/kilo/skills/project-context/assets/templates/agents.md` for AGENTS.md; follow the spec above for SKILL.md.
 3. **Verify every claim**: Never copy a claim you couldn't verify against the repo.
 4. **Keep it tight**: Every line must answer "Would an agent get this wrong without it?" When in doubt, omit.
 5. **Human review required**: LLM-generated context files reduce task success (Gloaguen et al., arXiv:2602.11988). Flag this when suggesting.
