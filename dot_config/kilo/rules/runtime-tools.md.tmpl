@@ -1,0 +1,67 @@
+{{- /* runtime-tools.md.tmpl — chezmoi template, branches per host */ -}}
+# Runtime Tools
+
+Router rule. Triggers load the relevant flat skill — `fnm` for Node
+toolchain concerns, `container-tools` for container runtime concerns.
+Each skill holds the install / fallback commands and decision tables.
+
+## Load the relevant skill when any of these is true
+
+- About to run any `node`, `npm`, `pnpm`, `yarn`, `npx`, `corepack`, or
+  `bun` command in a project that has a `.node-version`, `.nvmrc`, or
+  `package.json#engines.node` → load the `fnm` skill.
+- About to run any `docker`, `podman`, `nerdctl`, or `containerd` command
+  → load the `container-tools` skill.
+- Editing or authoring a `Dockerfile`, `Containerfile`, `compose.yaml`,
+  `compose.yml`, `docker-compose.yml`, or `podman-compose.yml` → load
+  the `container-tools` skill.
+- The user asks which Node version is active, or to install / switch
+  Node → load the `fnm` skill.
+- The user asks which container tool to use on this machine → load the
+  `container-tools` skill.
+
+## This host
+
+The sections below are rendered by chezmoi at apply time and reflect
+what is currently on `$PATH`. Each section is a thin pointer to the
+relevant flat skill.
+
+{{- if lookPath "fnm" }}
+
+### fnm — installed
+
+{{ include "dot_config/kilo/rules/.template-resources/fnm_installed.md" }}
+{{- end }}
+
+{{- if and (lookPath "docker") (lookPath "podman") }}
+
+### Container tools — both docker and podman installed
+
+{{ include "dot_config/kilo/rules/.template-resources/container_both-installed.md" }}
+{{- else if lookPath "podman" }}
+
+### Container tools — podman only
+
+{{ include "dot_config/kilo/rules/.template-resources/container_only-podman.md" }}
+{{- else if lookPath "docker" }}
+
+### Container tools — docker only
+
+{{ include "dot_config/kilo/rules/.template-resources/container_only-docker.md" }}
+{{- end }}
+
+## Boundary
+
+- **Per-host detection + per-tool router** (this rule) → loads the
+  right flat skill for the current trigger.
+- **fnm mechanics** (version detection, install, fallback, corepack,
+  not-installed recommendation) → `fnm` skill.
+- **Container runtime selection** (shim detection, compose variant, OCI
+  vs Docker Hub, not-installed recommendation) → `container-tools`
+  skill.
+- **Per-project conventions** (lockfile policy, multi-stage build
+  patterns) → not a rule; defer to project conventions.
+- **Adding a new runtime tool in the future** (e.g. `uv`, `mise`,
+  `rtk`-in-router) → create a new flat skill, add a new trigger line
+  to this rule. No edits to existing skills; no parent description to
+  grow.
