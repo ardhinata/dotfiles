@@ -10,9 +10,9 @@ allowed.
 | Type | Frontmatter | Notes |
 |---|---|---|
 | `SKILL.md` | **Required** | `name`, `description` — enforced by `skills-ref validate` |
-| Kilo rule file (`dot_config/kilo/rules/*.md`) | **Forbidden** | Project decision `kilo.rules.no_frontmatter`. Cursor convention that Kilo's loader does not parse. |
+| Kilo rule file (`~/.config/kilo/rules/*.md`) | **Forbidden** | Global decision `kilo.rules.no_frontmatter`. Cursor convention that Kilo's loader does not parse. |
 | ADR (MADR) | Optional | MADR `0013-use-yaml-front-matter-for-meta-data` |
-| Knowledge-cache entry | Optional | Project rule: prefer consistent fields |
+| Knowledge-cache entry | Optional | Global rule: prefer consistent fields |
 | Transient note | Optional | `task`, `status` recommended |
 | Transient plan | Optional | `status`, `goal`, `last-updated` recommended |
 | Persistent plan | Optional | Same as transient plan |
@@ -53,7 +53,7 @@ pick one and use it consistently across a project.
 ### `description`
 
 ```yaml
-description: Document conventions and authoring standards for every doc type the agent creates or edits — AGENTS.md, README.md, SKILL.md, Kilo rule files, knowledge-cache entries, plans, notes, ADRs, RFCs, CHANGELOG, scratch files. Use when starting a new document, choosing between doc types, validating naming or frontmatter, or aligning structure to project and open-spec rules. Loads decision matrix + per-type tables; ignores files in `.gitignore`; never edits encrypted secrets.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, Kilo rule, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill.
 ```
 
 Rules:
@@ -169,9 +169,9 @@ Frontmatter uses standard YAML 1.2. Common foot-guns:
 6. **Dates:** ISO 8601 strings parse as `date`/`datetime`. Quote if
    you want them as strings.
 
-## Project-specific frontmatter exception
+## Rule-file frontmatter exception
 
-The project's `dot_config/kilo/rules/*.md` files deliberately **do not**
+The global `~/.config/kilo/rules/*.md` files deliberately **do not**
 use frontmatter (decision `kilo.rules.no_frontmatter`). Reasons:
 
 - The loader does not parse frontmatter, so adding it is dead weight
@@ -181,7 +181,7 @@ use frontmatter (decision `kilo.rules.no_frontmatter`). Reasons:
 - The Kilo skill loader reads SKILL.md frontmatter but treats rule
   files as plain Markdown
 
-When in doubt for a project rule file: **omit frontmatter**. Add a
+When in doubt for a global rule file: **omit frontmatter**. Add a
 top-of-file heading (H1) instead.
 
 ## Validation

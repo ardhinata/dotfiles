@@ -195,9 +195,9 @@ LICENSE
 .agents/docs/cache/<topic>/README.md
 .agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md
 
-dot_config/kilo/rules/<slug>.md
-dot_config/kilo/skills/<slug>/SKILL.md
-dot_config/kilo/skills/<slug>/references/<slug>.md
+~/.config/kilo/rules/<slug>.md
+~/.config/kilo/skills/<slug>/SKILL.md
+~/.config/kilo/skills/<slug>/references/<slug>.md
 
 docs/adr/NNNN-<slug>.md
 docs/rfcs/NNNN-<slug>.md

@@ -68,7 +68,7 @@ tooling and reader expectation.
   Options → More Info
 - **Conventional Commits**: `<type>(<scope>)!: <description>` →
   optional body → optional footers (BREAKING CHANGE first)
-- **Transient note** (project rule): Finding → Evidence → Why it
+- **Transient note** (global rule): Finding → Evidence → Why it
   matters → Scope → Uncertainty → Recommended destination → Date
   captured
 

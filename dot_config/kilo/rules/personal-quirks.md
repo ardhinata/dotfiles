@@ -1,7 +1,3 @@
----
-description: Personal preferences, quirks, and miscellaneous rules for Kilo in this project
----
-
 # Personal Quirks & Misc Rules
 
 Short, catch-all rules that don't warrant their own rule file. Add new rules here when the topic is narrow, stable, and personal rather than project-specific.

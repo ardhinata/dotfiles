@@ -141,7 +141,7 @@ tabbing through links hears only the link text).
 When a path appears inline (not as a link), wrap it in backticks:
 
 ```markdown
-The rule lives at `dot_config/kilo/rules/proactive-note-capture.md`.
+The rule lives at `~/.config/kilo/rules/proactive-note-capture.md`.
 ```
 
 Avoid bare paths in prose. Backticks tell the renderer "this is a

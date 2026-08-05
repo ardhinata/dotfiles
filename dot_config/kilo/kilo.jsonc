@@ -127,15 +127,40 @@
             },
           },
         },
-        "google/gemini-3.1-flash-lite": {
-          "options": {
-            "service_tier": "flex",
-          },
-        },
         "minimax/minimax-m3": {
           "options": {
             "provider": {
               "only": ["minimax/fp8"],
+            },
+          },
+        },
+        "openai/gpt-5.6-luna": {
+          "options": {
+            "provider": {
+              "only": ["openai"],
+              "order": ["openai"],
+            },
+            "reasoning": {
+              "effort": "medium",
+            },
+          },
+        },
+        "openai/gpt-5.6-luna-pro": {
+          "options": {
+            "provider": {
+              "only": ["openai"],
+              "order": ["openai"],
+            },
+            "reasoning": {
+              "effort": "high",
+            },
+          },
+        },
+        "z-ai/glm-5.2": {
+          "options": {
+            "provider": {
+              "only": ["novita/fp8"],
+              "order": ["novita/fp8"],
             },
           },
         },
@@ -156,9 +181,9 @@
     },
     "searchMinScore": 0.5,
     "searchMaxResults": 8,
-    "embeddingBatchSize": 240,
+    "embeddingBatchSize": 1200,
     "scannerMaxBatchRetries": 5,
-    "dimension": 4096,
+    "dimension": 2560,
   },
   "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
   "instructions": ["~/.config/kilo/rules/*.md"],

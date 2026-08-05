@@ -48,7 +48,7 @@ checklist before publishing any doc.
 ## Frontmatter anti-patterns
 
 - **Frontmatter on a type that forbids it.** Kilo rule files in this
-  repo do not use frontmatter (project decision). Do not copy
+  repo do not use frontmatter (global decision). Do not copy
   `SKILL.md`'s frontmatter onto a rule file.
 - **Required fields missing on a type that requires it.** `SKILL.md`
   without `name` or `description` fails `skills-ref validate`.
@@ -149,13 +149,13 @@ checklist before publishing any doc.
 
 This list synthesises findings from:
 
-- Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988 — the
+- Gloaguen et al., arXiv:2602.11988 — the
   context-file cost paper
 - Diátaxis / Divio — quadrant confusion
 - MADR — heading numbering, status field, YAML frontmatter
 - Standard Readme — section order
 - Keep a Changelog — `[Unreleased]`, date format, group ordering
-- Project rules: `proactive-note-capture.md`,
+- Global rules: `proactive-note-capture.md`,
   `personal-quirks.md`, `web-tools-priority.md`,
   `project-context.md`, `self-analysis.md`,
   `ambiguity-resolution.md`

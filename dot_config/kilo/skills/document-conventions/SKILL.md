@@ -59,8 +59,8 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 | Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
 | Cache a reusable web-learned fact | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Encode a repo-wide rule the agent must follow every session | **Kilo rule file** — `dot_config/kilo/rules/<slug>.md` |
-| Package a workflow the agent loads on demand | **Skill** — `dot_config/kilo/skills/<slug>/SKILL.md` (with frontmatter) |
+| Encode a repo-wide rule the agent must follow every session | **Kilo rule file** — `~/.config/kilo/rules/<slug>.md` |
+| Package a workflow the agent loads on demand | **Skill** — `~/.config/kilo/skills/<slug>/SKILL.md` (with frontmatter) |
 | Introduce the project to humans | **README.md** |
 | Encode project conventions for agents | **AGENTS.md** (closest to file wins) |
 | Introduce a doc subtree | **topic README.md** |
@@ -96,9 +96,9 @@ otherwise:
    Avoid numbering in H1s (MADR ADR-0002).
 7. **No frontmatter unless the per-type policy says to use it.** Two
    exceptions: `SKILL.md` (mandatory) and ADRs (optional but
-   recommended). The project's `dot_config/kilo/rules/*.md` files
+   recommended). The global `~/.config/kilo/rules/*.md` files
    explicitly **do not** use frontmatter (see
-   [frontmatter § project rule files](references/frontmatter.md)).
+   [frontmatter § global rule files](references/frontmatter.md)).
 8. **Be conservative with structure.** Pick the lightest convention that
    fits. Avoid adding sections "for completeness". The user's task is the
    source of truth; the doc shape serves it.
@@ -121,9 +121,9 @@ otherwise:
 | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Knowledge-cache entry |
 | `.agents/docs/cache/<topic>/README.md` | Topic README (cache index) |
 | `.agents/docs/cache/README.md` | Cache root index |
-| `dot_config/kilo/rules/<slug>.md` | Kilo rule file |
-| `dot_config/kilo/skills/<slug>/SKILL.md` | Skill main file |
-| `dot_config/kilo/skills/<slug>/references/*.md` | Skill reference file |
+| `~/.config/kilo/rules/<slug>.md` | Kilo rule file |
+| `~/.config/kilo/skills/<slug>/SKILL.md` | Skill main file |
+| `~/.config/kilo/skills/<slug>/references/*.md` | Skill reference file |
 | `docs/adr/NNNN-<slug>.md` | MADR-style ADR |
 | `docs/rfcs/NNNN-<slug>.md` | RFC |
 | `docs/design/<slug>.md` | Design doc |
@@ -137,7 +137,7 @@ Full schemas are in [`references/by-doc-type.md`](references/by-doc-type.md).
 
 | Type | Frontmatter? |
 |---|---|
-| Kilo rule file (`dot_config/kilo/rules/*.md`) | **Forbidden** (project decision) |
+| Kilo rule file (`~/.config/kilo/rules/*.md`) | **Forbidden** (global decision) |
 | SKILL.md | **Required** — `name` + `description` |
 | ADR (MADR) | Optional but recommended — `status`, `date`, `decision-makers` |
 | Knowledge-cache entry | Optional — `source`, `captured`, `freshness` |
@@ -185,10 +185,10 @@ These rules are synthesised from:
 - [MADR — Markdown Any Decision Records](https://adr.github.io/madr/)
 - [adr.github.io — decision records](https://adr.github.io/)
 - [Andy Matuschak — Evergreen notes](https://notes.andymatuschak.org/Evergreen_notes)
-- Project rules: `dot_config/kilo/rules/*.md` and the global
-  `~/.config/kilo/rules/*.md` (proactive-note-capture, personal-quirks,
-  web-tools-priority, project-context, self-analysis, ambiguity-resolution)
-- Project decision `kilo.rules.no_frontmatter` — rule files have no
+- Global rules: `~/.config/kilo/rules/*.md` (proactive-note-capture,
+  personal-quirks, web-tools-priority, project-context, self-analysis,
+  ambiguity-resolution)
+- Global decision `kilo.rules.no_frontmatter` — rule files have no
   frontmatter even though skills do
 
 Re-verify before relying on exact field limits in 2027+. Volatility is high
@@ -204,7 +204,7 @@ The three most common:
    their length budget and become noise. Cut anything that does not pass
    "would an agent get this wrong without this line?".
 2. **Frontmatter drift.** Some types require it (SKILL.md), some forbid it
-   (project rule files), most are neutral. Do not copy frontmatter from
+   (global rule files), most are neutral. Do not copy frontmatter from
    one type to another.
 3. **Linking by absolute path or external URL inside the repo.** Use
    relative links so the docs survive clones, moves, and editor

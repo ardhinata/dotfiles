@@ -4,7 +4,7 @@ Avoid all of the following when drafting, reviewing, or updating an `AGENTS.md`.
 
 ## Do not auto-generate
 
-Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20% and tend to reduce task success vs no context; LLM-generated files reduce it further (Gloaguen et al., ICLR 2026 Workshop, arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
+Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20% and tend to reduce task success vs no context; LLM-generated files reduce it further (Gloaguen et al., arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
 
 ## Do not duplicate README.md or `docs/`
 

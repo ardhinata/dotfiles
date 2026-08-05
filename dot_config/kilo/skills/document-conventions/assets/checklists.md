@@ -20,7 +20,7 @@ otherwise.
 
 ## Kilo rule file
 
-- [ ] No frontmatter (project decision)
+- [ ] No frontmatter (global decision)
 - [ ] Trigger / "When" header is unambiguous
 - [ ] Rule body is concise (30–80 lines)
 - [ ] Anti-patterns / exceptions noted if relevant
@@ -103,7 +103,7 @@ otherwise.
 
 - [ ] User-approved path
 - [ ] Goal, Scope, Steps, Status sections
-- [ ] Either committed (project rule says persistent plans may be
+- [ ] Either committed (global rule says persistent plans may be
       committed) or in `.tmp/` per user direction
 
 ## ADR (MADR)
@@ -151,5 +151,5 @@ otherwise.
 
 ## .tmp/scratch
 
-- [ ] `.tmp/` is gitignored (project rule)
+- [ ] `.tmp/` is gitignored (global rule)
 - [ ] Delete when done — no convention beyond that
