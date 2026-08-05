@@ -42,6 +42,11 @@ if ! zgenom saved || [[ ! -f "${HOME}/.zshrc.zwc" ]]; then
 	zgenom prezto prompt pwd-length "short"
 
 	# Prezto modules
+	# `environment` must be loaded explicitly: with ZGEN_PREZTO_LOAD_DEFAULT=0
+	# prezto's defaults (which include `environment`) are skipped, and this is
+	# the module that sets `setopt INTERACTIVE_COMMENTS` so `#` works at the
+	# prompt.
+	zgenom prezto environment
 	zgenom prezto archive
 	zgenom prezto directory
 	zgenom prezto git
