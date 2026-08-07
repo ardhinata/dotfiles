@@ -1,0 +1,31 @@
+# ~/.config/pinentry/preexec — sourced by the gpg package's /usr/bin/pinentry
+# wrapper before its built-in backend selection.
+#
+# Source of truth: this file is managed by chezmoi. The companion override file
+# ${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode is intentionally NOT in
+# chezmoi — pinentry-switch writes it on demand. The two never conflict.
+#
+# Flow:
+#   1. If $mode_file is set and != "auto", try to exec /usr/bin/pinentry-<mode>
+#      directly. If the binary is missing or has unresolved libs, warn to
+#      stderr and fall through to the wrapper's default DE-based dispatch.
+#   2. Export GPG_TTY (computed from `tty` if unset) so the backend child sees
+#      a TTY. Matters when gpg-agent under systemd --user invokes
+#      /usr/bin/pinentry without propagating GPG_TTY (upstream gnupg T6478).
+#   3. With no override, return so the wrapper's qt/gnome3/gtk/curses/tty
+#      selection runs unchanged.
+
+_mode_file="${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode"
+if [[ -r "$_mode_file" ]]; then
+	_mode=$(tr -d '[:space:]' < "$_mode_file" | tr '[:upper:]' '[:lower:]')
+	if [[ -n "$_mode" && "$_mode" != "auto" ]]; then
+		_bin="/usr/bin/pinentry-$_mode"
+		if [[ -x "$_bin" ]] && ! ldd "$_bin" 2>/dev/null | grep -q 'not found'; then
+			[[ -z "${GPG_TTY:-}" ]] && GPG_TTY=$(tty 2>/dev/null || true)
+			export GPG_TTY
+			exec "$_bin" "$@"
+		fi
+		printf 'pinentry/preexec: mode=%q unavailable, falling back to auto\n' "$_mode" >&2
+	fi
+fi
+unset _mode_file _mode _bin

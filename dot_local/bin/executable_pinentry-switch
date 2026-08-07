@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# pinentry-switch — set the per-user pinentry backend override.
+#
+# Writes the chosen backend to
+#   ${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode
+# which is read by ~/.config/pinentry/preexec (managed by chezmoi) every time
+# the gpg package's /usr/bin/pinentry wrapper is invoked.
+#
+# Subcommands:
+#   <backend>   set the backend (qt, gnome3, gtk, curses, tty)
+#   auto        remove the override (restore the wrapper's DE-based auto-dispatch)
+#   list        list installed backends
+#   current     print the active override (auto if unset)
+#   status      print override + resolved backend
+#
+# The hook reads the override on every invocation, so no gpg-agent reload is
+# needed. Do NOT touch ~/.gnupg/gpg-agent.conf — chezmoi owns it and the next
+# `chezmoi apply` would clobber any local edit.
+
+set -euo pipefail
+
+mode_file="${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode"
+
+usage() {
+	cat <<EOF
+pinentry-switch <backend|auto|list|current|status>
+
+Valid backends: qt, gnome3, gtk, curses, tty
+EOF
+}
+
+list_backends() {
+	local b
+	for b in /usr/bin/pinentry-*; do
+		[[ -x "$b" ]] || continue
+		b=${b##*/pinentry-}
+		[[ "$b" == *.* ]] && continue
+		[[ -z "$b" ]] && continue
+		printf '%s\n' "$b"
+	done | sort -u
+}
+
+current_mode() {
+	if [[ -r "$mode_file" ]]; then
+		tr -d '[:space:]' < "$mode_file"
+	else
+		printf 'auto\n'
+	fi
+}
+
+validate_backend() {
+	local backend="$1"
+	if [[ ! "$backend" =~ ^[a-z0-9_-]+$ ]]; then
+		printf 'pinentry-switch: invalid backend name: %s\n' "$backend" >&2
+		return 1
+	fi
+	if [[ ! -x "/usr/bin/pinentry-$backend" ]]; then
+		printf 'pinentry-switch: /usr/bin/pinentry-%s not found\n' "$backend" >&2
+		printf '  installed: %s\n' "$(list_backends | tr '\n' ' ')" >&2
+		return 1
+	fi
+	if ldd "/usr/bin/pinentry-$backend" 2>/dev/null | grep -q 'not found'; then
+		printf 'pinentry-switch: /usr/bin/pinentry-%s has missing libraries:\n' "$backend" >&2
+		ldd "/usr/bin/pinentry-$backend" 2>/dev/null | grep 'not found' >&2
+		return 1
+	fi
+}
+
+cmd="${1:-}"
+
+case "$cmd" in
+	''|-h|--help|help)
+		usage
+		exit 0
+		;;
+	list)
+		list_backends
+		;;
+	current)
+		current_mode
+		;;
+	auto)
+		if [[ -e "$mode_file" ]]; then
+			rm -f -- "$mode_file"
+			echo "pinentry-switch: override cleared (auto-dispatch restored)"
+		else
+			echo "pinentry-switch: already auto"
+		fi
+		;;
+	status)
+		cur=$(current_mode)
+		printf 'override: %s\n' "$cur"
+		if [[ "$cur" != "auto" ]]; then
+			bin="/usr/bin/pinentry-$cur"
+			if [[ -x "$bin" ]]; then
+				if ldd "$bin" 2>/dev/null | grep -q 'not found'; then
+					echo "backend:  $bin (MISSING LIBS)"
+				else
+					echo "backend:  $bin (OK)"
+				fi
+			else
+				echo "backend:  $bin (NOT INSTALLED)"
+			fi
+		else
+			echo "backend:  <wrapper auto-dispatch>"
+		fi
+		;;
+	*)
+		validate_backend "$cmd" || exit 1
+		mkdir -p -- "${mode_file%/*}"
+		printf '%s\n' "$cmd" > "$mode_file"
+		echo "pinentry-switch: backend set to '$cmd'"
+		echo "  written: $mode_file"
+		echo "  next pinentry invocation will use /usr/bin/pinentry-$cmd"
+		;;
+esac

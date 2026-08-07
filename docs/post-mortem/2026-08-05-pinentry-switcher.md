@@ -128,3 +128,19 @@ before introducing any helper or dispatcher.
 The transient plan this post-mortem was promoted from is at
 `.tmp/plans/2026-08-05-pinentry-switcher.md` (will be deleted when
 this post-mortem is committed).
+
+## Superseded (2026-08-07)
+
+A minimal switcher that respects the lesson above now ships as:
+
+- `dot_config/pinentry/preexec` — sourced by the gpg package's
+  `/usr/bin/pinentry` wrapper before its DE-based auto-dispatch; reads
+  the override file and `exec`s the chosen backend directly.
+- `dot_local/bin/executable_pinentry-switch` — writes the override to
+  `~/.config/pinentry/mode` (a file **not** in chezmoi). Subcommands:
+  `<backend>`, `auto`, `list`, `current`, `status`.
+- `dot_shell/zsh/completions/_pinentry-switch` — completion.
+
+Single source of truth, no `gpg-agent.conf` mutation, no `~/.cache/`
+state. The preexec sets `GPG_TTY` if missing so the backend child sees a
+TTY even when gpg-agent under systemd --user forgets to propagate it.
