@@ -136,7 +136,7 @@ A minimal switcher that respects the lesson above now ships as:
 - `dot_config/pinentry/preexec` — sourced by the gpg package's
   `/usr/bin/pinentry` wrapper before its DE-based auto-dispatch; reads
   the override file and `exec`s the chosen backend directly.
-- `dot_local/bin/executable_pinentry-switch` — writes the override to
+- `dot_shell/helper/executable_pinentry-switch` — writes the override to
   `~/.config/pinentry/mode` (a file **not** in chezmoi). Subcommands:
   `<backend>`, `auto`, `list`, `current`, `status`.
 - `dot_shell/zsh/completions/_pinentry-switch` — completion.

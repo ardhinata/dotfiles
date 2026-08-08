@@ -11,3 +11,13 @@ Host *
     MACs -umac-64-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1
     StrictHostKeyChecking accept-new
     VisualHostKey yes
+
+## Tell gpg-agent about the current TTY before each SSH session.
+## gpg-agent under systemd --user has no controlling terminal, so when
+## ssh asks it to sign, the agent has no TTY to spawn pinentry on. This
+## exec runs gpg-connect-agent(1) updatestartuptty, which updates the
+## agent's idea of the current TTY so the agent forks pinentry with that
+## TTY as input. Works in any normal terminal session; does NOT help in a
+## VSCode tunnel with no local display (the agent still has no TTY to
+## forward). Workaround for upstream gnupg T6478.
+Match host * exec "gpg-connect-agent updatestartuptty /bye"
