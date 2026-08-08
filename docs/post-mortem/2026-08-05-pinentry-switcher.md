@@ -129,18 +129,60 @@ The transient plan this post-mortem was promoted from is at
 `.tmp/plans/2026-08-05-pinentry-switcher.md` (will be deleted when
 this post-mortem is committed).
 
-## Superseded (2026-08-07)
+## Superseded (2026-08-08)
 
-A minimal switcher that respects the lesson above now ships as:
+The 2026-08-07 "minimal switcher" that sourced `~/.config/pinentry/preexec`
+from the system `/usr/bin/pinentry` wrapper also failed on this host:
+direct invocation of `/usr/bin/pinentry` correctly `exec`'d the override
+backend (proven via `bash -x /usr/bin/pinentry` trace), but when gpg-agent
+launched its `pinentry-program`, the agent chose `pinentry-qt` instead.
+Most likely cause: kgpg (PID 1985 at the time) or a KDE pinentry-qt
+integration bypasses the system wrapper entirely — the same family of bug
+as `gcr-agent` interposing on `SSH_AUTH_SOCK` on Arch (preining.info,
+2024-06). The preexec layer was simply not in gpg-agent's call chain.
 
-- `dot_config/pinentry/preexec` — sourced by the gpg package's
-  `/usr/bin/pinentry` wrapper before its DE-based auto-dispatch; reads
-  the override file and `exec`s the chosen backend directly.
-- `dot_shell/helper/executable_pinentry-switch` — writes the override to
-  `~/.config/pinentry/mode` (a file **not** in chezmoi). Subcommands:
-  `<backend>`, `auto`, `list`, `current`, `status`.
-- `dot_shell/zsh/completions/_pinentry-switch` — completion.
+Replacement design (the 2026-08-08 wrapper pivot) removes the indirection:
 
-Single source of truth, no `gpg-agent.conf` mutation, no `~/.cache/`
-state. The preexec sets `GPG_TTY` if missing so the backend child sees a
-TTY even when gpg-agent under systemd --user forgets to propagate it.
+- `dot_shell/helper/executable_pinentry-wrapper` — a chezmoi-managed
+  bash script. gpg-agent invokes this directly as `pinentry-program`,
+  bypassing the system `/usr/bin/pinentry` wrapper entirely. The script
+  reads the runtime override (`~/.config/pinentry/mode`), falls back to
+  DE-based auto-classification (SSH → curses, GNOME+DISPLAY → gnome3,
+  other+DISPLAY/WAYLAND_DISPLAY → qt, else curses), then `exec`s the
+  resolved backend.
+- `dot_shell/helper/executable_pinentry-switch` — extended with an
+  `init` subcommand that idempotently writes `~/.gnupg/gpg-agent.conf`
+  with the wrapper path. `~/.gnupg/gpg-agent.conf` is **not** managed
+  by chezmoi any more — the file is owned entirely by `pinentry-switch`.
+  `init` refuses to overwrite an existing `pinentry-program` line that
+  points elsewhere (use `--force` to override).
+- `dot_config/pinentry/preexec` — deleted. The system wrapper is no
+  longer in the chain.
+
+Single source of truth: `pinentry-switch` owns both
+`~/.gnupg/gpg-agent.conf` and `~/.config/pinentry/mode`. The wrapper is
+the only consumer of the mode file at runtime. TTLs and
+`enable-ssh-support` moved out of chezmoi into the `init` template.
+Plan and research notes: `.tmp/plans/2026-08-08-pinentry-wrapper-pivot.md`
+and `.agents/docs/cache/pinentry/2026-08-08-pinentry-wrapper-prior-art.md`.
+
+## Subsequent (2026-08-08 cont.)
+
+The wrapper pivot deployed successfully, but a second defect surfaced once
+signing reached an interactive SSH in alacritty: pinentry-curses spawned in
+the wrong alacritty tab because the gpg-agent inherited a stale `GPG_TTY`
+pointing at a previous tab. The `Match exec` and `systemctl --user
+import-environment` flow were correct in principle; the actual root cause
+was alacritty reassigning the controlling tty mid-shell-startup, so
+`$(tty)` and `$TTY` both captured the *previous* tab's pts during
+`.zshrc` source. Resolution:
+
+- Disabled Prezto's `gpg` module via `zstyle ':prezto:module:gpg' loaded 'yes'`
+  (its documented skip mechanism in `pmodload`).
+- New file `dot_shell/zsh/12-gpg.zsh` owns the agent lifecycle, including a
+  `preexec` hook that detects the tty mismatch at command-time and restarts
+  `gpg-agent` with the corrected `GPG_TTY`.
+- Dropped recursive `zgenom compile "${SHELL_TOOL_DIR}"` from `.zshrc` to
+  eliminate the stale `.zwc` bytecode trap (hit three times during debugging).
+
+Full root-cause chain and verification: `.tmp/notes/2026-08-08-pinentry-gpg-tty-debug.md`.

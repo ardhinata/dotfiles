@@ -13,13 +13,8 @@ elif [[ -n $(which nano) ]]; then
 	export EDITOR=nano
 fi
 
-# --- GPG-based SSH agent ---
-# Use GnuPG's SSH agent socket instead of the system ssh-agent.
-# updatestartuptty tells gpg-agent about the current TTY for pinentry.
-if [[ -n $(gpgconf --list-dirs agent-ssh-socket) ]]; then
-	export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-	gpg-connect-agent updatestartuptty /bye >/dev/null
-fi
+# --- Local executable dir ---
+export PATH="${PATH}:${HOME}/.local/bin"
 
 # --- Fast Node Manager ---
 # Initialize fnm in the shell session, respecting .node-version and .nvmrc files

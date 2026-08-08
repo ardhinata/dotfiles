@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# ~/.shell/helper/pinentry-wrapper — gpg-agent invokes this as pinentry-program.
+#
+# Owns all backend-selection logic on this host. The system /usr/bin/pinentry
+# wrapper is bypassed by gpg-agent (verified 2026-08-08 on KDE/Wayland — kgpg
+# or a KDE pinentry-qt integration appears to override the system wrapper).
+# Pointing gpg-agent directly at this script is the documented escape hatch.
+#
+# Backend resolution order:
+#   1. ${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode  (written by pinentry-switch)
+#   2. Auto-classify from environment (SSH → curses, GNOME+DISPLAY → gnome3,
+#      other+DISPLAY/WAYLAND_DISPLAY → qt, no display → curses)
+#
+# Recovery: if the wrapper misbehaves, run `pinentry-switch init --force` or
+# manually edit ~/.gnupg/gpg-agent.conf to point pinentry-program at any
+# /usr/bin/pinentry-<backend>. Then `gpgconf --reload gpg-agent`.
+#
+# Recovery (last resort): kill the wrapper line entirely:
+#   gpg-connect-agent killagent /bye
+#   rm ~/.gnupg/gpg-agent.conf
+#   pinentry-switch init
+
+set -euo pipefail
+
+_mode_file="${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode"
+_mode=""
+if [[ -r "$_mode_file" ]]; then
+	_mode=$(tr -d '[:space:]' < "$_mode_file" | tr '[:upper:]' '[:lower:]')
+fi
+
+# Auto-classify when no explicit override.
+if [[ -z "$_mode" || "$_mode" == "auto" ]]; then
+	if [[ -n "${SSH_CONNECTION:-}${SSH_TTY:-}" ]]; then
+		_mode=curses
+	elif [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+		case "${XDG_CURRENT_DESKTOP:-}" in
+			GNOME*)	_mode=gnome3 ;;
+			*)		_mode=qt ;;
+		esac
+	else
+		_mode=curses
+	fi
+fi
+
+# Validate explicit override (defensive — pinentry-switch already validates,
+# but the mode file can be hand-edited).
+if [[ ! "$_mode" =~ ^[a-z0-9_-]+$ ]]; then
+	printf 'pinentry-wrapper: invalid mode=%q, falling back to curses\n' "$_mode" >&2
+	_mode=curses
+fi
+
+# Resolve to a real binary; fall back to any other usable backend if needed.
+_bin="/usr/bin/pinentry-$_mode"
+if [[ ! -x "$_bin" ]] || ldd "$_bin" 2>/dev/null | grep -q 'not found'; then
+	printf 'pinentry-wrapper: %s unavailable, trying alternatives\n' "$_bin" >&2
+	for _alt in /usr/bin/pinentry-*; do
+		[[ -x "$_alt" ]] || continue
+		[[ "$_alt" == "/usr/bin/pinentry" ]] && continue
+		[[ "${_alt##*/}" == *.* ]] && continue
+		if ! ldd "$_alt" 2>/dev/null | grep -q 'not found'; then
+			_bin="$_alt"
+			break
+		fi
+	done
+fi
+
+if [[ ! -x "$_bin" ]]; then
+	printf 'pinentry-wrapper: no usable backend found\n' >&2
+	exit 1
+fi
+
+# Curses/qt want GPG_TTY for proper prompt placement.
+# `tty -s` is silent (no stdout pollution); `tty` writes "not a tty" to stdout
+# on failure, so use `-s` first to gate the actual `tty` call.
+if [[ -z "${GPG_TTY:-}" ]] && tty -s >/dev/null 2>&1; then
+	GPG_TTY=$(tty 2>/dev/null)
+fi
+export GPG_TTY
+
+exec "$_bin" "$@"

@@ -1,29 +1,33 @@
 #!/usr/bin/env bash
-# pinentry-switch — set the per-user pinentry backend override.
+# pinentry-switch — pinentry backend owner for this host.
 #
-# Writes the chosen backend to
-#   ${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode
-# which is read by ~/.config/pinentry/preexec (managed by chezmoi) every time
-# the gpg package's /usr/bin/pinentry wrapper is invoked.
+# Owns two files (neither is chezmoi-managed):
+#   1. ~/.gnupg/gpg-agent.conf — set up via `init` (idempotent).
+#      The wrapper at ~/.shell/helper/pinentry-wrapper is referenced by
+#      `pinentry-program` in this file. On a fresh machine, run `init` once
+#      after `chezmoi apply`.
+#   2. ${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode — runtime override,
+#      written by `<backend>` / cleared by `auto`. Read by the wrapper on
+#      every invocation.
 #
 # Subcommands:
-#   <backend>   set the backend (qt, gnome3, gtk, curses, tty)
-#   auto        remove the override (restore the wrapper's DE-based auto-dispatch)
-#   list        list installed backends
-#   current     print the active override (auto if unset)
-#   status      print override + resolved backend
-#
-# The hook reads the override on every invocation, so no gpg-agent reload is
-# needed. Do NOT touch ~/.gnupg/gpg-agent.conf — chezmoi owns it and the next
-# `chezmoi apply` would clobber any local edit.
+#   <backend>     set the backend override (qt, gnome3, gtk, curses, tty, ...)
+#   auto          clear the override (wrapper picks via DE-based heuristic)
+#   list          list installed backends
+#   current       print the active override (auto if unset)
+#   status        print override + resolved backend
+#   init          idempotently set up ~/.gnupg/gpg-agent.conf
+#   init --force  same, but replace an existing pinentry-program line
 
 set -euo pipefail
 
 mode_file="${XDG_CONFIG_HOME:-$HOME/.config}/pinentry/mode"
+wrapper="$HOME/.shell/helper/pinentry-wrapper"
+gnupg_conf="${GNUPGHOME:-$HOME/.gnupg}/gpg-agent.conf"
 
 usage() {
 	cat <<EOF
-pinentry-switch <backend|auto|list|current|status>
+pinentry-switch <backend|auto|list|current|status|init [--force]>
 
 Valid backends: qt, gnome3, gtk, curses, tty
 EOF
@@ -66,6 +70,112 @@ validate_backend() {
 	fi
 }
 
+# Read the first `pinentry-program` value (path) from an existing config.
+# Empty string if not set.
+existing_pinentry_program() {
+	local conf="$1"
+	[[ -r "$conf" ]] || { printf '\n'; return; }
+	awk '
+		/^[[:space:]]*pinentry-program[[:space:]]/ {
+			val = ""
+			for (i = 2; i <= NF; i++) val = val (i == 2 ? "" : " ") $i
+			print val
+			exit
+		}
+	' "$conf"
+}
+
+# Ensure a default key=value line is present (silent on present, append on absent).
+ensure_default_line() {
+	local conf="$1" line="$2"
+	local key="${line%% *}"
+	if ! grep -qE "^[[:space:]]*${key//\//\\/}([[:space:]]|$)" "$conf" 2>/dev/null; then
+		printf '%s\n' "$line" >> "$conf"
+	fi
+}
+
+# Idempotent setup of ~/.gnupg/gpg-agent.conf.
+# Contract: see .tmp/plans/2026-08-08-pinentry-wrapper-pivot.md.
+init_gpg_agent_conf() {
+	local force=0
+	if [[ "${1:-}" == "--force" ]]; then
+		force=1
+	elif [[ -n "${1:-}" ]]; then
+		printf 'pinentry-switch: init takes no args or --force\n' >&2
+		return 2
+	fi
+
+	if [[ ! -x "$wrapper" ]]; then
+		printf 'pinentry-switch: wrapper not found at %s\n' "$wrapper" >&2
+		printf '  run `chezmoi apply` first, then retry\n' >&2
+		return 1
+	fi
+
+	mkdir -p -- "${gnupg_conf%/*}"
+	chmod 700 -- "${gnupg_conf%/*}"
+
+	if [[ ! -f "$gnupg_conf" ]]; then
+		{
+			printf 'enable-ssh-support\n'
+			printf 'pinentry-program %s\n' "$wrapper"
+			printf 'default-cache-ttl 7200\n'
+			printf 'max-cache-ttl 86400\n'
+		} > "$gnupg_conf"
+		chmod 600 "$gnupg_conf"
+		printf 'pinentry-switch: init wrote %s\n' "$gnupg_conf"
+		return 0
+	fi
+
+	local current
+	current=$(existing_pinentry_program "$gnupg_conf")
+
+	if [[ -n "$current" ]]; then
+		if [[ "$current" == "$wrapper" ]]; then
+			printf 'pinentry-switch: init: pinentry-program already points at wrapper\n'
+		else
+			if (( !force )); then
+				printf 'pinentry-switch: refusing to overwrite pinentry-program\n' >&2
+				printf '  current: %s\n' "$current" >&2
+				printf '  desired: %s\n' "$wrapper" >&2
+				printf '  re-run with --force to replace in place\n' >&2
+				return 1
+			fi
+			# --force: replace the line in place
+			local tmp
+			tmp=$(mktemp "${gnupg_conf}.XXXXXX") || return 1
+			awk -v new="pinentry-program $wrapper" '
+				/^[[:space:]]*pinentry-program[[:space:]]/ { print new; next }
+				{ print }
+			' "$gnupg_conf" > "$tmp" && mv "$tmp" "$gnupg_conf"
+			chmod 600 "$gnupg_conf"
+			printf 'pinentry-switch: init --force: replaced pinentry-program in %s\n' "$gnupg_conf"
+		fi
+	else
+		# No pinentry-program line present: append.
+		printf '\npinentry-program %s\n' "$wrapper" >> "$gnupg_conf"
+		chmod 600 "$gnupg_conf"
+		printf 'pinentry-switch: init: appended pinentry-program to %s\n' "$gnupg_conf"
+	fi
+
+	# Silently append any missing defaults.
+	local missing=0
+	for line in 'enable-ssh-support' 'default-cache-ttl 7200' 'max-cache-ttl 86400'; do
+		local key="${line%% *}"
+		# Match the key followed by whitespace or end-of-line (so a bare
+		# `enable-ssh-support` line is correctly detected as present).
+		if ! grep -qE "^[[:space:]]*${key//\//\\/}([[:space:]]|$)" "$gnupg_conf" 2>/dev/null; then
+			printf '%s\n' "$line" >> "$gnupg_conf"
+			missing=1
+		fi
+	done
+	if (( missing )); then
+		printf 'pinentry-switch: init: appended missing defaults to %s\n' "$gnupg_conf"
+	fi
+
+	# Recovery hint for agents that haven't seen the new pinentry-program yet.
+	printf '  next: gpgconf --reload gpg-agent\n'
+}
+
 cmd="${1:-}"
 
 case "$cmd" in
@@ -104,6 +214,23 @@ case "$cmd" in
 		else
 			echo "backend:  <wrapper auto-dispatch>"
 		fi
+		# Surface init hint if the agent config is missing the wrapper line.
+		if [[ -r "$gnupg_conf" ]]; then
+			current_pp=$(existing_pinentry_program "$gnupg_conf")
+			if [[ -z "$current_pp" ]]; then
+				printf 'agent:    <no pinentry-program set — run `pinentry-switch init`>\n'
+			elif [[ "$current_pp" != "$wrapper" ]]; then
+				printf 'agent:    pinentry-program=%s (NOT the wrapper)\n' "$current_pp"
+			else
+				printf 'agent:    pinentry-program=%s\n' "$wrapper"
+			fi
+		else
+			printf 'agent:    <%s missing — run `pinentry-switch init`>\n' "$gnupg_conf"
+		fi
+		;;
+	init)
+		shift
+		init_gpg_agent_conf "$@"
 		;;
 	*)
 		validate_backend "$cmd" || exit 1

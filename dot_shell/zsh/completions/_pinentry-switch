@@ -6,6 +6,7 @@ subcommands=(
 	'list:List installed backends'
 	'current:Print the active override (or auto)'
 	'status:Show override and resolved backend'
+	'init:Idempotently set up ~/.gnupg/gpg-agent.conf'
 )
 
 backends=( /usr/bin/pinentry-*(-xN:t) )
@@ -28,6 +29,9 @@ case $state in
 	args)
 		case $words[2] in
 			list|current|status|auto)
+				;;
+			init)
+				_arguments '--force[Replace an existing pinentry-program line]' && ret=0
 				;;
 			*)
 				(( $#backends )) && _describe -t backends 'backend' backends

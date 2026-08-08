@@ -62,14 +62,18 @@ if ! zgenom saved || [[ ! -f "${HOME}/.zshrc.zwc" ]]; then
 	# generate the init script from plugins above
 	zgenom save
 
-	# Compile all zsh script that need to be loaded at startup
+	# Compile only the top-level config files. Skipping the recursive
+	# compile of SHELL_TOOL_DIR avoids stale .zwc bytecode shadowing source
+	# edits (see dot_shell/zsh/10-common-export.zsh comment for details).
+	# The startup cost of reading .zsh source for our small helper files
+	# is negligible compared to the footgun.
 	zgenom compile "${HOME}/.zshrc"
 	zgenom compile "${HOME}/.zprofile"
 	zgenom compile "${HOME}/.zshenv"
-	zgenom compile "${SHELL_TOOL_DIR}"
 fi
 
 source "${SHELL_TOOL_DIR}/zsh/10-common-export.zsh"
+source "${SHELL_TOOL_DIR}/zsh/12-gpg.zsh"
 source "${SHELL_TOOL_DIR}/zsh/15-zgenom-helper-func.zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
