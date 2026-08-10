@@ -30,16 +30,18 @@ Each row covers one doc type. Columns:
 7. [Knowledge-cache entry](#knowledge-cache-entry)
 8. [Knowledge-cache topic README.md](#knowledge-cache-topic-readmemd)
 9. [Knowledge-cache root README.md](#knowledge-cache-root-readmemd)
-10. [Transient note (.tmp/notes/)](#transient-note)
-11. [Transient plan (.tmp/plans/)](#transient-plan)
-12. [Persistent plan](#persistent-plan)
-13. [ADR (MADR)](#adr-madr)
-14. [RFC](#rfc)
-15. [Design doc](#design-doc)
-16. [CHANGELOG.md](#changelogmd)
-17. [CONTRIBUTING.md](#contributingmd)
-18. [.tmp/scratch](#tmpscratch)
-19. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
+10. [Note (.tmp/docs/notes/)](#note)
+11. [Plan (.tmp/docs/plans/)](#plan)
+12. [Postmortem (.tmp/docs/postmortems/)](#postmortem)
+13. [Persistent plan](#persistent-plan)
+14. [ADR (MADR)](#adr-madr)
+15. [RFC](#rfc)
+16. [Design doc](#design-doc)
+17. [CHANGELOG.md](#changelogmd)
+18. [CONTRIBUTING.md](#contributingmd)
+19. [.tmp/scratch](#tmpscratch)
+20. [.tmp/migration](#tmpmigration)
+21. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
 
 ---
 
@@ -71,7 +73,7 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 | Optional sections | `## When to load`, `## Quick start`, `## Workflow`, `## Anti-patterns`, `## References`, `## Captured …` |
 | Section order | Loose but progressive: orient → quick start → details → edge cases → anti-patterns → references |
 | Length budget | Target < 300 lines; hard ceiling 500 lines. Beyond this, split into `references/*.md` |
-| Validation | `skills-ref validate ./<skill-dir>` (if `skills-ref` is on PATH). Manual review: frontmatter fields present, name matches dir, description in third person with key terms |
+| Validation | `skills-ref validate ./<skill-dir>` (if `skills-ref` on PATH). Manual review: frontmatter fields present, name matches dir, description in third person with key terms |
 | Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); the project's `agent-context` skill (`.agents/kilo/skills/agent-context/SKILL.md`, project-vendor only — not installed globally). |
 
 ---
@@ -184,33 +186,54 @@ without it?". Cut otherwise.
 
 ---
 
-## Transient note
+## Note
 
 | Field | Value |
 |---|---|
-| Path | `.tmp/notes/<YYYY-MM-DD>-<task-slug>.md` |
+| Path | `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` |
+| Lifetime | Git-tracked in the per-project shared context repo (`~/.local/share/kilo/shared-context/<project-slug>.git/`), one branch per worktree, persists across worktrees and machines. |
+| Commit protocol | **`kilo-shared-save "<short-message>"`** after every write. The pre-commit hook installed in `.tmp/docs/.git/hooks/pre-commit/` rejects empty commits. See the `shared-context` skill. |
 | Frontmatter | Optional. Recommended: `task`, `status` (`open`/`captured`/`promoted`) |
 | Required sections | H1, `## Finding`, `## Evidence`, `## Why it matters`, `## Scope`, `## Uncertainty`, `## Recommended destination`, `## Date captured` |
 | Optional sections | `## Next action`, `## See also` |
 | Section order | Fixed (above) per `proactive-note-capture.md` |
 | Length budget | < 150 lines |
-| Validation | Filename uniqueness; duplicate-check before creation per the rule; promoted items removed or marked |
+| Validation | Filename uniqueness; pre-create scan **must** include `kilo-shared-pull origin main` (cross-worktree collision check); committed before task end |
 | Source | `~/.config/kilo/rules/proactive-note-capture.md` (global rule) |
 
 ---
 
-## Transient plan
+## Plan
 
 | Field | Value |
 |---|---|
-| Path | `.tmp/plans/<YYYY-MM-DD>-<task-slug>.md` |
+| Path | `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
+| Lifetime | Git-tracked in the shared context repo (same as Note). |
+| Commit protocol | **`kilo-shared-save "checkpoint: <one-line>"`** at every checkpoint. |
 | Frontmatter | Optional. Recommended: `status`, `goal`, `owner`, `last-updated` |
 | Required sections | H1, `## Goal`, `## Scope`, `## Steps` (or `## Implementation steps`), `## Current status`, `## Risks` |
 | Optional sections | `## Open questions`, `## Decisions`, `## Deferred notes`, `## Captured …` |
 | Section order | Loose |
-| Length budget | < 200 lines |
-| Validation | Filename uniqueness; pre-planning duplicate scan per the personal-quirks rule; checkpoint updates in place |
-| Source | `~/.config/kilo/rules/personal-quirks.md` (global rule) |
+| Length budget | < 300 lines |
+| Validation | Filename uniqueness; pre-planning scan **must** include `kilo-shared-pull`; checkpoint commits in place; no new files at checkpoints |
+| Source | `~/.config/kilo/rules/plans.md` (global rule) |
+
+---
+
+## Postmortem
+
+| Field | Value |
+|---|---|
+| Path | `.tmp/docs/postmortems/<YYYY-MM-DD>-<slug>.md` |
+| Lifetime | Git-tracked in the shared context repo. |
+| Commit protocol | **`kilo-shared-save "<message>"`** after each write. |
+| Frontmatter | Optional. Recommended: `severity`, `status`, `date` |
+| Required sections | H1, `## Summary`, `## Timeline`, `## Root cause`, `## Impact`, `## Action items` |
+| Optional sections | `## Detection`, `## Resolution`, `## Lessons learned`, `## See also` |
+| Section order | Loose; the above is conventional |
+| Length budget | 50–300 lines |
+| Validation | Linked from any active runbook or related doc; action items moved into a durable tracker |
+| Source | `~/.config/kilo/skills/project-layout/SKILL.md` §"Shared context repo"; `shared-context` skill |
 
 ---
 
@@ -309,13 +332,30 @@ without it?". Cut otherwise.
 | Field | Value |
 |---|---|
 | Path | `.tmp/scratch/<anything>` |
+| Lifetime | Per-working-tree (per `git worktree` isolation). Gitignored. |
+| Commit policy | **Forbidden.** The `.tmp/docs/.git/hooks/pre-commit/` hook rejects paths containing `scratch/`. Do not even stage them. |
 | Frontmatter | None |
 | Required sections | None |
 | Optional sections | Anything |
 | Section order | None |
 | Length budget | None |
-| Validation | `.tmp/` is gitignored; delete when done |
-| Source | Global rule `project-context.md` (`.tmp/` is transient scratchpad) |
+| Validation | `.tmp/` is gitignored; deleted on worktree destroy (auto via git worktree lifecycle) |
+| Source | `project-layout` skill (`.tmp/` subroles); `shared-context` skill |
+
+---
+
+## .tmp/migration
+
+| Field | Value |
+|---|---|
+| Path | `.tmp/migration/<anything>` |
+| Lifetime | Per-project. Gitignored. |
+| Commit policy | **Forbidden.** This dir is outside `.tmp/docs/` and never in any repo. |
+| Frontmatter | None |
+| Required sections | None |
+| Length budget | None |
+| Validation | Delete after the migration is complete and verified |
+| Source | `project-layout` skill (`.tmp/` subroles) |
 
 ---
 

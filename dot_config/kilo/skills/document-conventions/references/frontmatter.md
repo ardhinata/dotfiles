@@ -13,15 +13,17 @@ allowed.
 | Kilo rule file (`~/.config/kilo/rules/*.md`) | **Forbidden** | Global decision `kilo.rules.no_frontmatter`. Cursor convention that Kilo's loader does not parse. |
 | ADR (MADR) | Optional | MADR `0013-use-yaml-front-matter-for-meta-data` |
 | Knowledge-cache entry | Optional | Global rule: prefer consistent fields |
-| Transient note | Optional | `task`, `status` recommended |
-| Transient plan | Optional | `status`, `goal`, `last-updated` recommended |
+| Note (`.tmp/docs/notes/`) | Optional | `task`, `status` recommended |
+| Plan (`.tmp/docs/plans/`) | Optional | `status`, `goal`, `last-updated` recommended |
+| Postmortem (`.tmp/docs/postmortems/`) | Optional | `severity`, `status`, `date` recommended |
 | Persistent plan | Optional | Same as transient plan |
 | RFC | Optional | `status`, `reviewers`, `deadline` recommended |
 | Design doc | Optional | `status`, `last-updated` recommended |
 | AGENTS.md | Forbidden | Plain Markdown only (agents.md spec) |
 | README.md | Forbidden | Plain Markdown only |
 | CHANGELOG.md / CONTRIBUTING.md / LICENSE | Forbidden | Plain text |
-| `.tmp/scratch/*` | Forbidden | Throwaway |
+| `.tmp/scratch/*` | Forbidden | Throwaway, never committed |
+| `.tmp/migration/*` | Forbidden | One-time bootstrap, never committed |
 | Skill reference file (`references/*.md`) | Forbidden | Only `SKILL.md` carries frontmatter |
 
 ## Required: SKILL.md frontmatter
@@ -131,8 +133,8 @@ tags: [changelog, semver]
 
 ## Optional: note / plan frontmatter
 
-Notes and plans are transient, so frontmatter is optional. Use it to
-keep the title page scannable:
+Notes and plans are durable via the shared context repo, so frontmatter
+is optional but useful for title-page scanning:
 
 ```yaml
 ---
@@ -150,6 +152,10 @@ owner: ardhinata
 last-updated: 2026-07-27
 ---
 ```
+
+The agent is expected to commit the file with `kilo-shared-save` after
+writing — frontmatter does not exempt the file from the commit
+protocol. See the `shared-context` skill.
 
 ## YAML syntax rules
 

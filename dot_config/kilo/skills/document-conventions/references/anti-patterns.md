@@ -8,7 +8,7 @@ checklist before publishing any doc.
 - **Bloat.** "Just one more section". Each addition must answer
   "would the reader miss this without it?". If no, cut.
 - **Archival.** "We might need this someday". Capture in
-  `.tmp/notes/` instead. Promote only when used.
+  `.tmp/docs/notes/` instead. Promote only when used.
 - **Restating the rule.** Repeating the doc-type spec inside the
   doc. Cite, don't reproduce.
 - **Massive code blocks.** 200+ lines of inline code should be a
@@ -44,6 +44,10 @@ checklist before publishing any doc.
 - **Stale "v2", "v3" suffixes.** When the file is a rewrite, replace
   the old file or move it to an archive folder; do not version in the
   filename.
+- **Legacy paths.** Writing to `.tmp/notes/`, `.tmp/plans/`, or
+  `.tmp/user_cache/` instead of `.tmp/docs/{notes,plans,user_cache}/`.
+  The legacy dirs are not mounted under the shared context repo;
+  files written there vanish on worktree destroy.
 
 ## Frontmatter anti-patterns
 
@@ -72,8 +76,8 @@ checklist before publishing any doc.
 - **Stale content.** A "current state" doc that hasn't been touched
   in a year. Either re-verify or label "last verified YYYY-MM-DD".
 - **Secrets in docs.** Tokens, private keys, fingerprints, recovery
-  phrases — never. If a finding requires referencing one, point to
-  the encrypted file and stop.
+  phrases — never. If a finding requires referencing one, point to the
+  encrypted file and stop.
 - **Outsourced content.** Long verbatim quotes from external sources.
   Cite and link; quote sparingly.
 - **Marketing voice.** "blazingly fast", "next-gen", "the best".
@@ -82,6 +86,11 @@ checklist before publishing any doc.
   Use `YYYY-MM-DD` or "in v1.2.0".
 - **Vendor-specific language in cross-vendor docs.** Don't write "if
   you're using Claude, do X" in a CHANGELOG or AGENTS.md.
+- **Uncommitted shared-context writes.** Writing to
+  `.tmp/docs/{notes,plans,postmortems}/` and not running
+  `kilo-shared-save` before the task ends. The file is uncommitted
+  state; it does not reach sibling worktrees and is lost on
+  destructive operations.
 
 ## Linking anti-patterns
 
@@ -96,17 +105,22 @@ checklist before publishing any doc.
 ## Process anti-patterns
 
 - **Skipping the planning step.** Writing a doc without a plan when
-  the doc is multi-section. Use the personal-quirks planning rule.
-- **Skipping the duplicate check.** Not listing `.tmp/notes/` /
-  `.tmp/plans/` before creating a new file. Causes drift.
-- **Promoting a stale note.** A `.tmp/notes/` entry from a year ago
-  probably no longer reflects current code. Re-verify before
+  the doc is multi-section. Use the planning rule.
+- **Skipping the duplicate check.** Not running
+  `kilo-shared-pull origin main` (or `git fetch`) and listing
+  `.tmp/docs/notes/` / `.tmp/docs/plans/` before creating a new
+  file. Causes cross-worktree drift.
+- **Promoting a stale note.** A `.tmp/docs/notes/` entry from a year
+  ago probably no longer reflects current code. Re-verify before
   promoting to a durable doc.
 - **Editing `AGENTS.md` without user review.** Project-context rule
   forbids unilateral edits; same for any project context file.
 - **Editing the `web-tools-priority` cache without updating the
   topic README.** Forgetting the index entry makes the cache
   effectively invisible.
+- **Committing to `.tmp/scratch/`.** The pre-commit hook in
+  `.tmp/docs/.git/hooks/pre-commit/` rejects paths containing
+  `scratch/`. Do not even stage them.
 
 ## Diátaxis-specific anti-patterns
 
@@ -159,3 +173,5 @@ This list synthesises findings from:
   `personal-quirks.md`, `web-tools-priority.md`,
   `project-context.md`, `self-analysis.md`,
   `ambiguity-resolution.md`
+- Project-local: shared-context-repo design locked 2026-08-10
+  (see `.tmp/docs/plans/2026-08-10-kilo-worktree-tmp-structure.md`)

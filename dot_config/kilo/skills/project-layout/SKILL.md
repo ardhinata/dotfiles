@@ -1,6 +1,6 @@
 ---
 name: project-layout
-description: Canonical on-disk directory structure for agentic-driven projects. Use when laying out a new project, diagnosing a missing or wrong path under `.agents/`, `.agents/docs/cache/`, `docs/`, or `.tmp/{notes,plans}/`, when unifying a vendor directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) under `.agents/<vendor>/` with a root symlink, when checking the knowledge-cache layout (date-tag prefix, required README index, one-topic-per-file), or when migrating legacy paths (`.tmp/doc-cache/`, `.help/`, `docs/cache/`). Also load when a project's structure deviates from the canonical tree and the deviation needs justification.
+description: Canonical on-disk directory structure for agentic-driven projects. Use when laying out a new project, diagnosing a missing or wrong path under `.agents/`, `.agents/docs/cache/`, `docs/`, or `.tmp/{docs,scratch}/`, when unifying a vendor directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) under `.agents/<vendor>/` with a root symlink, when checking the knowledge-cache layout (date-tag prefix, required README index, one-topic-per-file), when explaining the shared-context repo at `.tmp/docs/` (per-worktree clone of `~/.local/share/kilo/shared-context/<project>.git/`), or when migrating legacy paths (`.tmp/doc-cache/`, `.help/`, `docs/cache/`). Also load when a project's structure deviates from the canonical tree and the deviation needs justification.
 ---
 
 # Project Layout
@@ -21,23 +21,106 @@ docs/                              ← human-facing, hand-written (Standard Read
       <topic>/
         README.md
         YYYY-MM-DD-<slug>.md
-.tmp/                              ← transient scratchpad (gitignored)
-  notes/                           ← verified, non-obvious task findings
-  plans/                           ← in-flight, may survive compaction
+.tmp/                              ← project-local scratch area (parent dir gitignored)
+  docs/                            ← working tree of shared-context repo (per-worktree clone)
+    notes/                         ← date-first findings (committed via kilo-shared-save)
+    plans/                         ← date-first in-flight plans (committed)
+    postmortems/                   ← date-first incident write-ups (committed)
+    user_cache/                    ← ad-hoc user scratch that should persist (committed)
+    README.md                      ← explains the shared-context convention
+  scratch/                         ← per-worktree ephemeral (compaction buffers, in-flight tool
+                                     output, cursor dumps) — never commit
+  migration/                       ← one-time scratch (e.g. chezmoi migration); still gitignored
 ```
 
-Ad-hoc subdirectories under `.tmp/` (e.g. `scratch/`, `user_cache/`) are **not canonical**. They appear in some projects but are not sourced by any rule or skill; create them locally if useful, do not promote them to a convention.
+The single sentence that captures the split: `.tmp/docs/` is **shared + persistent**
+(versioned in a per-machine bare git repo, branch per worktree), `.tmp/scratch/`
+is **per-worktree + ephemeral** (gitignored, never committed), `.tmp/migration/`
+is **per-project + one-time** (chezmoi or other bootstrap remnants).
 
 ## `.tmp/` subroles
 
-Two subdirectories are canonical; both are gitignored by convention. Pick the one that matches the intent.
+Three subdirectories are first-class; each has a distinct lifetime and commit policy.
+Pick the one that matches the intent.
 
-| Subdir | Intent | When to write | When to delete |
-|---|---|---|---|
-| `notes/` | Verified, non-obvious, reusable finding captured during a task | Same session the finding is verified; or via deferred capture in the active plan | After promotion to a persistent destination (project-context, knowledge cache, project docs) |
-| `plans/` | Multi-step plan that may not survive compaction | Planning a non-trivial task; checkpoint at every milestone | After the task is fully complete and a memory pointer exists |
+| Subdir | Lifetime | Commit? | When to write | When to delete |
+|---|---|---|---|---|
+| `docs/` | Across worktrees + machines (git-tracked) | **Required** — `kilo-shared-save` after each write | Verified findings, in-flight plans, postmortems, persistent user scratch | Never directly; only `git rm` if a doc is actively retracted |
+| `scratch/` | Per-working-tree | **Forbidden** | Compaction buffers, in-flight tool output, cursor dumps, anything that must not leak | Whenever the worktree ends (auto via gitignore) |
+| `migration/` | Per-project | Forbidden | One-time bootstrap remnants (chezmoi migrations, etc.) | After the migration is complete and verified |
 
-Filenames in both follow `YYYY-MM-DD-<task-slug>.md` (date-first, ISO 8601) per the `document-conventions` skill, so a flat `ls` is also chronological.
+`.tmp/` itself is gitignored at the project root (the bare repo for `.tmp/docs/`
+lives outside the project at `~/.local/share/kilo/shared-context/<project-slug>.git/`).
+See "Shared context repo" below for the full mechanics.
+
+Filenames in `.tmp/docs/{notes,plans,postmortems}/` follow `YYYY-MM-DD-<task-slug>.md`
+(date-first, ISO 8601) per the `document-conventions` skill, so a flat `ls` is also
+chronological. **Filename uniqueness across worktrees is now load-bearing** — the
+same `YYYY-MM-DD-<slug>.md` produced in two worktrees will diverge in git and require
+manual reconciliation. Pre-create scan in `document-conventions` enforces local
+uniqueness; the shared-context mechanism requires `git fetch origin main` before
+creating a new note to detect cross-worktree collisions.
+
+## Shared context repo
+
+The mechanism that makes `.tmp/docs/` cross-worktree and cross-machine is a separate
+bare git repo, **per project**, living outside any project tree at
+`~/.local/share/kilo/shared-context/<project-slug>.git/`. Project slug is
+`<basename>-<short-hash-of-abs-path>` (e.g. `chezmoi-7a3b9c`) to avoid collisions
+between two repos with the same basename.
+
+### Mechanics
+
+1. **First worktree on a given project** (setup script runs `kilo-setup-shared-context`):
+   - `git init --bare ~/.local/share/kilo/shared-context/<slug>.git`
+   - `git clone ~/.local/share/kilo/shared-context/<slug>.git .tmp/docs`
+   - Populate `.tmp/docs/{notes,plans,postmortems,user_cache}/` with `.gitkeep`
+   - Initial commit with `README.md` explaining the convention + commit protocol
+   - Create `pre-commit` hook (filename format + scratch-block + empty rejection)
+2. **Each subsequent worktree** (same setup script):
+   - `git clone ~/.local/share/kilo/shared-context/<slug>.git .tmp/docs`
+     (or `git fetch` + `git checkout` if a clone already exists from a sibling
+     worktree — setup script detects and unifies)
+   - `git checkout -b <worktree-slug>` (branch name = the worktree slug Kilo
+     already uses for the project repo, e.g. `therapeutic-diascia`)
+   - Install the same `pre-commit` hook
+3. **Every write to `.tmp/docs/{notes,plans,postmortems,user_cache}/`** must end with
+   `kilo-shared-save "<short-message>"`, a wrapper installed at
+   `~/.local/share/kilo/bin/kilo-shared-save` by the setup script. The wrapper
+   runs `git add -A && git commit -m "$1"` from `$KILO_SHARED_CONTEXT_PATH`
+   (set by the setup script, exported into the agent's environment).
+4. **On worktree destroy**, the branch in the shared context repo is **kept forever**
+   (per the locked design decision). Manual cleanup:
+   `git -C ~/.local/share/kilo/shared-context/<slug>.git/ branch -d <worktree-slug>`.
+
+### What the shared context repo is NOT
+
+- **Not a remote.** Bare repos live per-machine. No cross-machine sync. (Adding
+  a remote is a future option; not in scope for the locked design.)
+- **Not a replacement for project memory.** Notes and plans are agent-side
+  scratch; the project repo's source code, AGENTS.md, and tracked docs remain
+  the canonical project state.
+- **Not shared with Kilo runtime.** `agent-manager.json` is still Kilo-managed
+  and not in this repo.
+
+### Conflict policy
+
+Two worktrees writing the same `YYYY-MM-DD-<slug>.md` produce a branch divergence
+in the shared context repo. Resolution:
+
+1. **Pre-create scan.** Before writing, `git fetch origin main && git log origin/main -- <dir>/<slug>*`
+   to detect collisions before they happen.
+2. **If a collision exists**, either pick a different slug
+   (`<YYYY-MM-DD>-<slug>-<worktree-tag>`) or `git merge origin/<worktree-slug>`
+   manually. The pre-commit hook does NOT auto-merge; it rejects empty commits
+   and rejects `scratch/` commits, but does not arbitrate content conflicts.
+3. **At merge time** (when the project worktree branch merges back to main and
+   another wants to pull it in), the agent runs
+   `kilo-shared-pull "<remote-branch>"` which fast-forwards or surfaces the
+   conflict.
+
+See the `shared-context` skill for the canonical reference and the bundled
+`assets/{pre-commit-hook.sh,kilo-shared-save.sh}` starters.
 
 ## Vendor unification
 

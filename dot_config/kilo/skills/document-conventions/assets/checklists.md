@@ -81,22 +81,28 @@ otherwise.
 - [ ] Each row has relative link + date + source
 - [ ] Plain Markdown
 
-## Transient note (.tmp/notes/)
+## Note (`.tmp/docs/notes/`)
 
 - [ ] Filename matches `proactive-note-capture.md` rule
 - [ ] Sections in the project's mandated order: Finding → Evidence →
       Why it matters → Scope → Uncertainty → Recommended destination →
       Date captured
 - [ ] No secrets
-- [ ] Pre-creation duplicate check performed
+- [ ] Pre-creation duplicate check performed, including
+      `kilo-shared-pull origin main` (or `git fetch`) to surface
+      cross-worktree collisions
 - [ ] `## Date captured` is ISO 8601
+- [ ] Note committed via `kilo-shared-save "<short-message>"` before
+      the task ends (per `proactive-note-capture.md`)
 
-## Transient plan (.tmp/plans/)
+## Plan (`.tmp/docs/plans/`)
 
-- [ ] Filename matches `personal-quirks.md` rule
-- [ ] Pre-planning duplicate scan done
+- [ ] Filename matches the planning rule
+- [ ] Pre-planning duplicate scan done, including `kilo-shared-pull`
 - [ ] Sections: Goal, Scope, Steps, Current status, Risks
 - [ ] Updated at every checkpoint (in place, not via new file)
+- [ ] Each checkpoint committed via
+      `kilo-shared-save "checkpoint: <one-line summary>"`
 - [ ] Length under 300 lines; split into phases if longer
 
 ## Persistent plan
@@ -104,7 +110,14 @@ otherwise.
 - [ ] User-approved path
 - [ ] Goal, Scope, Steps, Status sections
 - [ ] Either committed (global rule says persistent plans may be
-      committed) or in `.tmp/` per user direction
+      committed) or in `.tmp/docs/` per user direction
+
+## Postmortem (`.tmp/docs/postmortems/`)
+
+- [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`)
+- [ ] Sections: Summary, Timeline, Root cause, Impact, Action items
+- [ ] Action items linked or moved into a durable tracker
+- [ ] Committed via `kilo-shared-save`
 
 ## ADR (MADR)
 
@@ -139,7 +152,7 @@ otherwise.
 - [ ] Latest version first
 - [ ] Per-version ISO date `## [X.Y.Z] - YYYY-MM-DD`
 - [ ] Sections within a version in this order: Added → Changed →
-      Deprecated → Removed → Fixed → Security
+      Deprecated → Removed → → Failed → Security
 - [ ] Yanked releases marked `[YANKED]`
 
 ## CONTRIBUTING.md
@@ -149,7 +162,9 @@ otherwise.
 - [ ] Code of Conduct linked (Contributor Covenant recommended)
 - [ ] Any sign-off or formatting requirements explicit
 
-## .tmp/scratch
+## `.tmp/scratch`
 
 - [ ] `.tmp/` is gitignored (global rule)
+- [ ] Never committed — pre-commit hook in `.tmp/docs/.git/` rejects
+      any path containing `scratch/`
 - [ ] Delete when done — no convention beyond that

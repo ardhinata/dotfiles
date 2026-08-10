@@ -40,8 +40,9 @@ task success. Curate ruthlessly.)
 | Knowledge-cache entry | 30–150 | 300 | One finding per file |
 | Knowledge-cache topic README | < 100 | 200 | Index, not content |
 | Knowledge-cache root README | < 100 | 200 | Index, not content |
-| Transient note | < 80 | 150 | Brief by design |
-| Transient plan | < 150 | 300 | Update in place; if larger, split phases |
+| Note (`.tmp/docs/notes/`) | < 80 | 150 | Brief by design |
+| Plan (`.tmp/docs/plans/`) | < 200 | 300 | Update in place; if larger, split phases |
+| Postmortem | 50–300 | 600 | Tends to grow with timeline detail |
 | Persistent plan | < 300 | 500 | Link out to design docs for depth |
 | ADR (MADR) | 50–200 | 400 | One decision per ADR |
 | RFC | 200–1000 | 2000 | Heavyweight; formal review |
@@ -49,6 +50,7 @@ task success. Curate ruthlessly.)
 | CHANGELOG.md | unbounded | unbounded | Latest first; trim old versions per release |
 | CONTRIBUTING.md | < 200 | 400 | Link out to detailed guides |
 | .tmp/scratch | none | none | Delete when done |
+| .tmp/migration | none | none | Delete when done |
 
 ## Section ordering
 
@@ -68,7 +70,7 @@ tooling and reader expectation.
   Options → More Info
 - **Conventional Commits**: `<type>(<scope>)!: <description>` →
   optional body → optional footers (BREAKING CHANGE first)
-- **Transient note** (global rule): Finding → Evidence → Why it
+- **Note (global rule)**: Finding → Evidence → Why it
   matters → Scope → Uncertainty → Recommended destination → Date
   captured
 
@@ -96,7 +98,7 @@ If the doc is end-user-facing, the ordering rules from
 
 - **Tutorial**: orientation → step 1 → step 2 → … → conclusion
 - **How-to**: goal → prerequisites → steps → verification
-- **Reference**: object/feature → description (alphabetical or code-ordered) → example
+- **Reference**: object/feature → description → example
 - **Explanation**: topic → why → context → opinions → alternatives
 
 ## Required vs. optional sections
@@ -120,11 +122,12 @@ Every doc needs:
 | SKILL.md | H1; body covering what + when; "When to load" if progressive disclosure |
 | AGENTS.md | Pointers (cross-references to README.md + skills); recommended Boundaries (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) |
 | README.md | Title; Short Description (< 120 chars); Install; Usage; Contributing; License — per Standard Readme |
-| Knowledge-cache entry | H1; Finding body; Source; Captured; Freshness note (if volatile) |
+| Knowledge-cache entry | H1; Finding body; Source; Captured; |
 | Knowledge-cache topic README | Topic intro; Entries table |
 | Knowledge-cache root README | Cache intro; Topics table |
-| Transient note | Finding; Evidence; Why it matters; Scope; Uncertainty; Recommended destination; Date captured |
-| Transient plan | Goal; Scope; Steps; Current status; Risks |
+| Note (`.tmp/docs/notes/`) | Finding; Evidence; Why it matters; Scope; Uncertainty; Recommended destination; Date captured |
+| Plan (`.tmp/docs/plans/`) | Goal; Scope; Steps; Current status; Risks |
+| Postmortem (`.tmp/docs/postmortems/`) | Summary; Timeline; Root cause; Impact; Action items |
 | Persistent plan | Goal; Scope; Steps; Status |
 | ADR (MADR) | Title; Context and Problem Statement; Considered Options; Decision Outcome |
 | RFC | Summary; Motivation; Detailed design; Drawbacks; Alternatives; Open questions |

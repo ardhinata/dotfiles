@@ -1,8 +1,11 @@
-# Transient Plan Template
+# Plan Template
 
-Copy to `.tmp/plans/YYYY-MM-DD-<task-slug>.md`. Per the
-`personal-quirks` planning rule. **Pre-planning duplicate scan is
-mandatory.**
+Copy to `.tmp/docs/plans/YYYY-MM-DD-<task-slug>.md`. Per the planning
+rule (`~/.config/kilo/rules/plans.md`). **Pre-planning duplicate scan
+is mandatory** — `kilo-shared-pull origin main` plus a local `ls`.
+After each checkpoint, run
+`kilo-shared-save "checkpoint: <one-line>"`. See the
+`shared-context` skill.
 
 ```markdown
 ---

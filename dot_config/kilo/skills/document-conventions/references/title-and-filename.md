@@ -64,7 +64,7 @@ Pick the convention that matches the file type, in this order:
    prefixes or suffixes that override generic slug rules — the
    tool/config manager, the language, or a code-style enforcement
    tool defines them. Examples vary widely by ecosystem (a build
-   tool's `_test.go` suffix, a framework's `module-info.java`,
+   tool's `_test.go`, a framework's `module-info.java`,
    a code generator's `*.g.dart`). The rule is: when the project,
    its tooling, or its language ecosystem specifies a prefix or
    suffix, follow it. Document non-obvious project rules in
@@ -103,7 +103,7 @@ otherwise:
 
 Three patterns appear, by doc type:
 
-### ISO date prefix — knowledge-cache entries, notes, plans
+### ISO date prefix — knowledge-cache entries, notes, plans, postmortems
 
 Pattern: `YYYY-MM-DD-<slug>.md`
 
@@ -112,8 +112,10 @@ Pattern: `YYYY-MM-DD-<slug>.md`
 - **Where the date goes:** at the start of the filename, separated by
   `-`. The date *is* part of the filename, not the slug.
 - **Same-day collisions:** append a counter, e.g.
-  `2026-07-27-foo-2.md`. Avoid this by scanning `.tmp/notes/` (or the
-  cache) before creating.
+  `2026-07-27-foo-2.md`. Avoid this by scanning `.tmp/docs/notes/`
+  (or the cache) **and** running `kilo-shared-pull origin main` (the
+  pre-create scan must surface cross-worktree collisions, not just
+  local ones — see the `shared-context` skill).
 
 ### Numbered prefix — ADRs, RFCs
 
@@ -167,6 +169,7 @@ Every file should have **exactly one H1**, written in sentence case.
 | Kilo rule file | Sentence case, rule summary (`# Proactive Note Capture`) |
 | Note | Sentence case, finding summary (`# Shellx slug derivation`) |
 | Plan | Sentence case, task summary (`# Document conventions skill — research and draft`) |
+| Postmortem | Sentence case, incident summary (`# 2026-08-10 GH Actions runbook flake`) |
 | ADR | Title Case, the solved problem (`# Use Plain JUnit5 for advanced test assertions`) |
 | Knowledge-cache entry | Sentence case, finding summary |
 | CHANGELOG.md | `# Changelog` (per Keep a Changelog) |
@@ -187,9 +190,12 @@ CHANGELOG.md
 CONTRIBUTING.md
 LICENSE
 
-.tmp/notes/YYYY-MM-DD-<task-slug>.md
-.tmp/plans/YYYY-MM-DD-<task-slug>.md
-.tmp/scratch/<anything>                   # no convention
+.tmp/docs/notes/YYYY-MM-DD-<task-slug>.md
+.tmp/docs/plans/YYYY-MM-DD-<task-slug>.md
+.tmp/docs/postmortems/YYYY-MM-DD-<slug>.md
+.tmp/docs/user_cache/<anything>            # git-tracked persistent user scratch
+.tmp/scratch/<anything>                   # never commit
+.tmp/migration/<anything>                  # never commit
 
 .agents/docs/cache/README.md
 .agents/docs/cache/<topic>/README.md

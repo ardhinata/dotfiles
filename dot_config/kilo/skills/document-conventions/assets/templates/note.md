@@ -1,7 +1,9 @@
-# Transient Note Template
+# Note Template
 
-Copy to `.tmp/notes/YYYY-MM-DD-<task-slug>.md`. Per the
+Copy to `.tmp/docs/notes/YYYY-MM-DD-<task-slug>.md`. Per the
 `proactive-note-capture` rule, the section order below is **mandatory**.
+After writing, run `kilo-shared-save "<short-message>"` to commit the
+note to the shared context repo. See the `shared-context` skill.
 
 ```markdown
 ---

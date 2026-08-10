@@ -81,6 +81,7 @@ Or, when the path needs to be a clickable link:
 | Web spec / paper / blog | absolute URL |
 | Code citation (chezmoi source) | `path:line` (not a clickable link) |
 | Code citation (rendered target) | `~/.path:line` only when the agent cannot use the source path |
+| Cross-worktree note or plan | `./YYYY-MM-DD-<other>.md` (relative within `.tmp/docs/`) — works because all worktrees share the bare repo via branches |
 
 ## Anchors
 
@@ -167,6 +168,23 @@ See [the chezmoi skill](../../../../../.agents/kilo/skills/chezmoi/SKILL.md).
 
 Never use a bare `[SKILL.md]()` link.
 
+## Cross-worktree linking
+
+Notes and plans in `.tmp/docs/{notes,plans,postmortems}/` are
+git-tracked and shared across worktrees via branches. A relative
+link from one note to another within the same dir works because the
+dir layout is stable across branches:
+
+```markdown
+See [the related plan](../plans/2026-08-10-other-plan.md).
+See [a sibling note](2026-08-10-other-note.md).
+```
+
+If the target lives on another branch (a future-shared-context merge),
+prefer phrasing like "see the related note titled …" and link the
+**commit hash** rather than the file path; path stability across
+branches is not guaranteed.
+
 ## Anti-patterns in linking
 
 1. **Absolute URLs to internal files.**
@@ -179,10 +197,10 @@ Never use a bare `[SKILL.md]()` link.
 3. **Linking to a 404 page.** Validate every link at least once.
 4. **Three-deep relative paths.** If you find yourself writing
    `../../../foo.md`, the doc is in the wrong place. Move it.
-5. **Linking from one transient file to another.** `.tmp/notes/` and
-   `.tmp/plans/` are ephemeral. If two transient docs need to
-   reference each other, copy the relevant content into both, or
-   promote the shared content to a durable doc.
+5. **Linking from one scratchpad to another ephemeral note.** Scratch
+   is per-worktree; cross-worktree cross-references break on destroy.
+   Reference durable content (`.tmp/docs/...`, project-tracked docs)
+   instead.
 
 ## Tooling
 
