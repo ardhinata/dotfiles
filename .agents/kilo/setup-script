@@ -1,0 +1,94 @@
+#!/bin/sh
+# Kilo setup script for the chezmoi dotfiles source project.
+#
+# Runs once per Agent Manager worktree on creation (Kilo calls it with
+# WORKTREE_PATH and REPO_PATH in the environment). Also safe to run by hand
+# on the main checkout after a fresh clone: the script is idempotent.
+#
+# Responsibilities:
+#   1. Recreate the vendor symlink (.kilo -> .agents/kilo) that worktrees
+#      start without. Mirrors the AGENTS.md rule for the main checkout.
+#   2. Initialize the per-project shared context bare repo on first run.
+#   3. Clone the bare repo to .tmp/docs (idempotent).
+#   4. Populate the four document subdirs.
+#   5. Install the pre-commit hook that enforces filename + scratch policy.
+#   6. Create the per-worktree branch (skip on main checkout).
+#   7. Install the kilo-shared-save wrapper to ~/.local/share/kilo/bin/.
+
+set -e
+
+WORKTREE_PATH="${WORKTREE_PATH:-$(pwd)}"
+REPO_PATH="${REPO_PATH:-$(git -C "$WORKTREE_PATH" rev-parse --show-toplevel 2>/dev/null || echo "$WORKTREE_PATH")}"
+
+PROJ_BASENAME=$(basename "$REPO_PATH")
+PROJ_HASH=$(printf '%s' "$REPO_PATH" | sha256sum | head -c 6)
+PROJ_SLUG="${PROJ_BASENAME}-${PROJ_HASH}"
+
+BARE_REPO="$HOME/.local/share/kilo/shared-context/${PROJ_SLUG}.git"
+DOCS_PATH="$WORKTREE_PATH/.tmp/docs"
+ASSETS_DIR="$REPO_PATH/.agents/kilo/shared-context-assets"
+WRAPPER_BIN_DIR="$HOME/.local/share/kilo/bin"
+
+echo "Setting up worktree: $WORKTREE_PATH"
+echo "  Project slug: $PROJ_SLUG"
+echo "  Bare repo:    $BARE_REPO"
+echo "  Working tree: $DOCS_PATH"
+
+# 1. Vendor symlink
+if [ ! -e "$WORKTREE_PATH/.kilo" ] && [ -d "$WORKTREE_PATH/.agents/kilo" ]; then
+  ln -s .agents/kilo "$WORKTREE_PATH/.kilo"
+  echo "  Created .kilo -> .agents/kilo symlink."
+fi
+
+# 2. Bare repo (idempotent)
+if [ ! -d "$BARE_REPO" ]; then
+  mkdir -p "$(dirname "$BARE_REPO")"
+  git init --bare "$BARE_REPO" --initial-branch=main >/dev/null
+  git -C "$BARE_REPO" symbolic-ref HEAD refs/heads/main
+  echo "  Initialized bare repo."
+fi
+
+# 3. Clone (idempotent — skip if already a working tree)
+if [ ! -d "$DOCS_PATH/.git" ]; then
+  if [ -d "$DOCS_PATH" ] && [ -n "$(ls -A "$DOCS_PATH" 2>/dev/null)" ]; then
+  echo "  WARNING: $DOCS_PATH exists but is not a git working tree." >&2
+  echo "           Manual intervention required." >&2
+  exit 1
+  fi
+  mkdir -p "$(dirname "$DOCS_PATH")"
+  git clone "$BARE_REPO" "$DOCS_PATH"
+  echo "  Cloned bare repo."
+fi
+
+# 4. Subdirs (git doesn't track empty dirs; create on first clone)
+cd "$DOCS_PATH"
+for d in notes plans postmortems user_cache; do
+  mkdir -p "$d"
+done
+
+# 5. Pre-commit hook (idempotent — overwrite)
+cp "$ASSETS_DIR/pre-commit-hook.sh" .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
+# 6. Per-worktree branch
+WORKTREE_SLUG=$(basename "$WORKTREE_PATH")
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+if [ "$CURRENT_BRANCH" = "main" ] && [ "$WORKTREE_SLUG" != "$PROJ_BASENAME" ]; then
+  git checkout -b "$WORKTREE_SLUG"
+  echo "  Created worktree branch: $WORKTREE_SLUG"
+fi
+
+# 7. Wrapper script
+mkdir -p "$WRAPPER_BIN_DIR"
+cp "$ASSETS_DIR/kilo-shared-save.sh" "$WRAPPER_BIN_DIR/kilo-shared-save"
+chmod +x "$WRAPPER_BIN_DIR/kilo-shared-save"
+
+# PATH check (advisory — do not fail the setup)
+case ":$PATH:" in
+  *":$WRAPPER_BIN_DIR:"*) ;;
+  *)
+    echo "  Note: $WRAPPER_BIN_DIR is not on PATH. Add to your shell rc to use kilo-shared-save directly."
+    ;;
+esac
+
+echo "Setup complete!"
