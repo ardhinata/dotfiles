@@ -54,6 +54,7 @@ if ! zgenom saved || [[ ! -f "${HOME}/.zshrc.zwc" ]]; then
 	zgenom prezto pacman
 	zgenom prezto rsync
 	zgenom prezto utility
+	zgenom prezto editor
 	zgenom prezto completion
 	zgenom prezto syntax-highlighting
 	zgenom prezto history-substring-search
