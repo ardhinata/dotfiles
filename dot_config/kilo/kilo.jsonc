@@ -4,12 +4,19 @@
     "bash": {
       "*": "allow",
     },
+    "read": {
+      "~/.ssh/config": "allow",
+      "~/.ssh/config.d": "allow",
+      "~/.ssh/": "deny",
+      "/tmp/kilo/*": "allow",
+    },
     "edit": {
       ".agents/docs/cache/**": "allow",
       ".agents/docs/**": "allow",
       ".agents/kilo/**": "allow",
       ".agents/**": "allow",
       ".tmp/**": "allow",
+      "/tmp/kilo/*": "allow",
     },
     "external_directory": {
       "/tmp/kilo/*": "allow",
@@ -26,7 +33,7 @@
     },
   },
   "model": "openrouter/minimax/minimax-m3",
-  "small_model": "openrouter/deepseek/deepseek-v4-flash",
+  "small_model": "openrouter/~deepseek/deepseek-v4-flash-latest",
   "agent": {
     "orchestrator": {
       "disable": true,
@@ -42,13 +49,12 @@
     "threshold_percent": 70,
   },
   "experimental": {
-    "batch_tool": false,
+    "batch_tool": true,
     "codebase_search": false,
     "agent_manager_tool": true,
     "openTelemetry": true,
     "mcp_timeout": 30000,
     "swe_pruner": true,
-    "swe_pruner_model": "openrouter/deepseek/deepseek-v4-pro",
     "continue_loop_on_deny": true,
   },
   "mcp": {
@@ -90,11 +96,6 @@
       },
       "enabled": false,
     },
-    "mdn": {
-      "type": "remote",
-      "url": "https://mcp.mdn.mozilla.net/",
-      "enabled": false,
-    },
   },
   "provider": {
     "openrouter": {
@@ -105,28 +106,6 @@
         },
       },
       "models": {
-        "deepseek/deepseek-v4-flash": {
-          "options": {
-            "provider": {
-              "only": ["deepseek"],
-              "order": ["deepseek"],
-            },
-            "reasoning": {
-              "effort": "medium",
-            },
-          },
-        },
-        "deepseek/deepseek-v4-pro": {
-          "options": {
-            "provider": {
-              "only": ["deepseek"],
-              "order": ["deepseek"],
-            },
-            "reasoning": {
-              "effort": "medium",
-            },
-          },
-        },
         "minimax/minimax-m3": {
           "options": {
             "provider": {
@@ -164,6 +143,30 @@
             },
           },
         },
+        "deepseek/deepseek-v4-pro-0813": {
+          "options": {
+            "provider": {
+              "only": ["deepseek"],
+              "order": ["deepseek"],
+            },
+          },
+        },
+        "~deepseek/deepseek-v4-flash-latest": {
+          "options": {
+            "provider": {
+              "only": ["deepseek"],
+              "order": ["deepseek"],
+            },
+          },
+        },
+        "deepseek/deepseek-v4-flash-0731": {
+          "options": {
+            "provider": {
+              "only": ["deepseek"],
+              "order": ["deepseek"],
+            },
+          },
+        },
       },
     },
     "minimax": {
@@ -183,15 +186,19 @@
     "searchMaxResults": 8,
     "embeddingBatchSize": 1200,
     "scannerMaxBatchRetries": 5,
-    "dimension": 2560,
+    "dimension": 1536,
   },
-  "subagent_model": "openrouter/deepseek/deepseek-v4-flash",
-  "instructions": ["~/.config/kilo/rules/*.md"],
+  "subagent_model": "openrouter/~deepseek/deepseek-v4-flash-latest",
+  "instructions": [
+    "~/.config/kilo/rules/*.md",
+    "~/.config/kilo/rules.personal.d/*.md",
+  ],
   "sandbox": {
     "enabled": false,
     "network": "allow",
   },
   "subagent_variant_overrides": {
-    "openrouter/deepseek/deepseek-v4-flash": "high",
+    "openrouter/~deepseek/deepseek-v4-flash-latest": "high",
   },
+  "web_search": true,
 }
