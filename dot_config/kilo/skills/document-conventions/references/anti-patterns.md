@@ -170,8 +170,9 @@ This list synthesises findings from:
 - Standard Readme — section order
 - Keep a Changelog — `[Unreleased]`, date format, group ordering
 - Global rules: `proactive-note-capture.md`,
-  `personal-quirks.md`, `web-tools-priority.md`,
-  `project-context.md`, `self-analysis.md`,
-  `ambiguity-resolution.md`
+  `web-tools-priority.md`, `project-context.md`,
+  `self-analysis.md`, `ambiguity-resolution.md`
+- Per-user rules: `rules.personal.d/` (sudo-ask,
+  ssh-read-allowlist, ssh-agent-keys-location)
 - Project-local: shared-context-repo design locked 2026-08-10
   (see `.tmp/docs/plans/2026-08-10-kilo-worktree-tmp-structure.md`)

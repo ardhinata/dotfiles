@@ -55,7 +55,7 @@ Each row covers one doc type. Columns:
 | Optional sections | `## When to load`, `## Captured …`, `## Anti-patterns`, `## References` |
 | Section order | Loose |
 | Length budget | Target 30–80 lines, hard ceiling 150 |
-| Validation | Manual review against `proactive-note-capture.md` / `personal-quirks.md` style. No frontmatter parser exists. |
+| Validation | Manual review against `proactive-note-capture.md` / `rules.personal.d/` style. No frontmatter parser exists. |
 | Source | Global decision; see `~/.config/kilo/rules/*.md` for examples |
 
 **Slug rules:** lowercase, hyphens, no trailing punctuation. Match the
@@ -248,7 +248,7 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | < 500 lines; longer plans should link out to design docs / ADRs |
 | Validation | User-approved path; same fields as transient plan but durable |
-| Source | `~/.config/kilo/rules/personal-quirks.md` (global rule) |
+| Source | `~/.config/kilo/rules/plans.md` (global rule); per-user quirks live at `~/.config/kilo/rules.personal.d/*.md` |
 
 ---
 

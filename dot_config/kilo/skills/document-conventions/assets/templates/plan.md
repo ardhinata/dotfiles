@@ -68,10 +68,10 @@ findings here with enough context to act later.>
 if longer.
 
 **Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. No
-collisions — pre-create scan mandated by `personal-quirks.md`.
+collisions — pre-create scan mandated by `~/.config/kilo/rules/plans.md`.
 
 **Update cadence:** at every checkpoint / milestone. Don't let the file
 drift from reality.
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md)
-and `~/.config/kilo/rules/personal-quirks.md`.
+and `~/.config/kilo/rules/plans.md`.

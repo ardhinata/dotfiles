@@ -198,8 +198,10 @@ These rules are synthesised from:
 - [adr.github.io — decision records](https://adr.github.io/)
 - [Andy Matuschak — Evergreen notes](https://notes.andymatuschak.org/Evergreen_notes)
 - Global rules: `~/.config/kilo/rules/*.md` (proactive-note-capture,
-  personal-quirks, web-tools-priority, project-context, self-analysis,
-  ambiguity-resolution)
+  web-tools-priority, project-context, self-analysis,
+  ambiguity-resolution) + per-user rules at
+  `~/.config/kilo/rules.personal.d/*.md` (sudo-ask,
+  ssh-read-allowlist, ssh-agent-keys-location)
 - Global decision `kilo.rules.no_frontmatter` — rule files have no
   frontmatter even though skills do
 - Project-local: shared-context-repo design locked 2026-08-10

@@ -60,7 +60,7 @@ When the user asks to update docs, references, or notes:
 | Reusable web fact / volatile API | `.agents/docs/cache/` | `web-tools-priority.md` |
 | Repo-wide convention | `AGENTS.md` (proposal only) | `project-context.md` + `project-context` skill |
 | File-specific guidance | Skill `SKILL.md` / references | `agent-context` skill |
-| Personal preference / habit | `personal-quirks.md` | (this directory) |
+| Personal preference / habit | `rules.personal.d/*.md` | (sibling directory) |
 | Task-only scratch (committed, cross-worktree) | `.tmp/docs/{notes,plans}/` | (this rule + `plans.md`) |
 | Task-only scratch (per-worktree, never commit) | `.tmp/scratch/` | (this rule) |
 
