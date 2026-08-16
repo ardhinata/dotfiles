@@ -5,9 +5,9 @@
       "*": "allow",
     },
     "read": {
+      "~/.ssh/*": "deny",
       "~/.ssh/config": "allow",
       "~/.ssh/config.d": "allow",
-      "~/.ssh/": "deny",
       "/tmp/kilo/*": "allow",
     },
     "edit": {

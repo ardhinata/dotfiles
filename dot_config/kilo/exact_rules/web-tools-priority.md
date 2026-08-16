@@ -6,26 +6,44 @@ Tool names below show short form → actual exposed name.
 
 **Startup rule:** Before external research, skim the local `README.md` and `AGENTS.md`, then read the project knowledge-cache `README.md` index. The standard cache path is `.agents/docs/cache/`; legacy `.tmp/doc-cache/` and `.help/` are acceptable fallbacks. If the cache directory or index is missing, create the index as described by `~/.config/kilo/skills/project-context/references/knowledge-cache.md` before writing fetched facts, unless project rules prohibit writes. `.tmp/` is for transient scratchpads only — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`.
 
-**Decision rule:** *Have a URL?* → **webfetch** first; failed, truncated, paywalled, or JS-empty? → **firecrawl_scrape** with `waitFor`. *No URL?* → **tavily_search** to find one. *Library/API question?* → **context7** after resolving the library ID. For broad research, use **tavily_research** rather than relying on one search result.
+## Decision rule
 
-## Priority
+1. **Have a URL?** → **`webfetch`** first; failed, truncated, or JS-required? → **`firecrawl_scrape`** with `waitFor: 5000`–`10000`.
+2. **No URL, need discovery?** → **`websearch`** (free, broad coverage). Need finer filters (`time_range`, `include_domains`, `search_depth`)? → `tavily_search`. Need multi-source synthesis across many pages? → `tavily_research` (slow, $$). GitHub-only? → `firecrawl_search` with `categories: ["github"]`. Academic papers? → `firecrawl_search` with `categories: ["research"]`.
+3. **Library/API question?** → `context7_resolve-library-id` → `context7_query-docs`. If 0 hits, fall back to `websearch`.
+4. **Need to crawl a domain or fetch many pages?** → `tavily_crawl` / `tavily_map` (cheaper, plain HTML) or `firecrawl_crawl` / `firecrawl_map` (with JS rendering).
+5. **Need structured extraction?** → `firecrawl_extract` (with JSON schema) or `tavily_extract` (plain extraction).
 
-1. **webfetch** (built-in, free, zero billing) — `webfetch`. Fetches any known URL that returns readable content: HTML, markdown, JSON, plain text, READMEs, changelogs, release notes, RFCs, and simple docs. **Always try this first when you have a URL.** Re-read the returned page; do not treat a search snippet as evidence. **Not for:** URL discovery or pages that require browser rendering.
+## Priority table
 
-2. **tavily** (primary discovery and research) — tools prefixed `tavily_tavily_*` (`tavily_tavily_search`, `tavily_tavily_extract`, `tavily_tavily_research`, `tavily_tavily_crawl`, `tavily_tavily_map`). Use `tavily_search` when you do not know the URL, `tavily_research` for multi-source questions, and `tavily_extract` after finding a relevant URL. Search broadly enough to find an authoritative or primary source, then open it. **Not for:** a URL already known to be readable by `webfetch`.
-
-3. **firecrawl** (scrape/crawl) — tools prefixed `firecrawl_firecrawl_*` (`firecrawl_firecrawl_scrape`, `firecrawl_firecrawl_crawl`, `firecrawl_firecrawl_map`, `firecrawl_firecrawl_extract`, `firecrawl_firecrawl_search`, `firecrawl_firecrawl_agent`). Use it for known URLs when `webfetch` fails or when structured extraction, screenshots, crawling, or JavaScript rendering is needed. Use `firecrawl_map` before escalating to `firecrawl_agent` when the correct page is unclear. Use `firecrawl_crawl` for multiple related pages. **Not for:** ambiguous open-ended discovery when Tavily is available.
-
-4. **context7** (library/API docs) — tools prefixed `context7_*` (`context7_resolve-library-id`, `context7_query-docs`). Resolve the exact library ID first, then query focused API or version questions. Prefer it over general web search for library documentation, and re-query when the answer is version-sensitive. **Not for:** general web searches or non-library questions.
+| Tier | Tool | Strong suit | Caveat |
+|---|---|---|---|
+| 1 | `webfetch` (built-in) | Known URL → markdown/HTML/text/JSON; free, no billing | Fails on JS-required pages; 404 on moved URLs (re-search to relocate) |
+| **1.5** | **`websearch`** (built-in) | **URL discovery across general/niche/standards content; 2026-fresh; free, no MCP billing** | **No multi-source synthesis, no JS rendering, no library index, no domain filters** |
+| 2 | `tavily_search` | Same as websearch + `time_range` / `include_domains` / `search_depth` filters | MCP billing; websearch is comparable on quality |
+| 2 | `tavily_extract` | Extract content from a known URL | webfetch is free |
+| 2 | `tavily_crawl` / `tavily_map` | Multi-page crawl with depth/breadth limits | websearch cannot do this |
+| 2 | `tavily_research` | Multi-source synthesis across many pages (~280s, $$) | Highest cost; only for questions that need several perspectives |
+| 3 | `firecrawl_scrape` | JS rendering, structured extraction, screenshots | Use after webfetch fails; billable |
+| 3 | `firecrawl_crawl` / `firecrawl_map` | Multi-page crawl with JS rendering | websearch cannot do this |
+| 3 | `firecrawl_search` | Web search with `categories` filter (`github` / `research` / `pdf` / `developer`) | MCP billing; websearch is comparable on quality |
+| 3 | `firecrawl_extract` | Structured extraction with JSON schema | Use when you need specific fields, not just the page |
+| 3 | `firecrawl_agent` | Async multi-source research | Overlaps with `tavily_research` |
+| 3 | `firecrawl_parse` | Parse a known local/remote document (PDF/Word/etc.) into structured fields | Use when webfetch returns the page but not the right structure |
+| 4 | `context7_resolve-library-id` + `context7_query-docs` | **Indexed library docs with code snippets from the actual repo, version-locked** | Only works for libraries in context7's index (e.g., gpg-agent fails) |
+| 4b | `websearch` (fallback) | When context7 fails to resolve the library | Already covered in tier 1.5 |
 
 ## Escalation and verification
 
-- If the first result is incomplete, stale, or indirect, use the next suitable tool or a narrower query automatically; do not answer from an unverified snippet.
-- Prefer official documentation, primary sources, release notes, and source repositories. Use multiple sources when the claim is consequential, disputed, or likely to change.
+- If the first tool returns nothing useful, escalate per the decision rule steps.
+- Verify consequential claims with a second tool.
+- Prefer official documentation, primary sources, release notes, and source repos over blogs.
 - Have a specific URL? → `webfetch` to it first. Failed or incomplete? → `firecrawl_scrape` with `waitFor: 5000`–`10000`, then `firecrawl_map` for documentation sites whose content is elsewhere.
-- Have only a claim? → `tavily_search` with the claim as a phrase; use `tavily_research` when several sources or perspectives are needed.
-- Library/API question? → resolve with `context7_resolve-library-id`, then use `context7_query-docs`; do not substitute memory for current API behavior.
+- Have only a claim? → `websearch` (or `tavily_search` when you need filters); use `tavily_research` when several sources or perspectives are needed.
+- Library/API question? → resolve with `context7_resolve-library-id`, then use `context7_query-docs`. If 0 hits, fall back to `websearch`.
 - CLI tool or framework API released less than 6 months ago? → always re-verify with a fresh external lookup, even when the cache has an entry.
+
+**Tools behind auth in this environment (unavailable without an OAuth connection or bearer API key):** `firecrawl_developer_search`, `firecrawl_research_search_papers`, `firecrawl_research_inspect_paper`, `firecrawl_research_read_paper`, `firecrawl_research_related_papers`, `firecrawl_research_search_github`, `firecrawl_monitor_*`. Fall back to `websearch` / `tavily_search` with domain filters, or `firecrawl_search` with `categories: ["github"]` / `["research"]`, or `tavily_research` for academic synthesis.
 
 ## Knowledge Staleness
 
