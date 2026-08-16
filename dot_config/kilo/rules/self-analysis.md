@@ -14,7 +14,7 @@ When you're uncertain about understanding or a decision, interrogate it with up 
 
 | Source | How |
 |---|---|
-| **Documentation** | `semantic_search` to find relevant docs, then `read` any `.md`, `.txt`, `.rst`, or similar text file that may hold the answer |
+| **Documentation** | `grep -r` against docs and references, then `read` any `.md`, `.txt`, `.rst`, or similar text file that may hold the answer |
 | **Project state** | `git log --oneline`, opened files (`git diff`, `git status`), user's prior behavior and context |
 | **The web** | Use `webfetch` / `firecrawl_scrape` / `tavily_search` sparingly — only when the answer cannot be found locally |
 

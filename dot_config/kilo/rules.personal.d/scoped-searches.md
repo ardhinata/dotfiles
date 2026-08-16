@@ -2,7 +2,7 @@ Search and inspection commands must stay within a **bounded path**. An unbounded
 
 ## When
 
-About to run `grep -r`, `rg`, `find`, `fd`, `semantic_search`-without-a-path, or any tool that walks a directory tree.
+About to run `grep -r`, `rg`, `find`, `fd`, or any tool that walks a directory tree.
 
 ## Default scope — the working directory
 
@@ -36,7 +36,7 @@ Do not recurse into encrypted/sealed trees (`~/.gnupg/private-keys-v1.d/`, `~/.p
 2. **No hit?** Ask yourself: is X global dotfiles, global kilo config, or env-level? If unclear, **ask the user which scope** before widening — most "where is X" questions are local in practice.
 3. **Named escalation**: re-run with the specific bounded dir from the table above.
 4. **No `grep -r ... ~` / `rg ... $HOME` / `find ~` without an explicit, exact target dir.** Always pass the deepest meaningful path.
-5. `semantic_search` and `glob` are workspace-scoped by design — constrain with `path:` when you know the subtree.
+5. `glob` is workspace-scoped by design — constrain with `path:` when you know the subtree.
 6. Pass `--hidden` only when you intend to read dotfiles. `rg`/`grep` exclude them by default; do not flip that flag as a "just in case" move.
 7. Use ripgrep when available — it auto-skips `.git/`, `node_modules/`, and respects `.gitignore`.
 8. **Still no hit?** Report "not found in <scope>" and stop. Do not continue widening.
