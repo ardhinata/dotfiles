@@ -2,7 +2,7 @@ Privilege escalation must always be confirmed with the user — even when the to
 
 ## When
 
-Any command that would elevate to root, either directly or transitively.
+Any command that would elevate to root, either directly or transitively:
 
 - Direct invocations: `sudo ...`, `sudo -E ...`, `pkexec ...`, `doas ...`.
 - Any shell pattern that ends up elevating (e.g. `sudo bash -c "..."`, passwordless escalation helpers, distro wrappers that internally call `sudo`).
@@ -21,7 +21,3 @@ Any command that would elevate to root, either directly or transitively.
 - Treating `NOPASSWD` in `/etc/sudoers` as blanket permission — the rule is per-command, not per-session.
 - Using `sudo -E` to preserve env without disclosing the env it preserves.
 - Assuming interactive `sudo` always fails in this environment — it can work via `interactive_terminal`; the rule still applies.
-
-## References
-
-- `~/.config/kilo/rules.personal.d/ssh-read-allowlist.md` — reading arbitrary files under another user's home is also gated.
