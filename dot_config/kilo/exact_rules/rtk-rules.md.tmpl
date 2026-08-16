@@ -1,0 +1,5 @@
+{{- if lookPath "rtk" -}}
+{{ include "dot_config/kilo/exact_rules/.template-resources/rtk_installed.md" -}}
+{{- else -}}
+{{ include "dot_config/kilo/exact_rules/.template-resources/rtk_not-installed.md" -}}
+{{- end -}}

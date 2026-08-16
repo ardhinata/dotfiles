@@ -1,6 +1,6 @@
 # SKILL.md Template
 
-Copy to `dot_config/kilo/skills/<slug>/SKILL.md`. **Frontmatter
+Copy to `dot_config/kilo/exact_skills/<slug>/SKILL.md`. **Frontmatter
 required** per the [agentskills.io specification](https://agentskills.io/specification).
 Validate with `skills-ref validate ./<skill-dir>` before publishing.
 

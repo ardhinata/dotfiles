@@ -30,24 +30,24 @@ relevant flat skill.
 
 ### fnm — installed
 
-{{ include "dot_config/kilo/rules/.template-resources/fnm_installed.md" }}
+{{ include "dot_config/kilo/exact_rules/.template-resources/fnm_installed.md" }}
 {{- end }}
 
 {{- if and (lookPath "docker") (lookPath "podman") }}
 
 ### Container tools — both docker and podman installed
 
-{{ include "dot_config/kilo/rules/.template-resources/container_both-installed.md" }}
+{{ include "dot_config/kilo/exact_rules/.template-resources/container_both-installed.md" }}
 {{- else if lookPath "podman" }}
 
 ### Container tools — podman only
 
-{{ include "dot_config/kilo/rules/.template-resources/container_only-podman.md" }}
+{{ include "dot_config/kilo/exact_rules/.template-resources/container_only-podman.md" }}
 {{- else if lookPath "docker" }}
 
 ### Container tools — docker only
 
-{{ include "dot_config/kilo/rules/.template-resources/container_only-docker.md" }}
+{{ include "dot_config/kilo/exact_rules/.template-resources/container_only-docker.md" }}
 {{- end }}
 
 ## Boundary

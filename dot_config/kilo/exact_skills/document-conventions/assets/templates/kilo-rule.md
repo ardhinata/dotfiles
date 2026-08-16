@@ -1,6 +1,6 @@
 # Kilo Rule Template
 
-Copy to `dot_config/kilo/rules/<slug>.md`. **No frontmatter** — this is
+Copy to `dot_config/kilo/exact_rules/<slug>.md`. **No frontmatter** — this is
 a project-wide decision (see [`references/frontmatter.md`](../../references/frontmatter.md)).
 Kilo's loader does not parse YAML, so any frontmatter here is dead
 weight that drifts.

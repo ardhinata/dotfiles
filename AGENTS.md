@@ -51,6 +51,6 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Full chezmoi conventions + prefix tables: `.agents/kilo/skills/chezmoi/SKILL.md`
 - Project rules: `.agents/kilo/rules/chezmoi-source-project.md`
 - Agent-context conventions (AGENTS.md, SKILL.md): `.agents/kilo/skills/agent-context/SKILL.md`
-- Knowledge cache convention and required `README.md` index: `.agents/docs/cache/README.md` (also `dot_config/kilo/skills/project-context/references/knowledge-cache.md` for the full spec)
+- Knowledge cache convention and required `README.md` index: `.agents/docs/cache/README.md` (also `dot_config/kilo/exact_skills/project-context/references/knowledge-cache.md` for the full spec)
 - Local chezmoi/sprig documentation: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
 - Vendor config: `.agents/kilo/` — root `.kilo/` is a symlink to it
