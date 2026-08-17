@@ -22,7 +22,7 @@ from typing import Any, NoReturn
 
 # ---- Constants ------------------------------------------------------------
 
-SHELLX_VERSION = "1.2.0"
+SHELLX_VERSION = "1.2.1"
 SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
 # Static password derived from chezmoi's `system_environment.nonce` and
 # `system_environment.profile`. Format: `chezmoi:shellx:<profile>:<nonce>` —
@@ -340,13 +340,16 @@ def cmd_store(args) -> int:
     if sys.stdin.isatty():
         val = getpass.getpass(f"Enter value for {var}: ")
     else:
-        val = sys.stdin.read()
+        # Read raw bytes (binary mode) and decode with surrogateescape so
+        # non-UTF-8 input does not raise UnicodeDecodeError. The matching
+        # encode() below round-trips any byte losslessly.
+        val = sys.stdin.buffer.read().decode("utf-8", errors="surrogateescape")
     val = val.rstrip("\n")
     if not val:
         _die("empty value not allowed", code=2)
 
     slug = _read_slug()
-    blob = encrypt_blob(_static_pw(), var, val.encode())
+    blob = encrypt_blob(_static_pw(), var, val.encode(errors="surrogateescape"))
     blob_path = os.path.join(_slug_path(), _blob_name(var, slug))
     tmp = blob_path + ".tmp"
     with open(tmp, "wb") as f:
@@ -741,7 +744,7 @@ def cmd_exec(args) -> int:
             pt = decrypt_blob(_static_pw(), var, blob)
         except ValueError as e:
             _die(f"auth failed for {var}: {e}", code=3)
-        env[var] = pt.decode("utf-8")
+        env[var] = pt.decode("utf-8", errors="surrogateescape")
         injected.append(var)
         pt = b"\x00" * len(pt)
         blob = b"\x00" * len(blob)

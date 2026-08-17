@@ -3,6 +3,21 @@
 All notable changes to `shellx` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.1] — 2026-08-17
+
+### Fixed
+
+- `shellx store` and the exec path (`shellx -- …`) crashed with a raw
+  `UnicodeDecodeError` traceback when the secret value (or the bytes
+  piped into stdin) contained non-UTF-8 data. `cmd_store` now reads
+  stdin in binary mode (`sys.stdin.buffer.read()`) and decodes with
+  `errors="surrogateescape"`; the matching `encode()` round-trips any
+  byte losslessly. `cmd_exec` decodes decrypted plaintext with the
+  same codec before assigning to `os.environ`. ASCII secrets behave
+  identically; binary secrets store and inject end-to-end without
+  crashing. (`dot_shell/helper/executable_shellx` — `cmd_store`,
+  `cmd_exec`.)
+
 ## [1.2.0] — 2026-07-27
 
 ### Changed
