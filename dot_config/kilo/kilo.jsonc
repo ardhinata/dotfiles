@@ -62,22 +62,18 @@
       "type": "remote",
       "url": "https://mcp.tavily.com/mcp",
       "headers": {
-        "Authorization": "Bearer {env:TAVILY_API_TOKEN}",
-        "DEFAULT_PARAMETERS": "{\"include_images\":true, \"search_depth\": \"basic\", \"max_results\": 8}",
+        "DEFAULT_PARAMETERS": "{\"include_images\":true, \"search_depth\": \"basic\", \"max_results\": 10}",
       },
       "enabled": true,
     },
     "firecrawl": {
       "type": "remote",
-      "url": "https://mcp.firecrawl.dev/{env:FIRECRAWL_API_TOKEN}/v2/mcp",
+      "url": "https://mcp.firecrawl.dev/v2/mcp-oauth",
       "enabled": true,
     },
     "context7": {
       "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_TOKEN}",
-      },
+      "url": "https://mcp.context7.com/mcp/oauth",
       "enabled": true,
     },
     "exa": {

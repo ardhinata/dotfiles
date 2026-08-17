@@ -76,6 +76,45 @@ Anything **not** in `.tmp/docs/` (e.g. `.tmp/scratch/`) is **not**
 part of the shared context repo. The hook rejects commits that
 contain `scratch/` paths.
 
+### Where the wrappers live
+
+The `kilo-shared-save` and `kilo-shared-pull` wrappers are installed by
+`.kilo/setup-script` at:
+
+```
+~/.local/share/kilo/bin/kilo-shared-save
+~/.local/share/kilo/bin/kilo-shared-pull
+```
+
+**These paths are not on `$PATH`.** `which kilo-shared-save`,
+`command -v kilo-shared-save`, and `type kilo-shared-save` will all
+return empty even when the wrapper is correctly installed. Do not
+treat an empty `which` result as "the command is missing" — check the
+explicit path first:
+
+```sh
+[ -x "$HOME/.local/share/kilo/bin/kilo-shared-save" ] && echo present
+```
+
+If present, invoke it via the full path, or prepend
+`$HOME/.local/share/kilo/bin` to `PATH` for the call:
+
+```sh
+"$HOME/.local/share/kilo/bin/kilo-shared-save" "<short-message>"
+```
+
+If absent, re-run `.kilo/setup-script` to (re)install. The
+source-of-truth script lives at
+[`assets/kilo-shared-save.sh`](assets/kilo-shared-save.sh) (copy it
+verbatim into `~/.local/share/kilo/bin/`).
+
+**`kilo-shared-pull` may not be installed yet.** The canonical save
+wrapper ships first; the pull wrapper is a planned companion. Until
+`kilo-shared-pull` exists at `~/.local/share/kilo/bin/`, every
+reference to it in this skill (and in `document-conventions`,
+`proactive-note-capture`, `plans`) means **"fetch from `origin/main` in
+`.tmp/docs/`"** — the git fallback already shown next to each call.
+
 ## Workflow
 
 ### On first worktree of a project
@@ -120,7 +159,8 @@ sibling worktrees start empty).
 ### On every write to `.tmp/docs/`
 
 ```sh
-kilo-shared-save "<short-message>"
+"$HOME/.local/share/kilo/bin/kilo-shared-save" "<short-message>"
+# or, if ~/.local/share/kilo/bin is on PATH: kilo-shared-save "<short-message>"
 ```
 
 This wrapper:
@@ -139,7 +179,9 @@ state vanishes on worktree destroy and is invisible to siblings.
 Before creating a new note/plan/postmortem:
 
 ```sh
-kilo-shared-pull origin main   # or: git fetch origin main
+"$HOME/.local/share/kilo/bin/kilo-shared-pull" origin main   # or: git fetch origin main
+# The git fallback is what actually runs today, until the pull wrapper ships.
+# See "Where the wrappers live" above.
 ```
 
 Then `ls` the target dir for same-`YYYY-MM-DD` slugs. The shared
