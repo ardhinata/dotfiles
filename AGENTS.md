@@ -48,9 +48,12 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 
 ## Pointers
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
-- Full chezmoi conventions + prefix tables: `.agents/kilo/skills/chezmoi/SKILL.md`
-- Project rules: `.agents/kilo/rules/chezmoi-source-project.md`
-- Agent-context conventions (AGENTS.md, SKILL.md): `.agents/kilo/skills/agent-context/SKILL.md`
-- Knowledge cache convention and required `README.md` index: `.agents/docs/cache/README.md` (also `dot_config/kilo/exact_skills/project-context/references/knowledge-cache.md` for the full spec)
-- Local chezmoi/sprig documentation: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
-- Vendor config: `.agents/kilo/` — root `.kilo/` is a symlink to it
+- **Full chezmoi conventions + prefix tables**: `.agents/kilo/skills/chezmoi/SKILL.md`
+- **Project rules**: `.agents/kilo/rules/chezmoi-source-project.md`
+- **Agent-context conventions (AGENTS.md, SKILL.md)**: `.agents/kilo/skills/agent-context/SKILL.md`
+- **Knowledge cache convention + required `README.md` index**: `.agents/docs/cache/README.md` (full spec: `dot_config/kilo/exact_skills/project-context/references/knowledge-cache.md`)
+- **Canonical on-disk project layout** (`.agents/`, `.tmp/` subroles, knowledge cache, vendor unification): `dot_config/kilo/exact_skills/project-layout/SKILL.md` (deployed to `~/.config/kilo/skills/project-layout/`)
+- **Shared-context repo protocol** (`.tmp/docs/` mechanism): `dot_config/kilo/exact_skills/shared-context/SKILL.md` (deployed to `~/.config/kilo/skills/shared-context/`)
+- **Document conventions** (filename, frontmatter, section order): `dot_config/kilo/exact_skills/document-conventions/SKILL.md` (deployed to `~/.config/kilo/skills/document-conventions/`)
+- **Local chezmoi/sprig documentation**: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
+- **Vendor config**: `.agents/kilo/` — root `.kilo/` is a symlink to it

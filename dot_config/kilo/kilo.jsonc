@@ -61,9 +61,6 @@
     "tavily": {
       "type": "remote",
       "url": "https://mcp.tavily.com/mcp",
-      "headers": {
-        "DEFAULT_PARAMETERS": "{\"include_images\":true, \"search_depth\": \"basic\", \"max_results\": 10}",
-      },
       "enabled": true,
     },
     "firecrawl": {
