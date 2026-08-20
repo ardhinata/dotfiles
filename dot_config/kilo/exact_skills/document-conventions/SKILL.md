@@ -53,8 +53,8 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 
 | You want to… | Write |
 |---|---|
-| Capture a verified, non-obvious, reusable finding during a task | **Note** — `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` (git-tracked in shared context; commit via `kilo-shared-save` after each write) |
-| Plan a multi-step task that may not survive compaction | **Plan** — `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` (git-tracked in shared context; commit via `kilo-shared-save` after each write) |
+| Capture a verified, non-obvious, reusable finding during a task | **Note** — `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` (git-tracked in shared context; commit via `kilo-shared save` after each write) |
+| Plan a multi-step task that may not survive compaction | **Plan** — `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` (git-tracked in shared context; commit via `kilo-shared save` after each write) |
 | Plan a multi-step task the user wants to keep | **Persistent plan** — user-specified path |
 | Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
@@ -72,7 +72,7 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 > `.tmp/docs/postmortems/` are git-tracked and shared across Agent Manager
 > worktrees. Two worktrees writing the same `YYYY-MM-DD-<slug>.md` produce a
 > branch divergence in the shared context repo. Pre-create scan **must**
-> include `git fetch origin main` (or `kilo-shared-pull`) to surface
+> include `git fetch origin main` (or `kilo-shared pull`) to surface
 > cross-worktree collisions, not just a local `ls`. See the `shared-context`
 > skill for the commit protocol and conflict resolution.
 

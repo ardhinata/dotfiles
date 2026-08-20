@@ -13,7 +13,8 @@
 #   4. Populate the four document subdirs.
 #   5. Install the pre-commit hook that enforces filename + scratch policy.
 #   6. Create the per-worktree branch (skip on main checkout).
-#   7. Install the kilo-shared-save wrapper to ~/.local/share/kilo/bin/.
+#   7. Install the merged kilo-shared CLI + hidden-prefix detect helper to
+#      ~/.local/share/kilo/bin/.
 
 set -e
 
@@ -78,16 +79,28 @@ if [ "$CURRENT_BRANCH" = "main" ] && [ "$WORKTREE_SLUG" != "$PROJ_BASENAME" ]; t
   echo "  Created worktree branch: $WORKTREE_SLUG"
 fi
 
-# 7. Wrapper script
+# 7. Wrappers (merged CLI + hidden-prefix detect helper)
 mkdir -p "$WRAPPER_BIN_DIR"
-cp "$ASSETS_DIR/kilo-shared-save.sh" "$WRAPPER_BIN_DIR/kilo-shared-save"
-chmod +x "$WRAPPER_BIN_DIR/kilo-shared-save"
+for wrapper in kilo-shared kilo-helper-shared-detect; do
+  if [ -f "$ASSETS_DIR/${wrapper}.sh" ]; then
+    cp "$ASSETS_DIR/${wrapper}.sh" "$WRAPPER_BIN_DIR/$wrapper"
+    chmod +x "$WRAPPER_BIN_DIR/$wrapper"
+  fi
+done
+# kilo-shared-init is invoked (not directly executed); ship the .sh too.
+if [ -f "$ASSETS_DIR/kilo-shared-init.sh" ]; then
+  cp "$ASSETS_DIR/kilo-shared-init.sh" "$WRAPPER_BIN_DIR/kilo-shared-init.sh"
+  chmod +x "$WRAPPER_BIN_DIR/kilo-shared-init.sh"
+fi
+# Cleanup: legacy deploy from a pre-2026-08-20 setup-script.
+rm -f "$WRAPPER_BIN_DIR/kilo-shared-save" \
+      "$WRAPPER_BIN_DIR/kilo-shared-pull"
 
 # PATH check (advisory — do not fail the setup)
 case ":$PATH:" in
   *":$WRAPPER_BIN_DIR:"*) ;;
   *)
-    echo "  Note: $WRAPPER_BIN_DIR is not on PATH. Add to your shell rc to use kilo-shared-save directly."
+    echo "  Note: $WRAPPER_BIN_DIR is not on PATH. Add to your shell rc to use kilo-shared directly."
     ;;
 esac
 

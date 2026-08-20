@@ -20,8 +20,8 @@ If only some hold — or capture would derail the active work — defer instead 
 When capture is safe and low-cost, write it **right now** to a shared-context task note.
 
 - **Path**: `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` (or update the file already created for that task). The dir is the working tree of the per-project shared context repo (see `~/.config/kilo/skills/project-layout/SKILL.md` §"Shared context repo").
-- **Before creating**: run `kilo-shared-pull origin main` to surface any cross-worktree collisions, then list `.tmp/docs/notes/`, `head -n 10` each file, and reuse / merge into an existing note on the same task. Do not duplicate.
-- **After creating**: run `kilo-shared-save "<short-message>"` from the project root to commit the new note. Per the `proactive-note-capture` enforcement rule, **every write to `.tmp/docs/` must end with a commit** — uncommitted notes are flagged as in-flight in the shared context repo's status.
+- **Before creating**: run `kilo-shared pull origin main` to surface any cross-worktree collisions, then list `.tmp/docs/notes/`, `head -n 10` each file, and reuse / merge into an existing note on the same task. Do not duplicate.
+- **After creating**: run `kilo-shared save "<short-message>"` from the project root to commit the new note. Per the `proactive-note-capture` enforcement rule, **every write to `.tmp/docs/` must end with a commit** — uncommitted notes are flagged as in-flight in the shared context repo's status.
 - **Sections to fill** — keep tight:
   1. **Finding** — one or two sentences, plain language.
   2. **Evidence** — exact file paths, command outputs, URLs, or code locations that justify it.
@@ -81,5 +81,5 @@ When two destinations both fit, prefer the **more verified** and the **lower-ove
 - Promoting a deferral without re-verifying — the world moves; the record may be stale.
 - Writing a memory entry as the canonical store instead of a pointer to a file.
 - Creating `.tmp/docs/notes/` files for things that belong in `.tmp/docs/plans/` (plans) or `.agents/docs/cache/` (reusable facts).
-- **Writing to `.tmp/docs/` and not running `kilo-shared-save`** — uncommitted notes vanish on worktree destroy and don't reach sibling worktrees.
+- **Writing to `.tmp/docs/` and not running `kilo-shared save`** — uncommitted notes vanish on worktree destroy and don't reach sibling worktrees.
 - **Writing to `.tmp/notes/`** (legacy path) instead of `.tmp/docs/notes/` — the legacy path is no longer mounted; the file silently lives only in the current worktree and is lost on destroy.

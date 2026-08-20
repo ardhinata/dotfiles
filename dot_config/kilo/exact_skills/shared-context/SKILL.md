@@ -1,6 +1,6 @@
 ---
 name: shared-context
-description: Cross-worktree document sharing via the per-project shared context repo at `.tmp/docs/` (working tree of `~/.local/share/kilo/shared-context/<project-slug>.git/`). Load when writing to or reading from `.tmp/docs/{notes,plans,postmortems,user_cache}/`, when the user asks how Agent Manager worktrees share context, when initializing a new project's shared context (first worktree on a project), when reconciling cross-worktree filename collisions, when committing with `kilo-shared-save`, or when recovering an abandoned branch in the shared context repo. Does not own project-tree placement — load the `project-layout` skill for the canonical layout.
+description: Cross-worktree document sharing via the per-project shared context repo at `.tmp/docs/` (working tree of `~/.local/share/kilo/shared-context/<project-slug>.git/`). Load when writing to or reading from `.tmp/docs/{notes,plans,postmortems,user_cache}/`, when the user asks how Agent Manager worktrees share context, when initializing a new project's shared context (first worktree on a project), when reconciling cross-worktree filename collisions, when committing with `kilo-shared save`, or when recovering an abandoned branch in the shared context repo. Does not own project-tree placement — load the `project-layout` skill for the canonical layout.
 ---
 
 # Shared Context
@@ -22,7 +22,7 @@ the protocol.
 - Initializing a new project's shared context on first worktree spawn
 - Reconciling cross-worktree filename collisions (`YYYY-MM-DD-<slug>.md`
   produced in two worktrees diverge in git)
-- Committing with `kilo-shared-save`
+- Committing with `kilo-shared save`
 - Recovering a branch from a destroyed worktree
 - The user asks "why isn't my note showing up in the other worktree?"
 - Editing `.kilo/setup-script` to install the hook + clone wrapper
@@ -31,7 +31,9 @@ the protocol.
 
 | File | When to read |
 |---|---|
-| [`assets/kilo-shared-save.sh`](assets/kilo-shared-save.sh) | The commit wrapper. Source of truth — copy verbatim into the user's `~/.local/share/kilo/bin/`. |
+| [`assets/kilo-shared.sh`](assets/kilo-shared.sh) | The merged CLI (`save` / `pull` / `detect` / `init` / `--version`). Source of truth — copy verbatim into `~/.local/share/kilo/bin/`. |
+| [`assets/kilo-helper-shared-detect.sh`](assets/kilo-helper-shared-detect.sh) | The hidden-prefix detect helper (agent-only). Source of truth. |
+| [`assets/kilo-shared-init.sh`](assets/kilo-shared-init.sh) | The bootstrap script invoked by `kilo-shared init`. Source of truth. |
 | [`assets/pre-commit-hook.sh`](assets/pre-commit-hook.sh) | The hook installed in every new clone's `.git/hooks/pre-commit/`. Source of truth. |
 | [`references/recovery.md`](references/recovery.md) | Recovering an abandoned branch from a destroyed worktree; clean-up of stale branches. |
 
@@ -78,42 +80,47 @@ contain `scratch/` paths.
 
 ### Where the wrappers live
 
-The `kilo-shared-save` and `kilo-shared-pull` wrappers are installed by
-`.kilo/setup-script` at:
+The merged `kilo-shared` CLI plus the `kilo-helper-shared-detect`
+hidden-prefix helper are installed by `.kilo/setup-script` at:
 
 ```
-~/.local/share/kilo/bin/kilo-shared-save
-~/.local/share/kilo/bin/kilo-shared-pull
+~/.local/share/kilo/bin/kilo-shared
+~/.local/share/kilo/bin/kilo-helper-shared-detect
 ```
 
-**These paths are not on `$PATH`.** `which kilo-shared-save`,
-`command -v kilo-shared-save`, and `type kilo-shared-save` will all
-return empty even when the wrapper is correctly installed. Do not
-treat an empty `which` result as "the command is missing" — check the
-explicit path first:
+**These paths are not on `$PATH`.** `which kilo-shared`,
+`command -v kilo-shared`, and `type kilo-shared` will all return empty
+even when the wrapper is correctly installed. Do not treat an empty
+`which` result as "the command is missing" — check the explicit path
+first, or use the detect helper:
 
 ```sh
-[ -x "$HOME/.local/share/kilo/bin/kilo-shared-save" ] && echo present
+[ -x "$HOME/.local/share/kilo/bin/kilo-shared" ] && echo present
+# or, more robustly:
+"$HOME/.local/share/kilo/bin/kilo-helper-shared-detect" kilo-shared
 ```
 
 If present, invoke it via the full path, or prepend
 `$HOME/.local/share/kilo/bin` to `PATH` for the call:
 
 ```sh
-"$HOME/.local/share/kilo/bin/kilo-shared-save" "<short-message>"
+"$HOME/.local/share/kilo/bin/kilo-shared" save "<short-message>"
 ```
 
-If absent, re-run `.kilo/setup-script` to (re)install. The
-source-of-truth script lives at
-[`assets/kilo-shared-save.sh`](assets/kilo-shared-save.sh) (copy it
-verbatim into `~/.local/share/kilo/bin/`).
+If absent, re-run `.kilo/setup-script` to (re)install. The source-of-truth
+scripts live at:
 
-**`kilo-shared-pull` may not be installed yet.** The canonical save
-wrapper ships first; the pull wrapper is a planned companion. Until
-`kilo-shared-pull` exists at `~/.local/share/kilo/bin/`, every
-reference to it in this skill (and in `document-conventions`,
-`proactive-note-capture`, `plans`) means **"fetch from `origin/main` in
-`.tmp/docs/`"** — the git fallback already shown next to each call.
+- [`assets/kilo-shared.sh`](assets/kilo-shared.sh) — merged CLI (copy verbatim).
+- [`assets/kilo-helper-shared-detect.sh`](assets/kilo-helper-shared-detect.sh) — agent-only detect helper (copy verbatim).
+- [`assets/kilo-shared-init.sh`](assets/kilo-shared-init.sh) — bootstrap (called by `kilo-shared init`).
+
+The hidden-prefix naming convention (`kilo-helper-*`) marks the
+detect helper as agent-only infrastructure; users never invoke it
+directly. Tab completion naturally sorts it out of the way.
+
+If `kilo-shared` is missing, its own error path surfaces a clear
+"wrapper missing, run chezmoi apply" message — rules and callers do
+NOT need to run the detect helper first.
 
 ## Workflow
 
@@ -159,17 +166,18 @@ sibling worktrees start empty).
 ### On every write to `.tmp/docs/`
 
 ```sh
-"$HOME/.local/share/kilo/bin/kilo-shared-save" "<short-message>"
-# or, if ~/.local/share/kilo/bin is on PATH: kilo-shared-save "<short-message>"
+"$HOME/.local/share/kilo/bin/kilo-shared" save "<short-message>"
+# or, if ~/.local/share/kilo/bin is on PATH: kilo-shared save "<short-message>"
 ```
 
 This wrapper:
 
-1. `cd`s to `$KILO_SHARED_CONTEXT_PATH` (set by the setup script in
-   the agent's environment).
-2. `git add -A`
-3. `git commit -m "$1"` (rejects empty commits via the hook)
-4. Reports the commit hash.
+1. Resolves `$KILO_SHARED_CONTEXT_PATH` (set by the setup script in the
+   agent's environment), or falls back to `git rev-parse --show-toplevel`.
+2. `cd`s to that directory.
+3. `git add -A`
+4. `git commit -m "$1"` (rejects empty commits via the hook)
+5. Reports the commit hash.
 
 **Do not** write to `.tmp/docs/` without committing — uncommitted
 state vanishes on worktree destroy and is invisible to siblings.
@@ -179,9 +187,8 @@ state vanishes on worktree destroy and is invisible to siblings.
 Before creating a new note/plan/postmortem:
 
 ```sh
-"$HOME/.local/share/kilo/bin/kilo-shared-pull" origin main   # or: git fetch origin main
-# The git fallback is what actually runs today, until the pull wrapper ships.
-# See "Where the wrappers live" above.
+"$HOME/.local/share/kilo/bin/kilo-shared" pull origin main
+# or, if the wrapper's missing: git -C .tmp/docs fetch origin main
 ```
 
 Then `ls` the target dir for same-`YYYY-MM-DD` slugs. The shared
@@ -194,7 +201,7 @@ that a local `ls` would miss.
 If two worktrees produce the same filename:
 
 1. **Prevention:** always pre-create-scan with
-   `kilo-shared-pull origin main`. Filename collisions are easy to
+   `kilo-shared pull origin main`. Filename collisions are easy to
    avoid by appending `-<worktree-slug>` or a counter.
 2. **Resolution:** the worktree that committed first wins on the
    shared `main` branch. The other worktree, on pull, sees the
@@ -222,7 +229,7 @@ agent's job.
 - **Writing to `.tmp/notes/`/`plans/`/`user_cache/`** instead of
   `.tmp/docs/`. The legacy dirs are not part of the shared context
   repo. Files written there vanish on worktree destroy.
-- **Skipping `kilo-shared-save`** after a write. Uncommitted state is
+- **Skipping `kilo-shared save`** after a write. Uncommitted state is
   invisible to siblings.
 - **Committing `scratch/` paths.** The hook rejects them; the agent
   must not stage them.
@@ -231,4 +238,4 @@ agent's job.
   the setup script) or the bare-path lookup function the wrapper
   exposes.
 - **Reaching into another worktree's `.tmp/docs/` directly.** Always
-  go through `git fetch` + `git checkout` (or `kilo-shared-pull`).
+  go through `git fetch` + `git checkout` (or `kilo-shared pull`).

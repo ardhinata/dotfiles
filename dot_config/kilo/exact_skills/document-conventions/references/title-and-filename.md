@@ -113,7 +113,7 @@ Pattern: `YYYY-MM-DD-<slug>.md`
   `-`. The date *is* part of the filename, not the slug.
 - **Same-day collisions:** append a counter, e.g.
   `2026-07-27-foo-2.md`. Avoid this by scanning `.tmp/docs/notes/`
-  (or the cache) **and** running `kilo-shared-pull origin main` (the
+  (or the cache) **and** running `kilo-shared pull origin main` (the
   pre-create scan must surface cross-worktree collisions, not just
   local ones — see the `shared-context` skill).
 

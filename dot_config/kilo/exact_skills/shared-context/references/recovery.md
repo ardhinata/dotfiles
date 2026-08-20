@@ -17,7 +17,7 @@ git -C ~/.local/share/kilo/shared-context/<slug>.git log --oneline <worktree-slu
 cd <project>/.tmp/docs
 git fetch origin '<worktree-slug>'
 git cherry-pick <commit-hash>
-kilo-shared-save "recovery: cherry-pick from <worktree-slug>"
+kilo-shared save "recovery: cherry-pick from <worktree-slug>"
 ```
 
 If the abandoned branch's work overlapped with the current worktree
@@ -63,7 +63,7 @@ For projects that pre-date the shared-context design, the migration is:
 4. `mv <project>/.tmp/user_cache/* <project>/.tmp/docs/user_cache/` (if any)
 5. `rmdir <project>/.tmp/notes <project>/.tmp/plans <project>/.tmp/user_cache` (if empty)
 6. Run the setup-script's init sequence (first-worktree bootstrap).
-7. Initial commit: `kilo-shared-save "init: migrate from .tmp/{notes,plans,user_cache}/"`
+7. Initial commit: `kilo-shared save "init: migrate from .tmp/{notes,plans,user_cache}/"`
 
 The `.tmp/migration/` dir is unrelated and stays put.
 

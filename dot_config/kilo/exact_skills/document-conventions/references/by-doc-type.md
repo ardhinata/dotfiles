@@ -192,13 +192,13 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` |
 | Lifetime | Git-tracked in the per-project shared context repo (`~/.local/share/kilo/shared-context/<project-slug>.git/`), one branch per worktree, persists across worktrees and machines. |
-| Commit protocol | **`kilo-shared-save "<short-message>"`** after every write. The pre-commit hook installed in `.tmp/docs/.git/hooks/pre-commit/` rejects empty commits. See the `shared-context` skill. |
+| Commit protocol | **`kilo-shared save "<short-message>"`** after every write. The pre-commit hook installed in `.tmp/docs/.git/hooks/pre-commit/` rejects empty commits. See the `shared-context` skill. |
 | Frontmatter | Optional. Recommended: `task`, `status` (`open`/`captured`/`promoted`) |
 | Required sections | H1, `## Finding`, `## Evidence`, `## Why it matters`, `## Scope`, `## Uncertainty`, `## Recommended destination`, `## Date captured` |
 | Optional sections | `## Next action`, `## See also` |
 | Section order | Fixed (above) per `proactive-note-capture.md` |
 | Length budget | < 150 lines |
-| Validation | Filename uniqueness; pre-create scan **must** include `kilo-shared-pull origin main` (cross-worktree collision check); committed before task end |
+| Validation | Filename uniqueness; pre-create scan **must** include `kilo-shared pull origin main` (cross-worktree collision check); committed before task end |
 | Source | `~/.config/kilo/rules/proactive-note-capture.md` (global rule) |
 
 ---
@@ -209,13 +209,13 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
 | Lifetime | Git-tracked in the shared context repo (same as Note). |
-| Commit protocol | **`kilo-shared-save "checkpoint: <one-line>"`** at every checkpoint. |
+| Commit protocol | **`kilo-shared save "checkpoint: <one-line>"`** at every checkpoint. |
 | Frontmatter | Optional. Recommended: `status`, `goal`, `owner`, `last-updated` |
 | Required sections | H1, `## Goal`, `## Scope`, `## Steps` (or `## Implementation steps`), `## Current status`, `## Risks` |
 | Optional sections | `## Open questions`, `## Decisions`, `## Deferred notes`, `## Captured …` |
 | Section order | Loose |
 | Length budget | < 300 lines |
-| Validation | Filename uniqueness; pre-planning scan **must** include `kilo-shared-pull`; checkpoint commits in place; no new files at checkpoints |
+| Validation | Filename uniqueness; pre-planning scan **must** include `kilo-shared pull`; checkpoint commits in place; no new files at checkpoints |
 | Source | `~/.config/kilo/rules/plans.md` (global rule) |
 
 ---
@@ -226,7 +226,7 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `.tmp/docs/postmortems/<YYYY-MM-DD>-<slug>.md` |
 | Lifetime | Git-tracked in the shared context repo. |
-| Commit protocol | **`kilo-shared-save "<message>"`** after each write. |
+| Commit protocol | **`kilo-shared save "<message>"`** after each write. |
 | Frontmatter | Optional. Recommended: `severity`, `status`, `date` |
 | Required sections | H1, `## Summary`, `## Timeline`, `## Root cause`, `## Impact`, `## Action items` |
 | Optional sections | `## Detection`, `## Resolution`, `## Lessons learned`, `## See also` |

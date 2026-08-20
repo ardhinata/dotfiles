@@ -153,7 +153,7 @@ last-updated: 2026-07-27
 ---
 ```
 
-The agent is expected to commit the file with `kilo-shared-save` after
+The agent is expected to commit the file with `kilo-shared save` after
 writing — frontmatter does not exempt the file from the commit
 protocol. See the `shared-context` skill.
 

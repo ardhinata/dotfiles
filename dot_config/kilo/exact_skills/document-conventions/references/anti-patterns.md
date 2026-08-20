@@ -88,7 +88,7 @@ checklist before publishing any doc.
   you're using Claude, do X" in a CHANGELOG or AGENTS.md.
 - **Uncommitted shared-context writes.** Writing to
   `.tmp/docs/{notes,plans,postmortems}/` and not running
-  `kilo-shared-save` before the task ends. The file is uncommitted
+  `kilo-shared save` before the task ends. The file is uncommitted
   state; it does not reach sibling worktrees and is lost on
   destructive operations.
 
@@ -107,7 +107,7 @@ checklist before publishing any doc.
 - **Skipping the planning step.** Writing a doc without a plan when
   the doc is multi-section. Use the planning rule.
 - **Skipping the duplicate check.** Not running
-  `kilo-shared-pull origin main` (or `git fetch`) and listing
+  `kilo-shared pull origin main` (or `git fetch`) and listing
   `.tmp/docs/notes/` / `.tmp/docs/plans/` before creating a new
   file. Causes cross-worktree drift.
 - **Promoting a stale note.** A `.tmp/docs/notes/` entry from a year

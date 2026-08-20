@@ -89,20 +89,20 @@ otherwise.
       Date captured
 - [ ] No secrets
 - [ ] Pre-creation duplicate check performed, including
-      `kilo-shared-pull origin main` (or `git fetch`) to surface
+      `kilo-shared pull origin main` (or `git fetch`) to surface
       cross-worktree collisions
 - [ ] `## Date captured` is ISO 8601
-- [ ] Note committed via `kilo-shared-save "<short-message>"` before
+- [ ] Note committed via `kilo-shared save "<short-message>"` before
       the task ends (per `proactive-note-capture.md`)
 
 ## Plan (`.tmp/docs/plans/`)
 
 - [ ] Filename matches the planning rule
-- [ ] Pre-planning duplicate scan done, including `kilo-shared-pull`
+- [ ] Pre-planning duplicate scan done, including `kilo-shared pull`
 - [ ] Sections: Goal, Scope, Steps, Current status, Risks
 - [ ] Updated at every checkpoint (in place, not via new file)
 - [ ] Each checkpoint committed via
-      `kilo-shared-save "checkpoint: <one-line summary>"`
+      `kilo-shared save "checkpoint: <one-line summary>"`
 - [ ] Length under 300 lines; split into phases if longer
 
 ## Persistent plan
@@ -117,7 +117,7 @@ otherwise.
 - [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`)
 - [ ] Sections: Summary, Timeline, Root cause, Impact, Action items
 - [ ] Action items linked or moved into a durable tracker
-- [ ] Committed via `kilo-shared-save`
+- [ ] Committed via `kilo-shared save`
 
 ## ADR (MADR)
 

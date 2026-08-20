@@ -23,7 +23,7 @@ docs/                              ← human-facing, hand-written (Standard Read
         YYYY-MM-DD-<slug>.md
 .tmp/                              ← project-local scratch area (parent dir gitignored)
   docs/                            ← working tree of shared-context repo (per-worktree clone)
-    notes/                         ← date-first findings (committed via kilo-shared-save)
+    notes/                         ← date-first findings (committed via kilo-shared save)
     plans/                         ← date-first in-flight plans (committed)
     postmortems/                   ← date-first incident write-ups (committed)
     user_cache/                    ← ad-hoc user scratch that should persist (committed)
@@ -45,7 +45,7 @@ Pick the one that matches the intent.
 
 | Subdir | Lifetime | Commit? | When to write | When to delete |
 |---|---|---|---|---|
-| `docs/` | Across worktrees + machines (git-tracked) | **Required** — `kilo-shared-save` after each write | Verified findings, in-flight plans, postmortems, persistent user scratch | Never directly; only `git rm` if a doc is actively retracted |
+| `docs/` | Across worktrees + machines (git-tracked) | **Required** — `kilo-shared save` after each write | Verified findings, in-flight plans, postmortems, persistent user scratch | Never directly; only `git rm` if a doc is actively retracted |
 | `scratch/` | Per-working-tree | **Forbidden** | Compaction buffers, in-flight tool output, cursor dumps, anything that must not leak | Whenever the worktree ends (auto via gitignore) |
 | `migration/` | Per-project | Forbidden | One-time bootstrap remnants (chezmoi migrations, etc.) | After the migration is complete and verified |
 
@@ -85,8 +85,8 @@ between two repos with the same basename.
      already uses for the project repo, e.g. `therapeutic-diascia`)
    - Install the same `pre-commit` hook
 3. **Every write to `.tmp/docs/{notes,plans,postmortems,user_cache}/`** must end with
-   `kilo-shared-save "<short-message>"`, a wrapper installed at
-   `~/.local/share/kilo/bin/kilo-shared-save` by the setup script. The wrapper
+   `kilo-shared save "<short-message>"`, a wrapper installed at
+   `~/.local/share/kilo/bin/kilo-shared` by the setup script. The wrapper
    runs `git add -A && git commit -m "$1"` from `$KILO_SHARED_CONTEXT_PATH`
    (set by the setup script, exported into the agent's environment).
 4. **On worktree destroy**, the branch in the shared context repo is **kept forever**
@@ -116,11 +116,11 @@ in the shared context repo. Resolution:
    and rejects `scratch/` commits, but does not arbitrate content conflicts.
 3. **At merge time** (when the project worktree branch merges back to main and
    another wants to pull it in), the agent runs
-   `kilo-shared-pull "<remote-branch>"` which fast-forwards or surfaces the
+   `kilo-shared pull origin main` which fast-forwards or surfaces the
    conflict.
 
 See the `shared-context` skill for the canonical reference and the bundled
-`assets/{pre-commit-hook.sh,kilo-shared-save.sh}` starters.
+`assets/{pre-commit-hook.sh,kilo-shared.sh,kilo-helper-shared-detect.sh,kilo-shared-init.sh}` starters.
 
 ## Vendor unification
 
