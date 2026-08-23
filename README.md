@@ -218,6 +218,10 @@ printf '%s' 'ghp_xxxxxxxxxxxxxxxxxxxx' \
 
 # Run a command with matching secrets injected.
 shellx --tag=git gh pr list   # injects GH_TOKEN (and any other --tag=git vars)
+# Equivalent — `shellx run` is the explicit exec subcommand and is the
+# form that triggers process-name completion in zsh (`shellx run cod<TAB>`
+# → `code`). Use it when you want tab-completion for the target process.
+shellx run --tag=git gh pr list
 ```
 
 Secrets are encrypted with **scrypt + ChaCha20 + HMAC-BLAKE2b**

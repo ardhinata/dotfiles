@@ -3,6 +3,17 @@
 # Tag/process completion delegates to a tiny stdlib helper script
 # (`shellx_completion_helper`) instead of `jq` so the runtime has zero
 # third-party tool dependencies.
+#
+# As of shellx 1.4.0, exec-mode completion (process names + per-process
+# args) is reachable via the explicit `shellx run` subcommand:
+#   shellx run cod<TAB>     -> code
+#   shellx run --tab=<TAB>  -> tags from the store
+# Bare `shellx <TAB>` (exec-mode fallback path) no longer triggers
+# process-name completion — it intentionally only lists subcommands so
+# `init`/`store`/`list`/`rm`/`export`/`import`/`run` stay unambiguous.
+# Backward compatibility: `shellx --tag=... -- proc args...` and
+# `shellx proc args...` still work exactly as before; `shellx run ...
+# behaves identically.
 
 local curcontext="$curcontext" state line ret=1
 typeset -A opt_args
@@ -15,6 +26,7 @@ subcommands=(
   'rm:Remove a stored variable'
   'export:Export the store to JSONC (encrypted by default)'
   'import:Import a JSONC or .jsonc.age export'
+  'run:Run a process with matching secrets injected (enables process-name completion)'
   'help:Show usage'
 )
 
@@ -62,42 +74,58 @@ case "$state" in
           '--dry-run[Show what would be imported]'
         ret=0
         ;;
-      help|--help|-h)
-        ret=0
-        ;;
-      *)
-        # Exec mode: shellx [--tag=a,b] [--] proc args...
+      run)
+        # Exec mode via explicit `shellx run` subcommand: enables
+        # process-name + tag + per-process arg completion without
+        # polluting the parent `shellx` completion.
         local -a tags
         if [[ -x "$helper" ]]; then
           tags=(${(f)"$($helper tags 2>/dev/null)"})
         fi
-        if (( $#tags )); then
-          _arguments \
-            '--tag[Filter by tag]:tag:->tags' \
-            '*::args:->rest'
-          case "$state" in
-            tags)
-              _wanted tags expl 'tag' compadd -a tags
-              ;;
-            rest)
-              local process_name
-              for w in "${words[@]:1}"; do
-                [[ "$w" == --tag* ]] && continue
-                [[ "$w" == -* ]] && continue
-                process_name="$w"
-                break
-              done
-              if [[ -n "$process_name" ]] && (( $+commands[$process_name] )); then
-                shift words
-                (( CURRENT-- ))
-                _normal -p "$service"
-                ret=$?
-              else
-                _default && ret=0
-              fi
-              ;;
-          esac
-        fi
+        _arguments \
+          '--tag[Filter by tag]:tag:->tags' \
+          '--process[Process name to match]:process:->processes' \
+          '*::args:->rest'
+        case "$state" in
+          tags)
+            (( $#tags )) && _wanted tags expl 'tag' compadd -a tags
+            ret=0
+            ;;
+          processes)
+            _command_names -e
+            ret=0
+            ;;
+          rest)
+            local process_name
+            # words[1] is the literal `run`; scan from index 2 for the first
+            # non-option, non-flag value.
+            for w in "${words[@]:2}"; do
+              [[ "$w" == --tag* ]] && continue
+              [[ "$w" == --process* ]] && continue
+              [[ "$w" == -* ]] && continue
+              process_name="$w"
+              break
+            done
+            if [[ -n "$process_name" ]] && (( $+commands[$process_name] )); then
+              shift words
+              (( CURRENT-- ))
+              _normal -p "$service"
+              ret=$?
+            else
+              _default && ret=0
+            fi
+            ;;
+        esac
+        ;;
+      help|--help|-h)
+        ret=0
+        ;;
+      *)
+        # Bare `shellx <cmd> [args...]` exec mode (legacy fallback). No
+        # process-name completion here by design — keep `shellx <TAB>`
+        # quiet so subcommands stay unambiguous. The `shellx run` form
+        # above is the supported way to get completion.
+        ret=0
         ;;
     esac
     ;;

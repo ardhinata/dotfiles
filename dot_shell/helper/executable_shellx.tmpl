@@ -22,7 +22,7 @@ from typing import Any, NoReturn
 
 # ---- Constants ------------------------------------------------------------
 
-SHELLX_VERSION = "1.3.0"
+SHELLX_VERSION = "1.4.0"
 SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
 # Static password derived from chezmoi's `system_environment.nonce` and
 # `system_environment.profile`. Format: `chezmoi:shellx:<profile>:<nonce>` —
@@ -31,6 +31,7 @@ SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
 # profiles on the same machine never share a key.
 #
 # As of shellx 1.3.0, the deployed script is a chezmoi template: profile
+# (1.4.0 keeps this — the run subcommand change below is orthogonal.)
 # and nonce are substituted in at `chezmoi apply` time, so runtime cost is
 # zero (no subprocess to `chezmoi data`). The runtime fallback
 # (`SHELLX_PROFILE` / `SHELLX_NONCE` env vars, plus a last-resort
@@ -860,6 +861,23 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     sp.set_defaults(func=cmd_import)
 
+    # `shellx run` — exec mode, identical behavior to `shellx [--tag=...] [--process=...]
+    # [--] <proc> [args...]`. Exists as an explicit subcommand so zsh completion can
+    # attach process-name completion to `shellx run <TAB>` without polluting the
+    # `shellx <TAB>` subcommand list (where users type `init`/`store`/`list`/...).
+    # `main()` intercepts `run` before argparse runs (the run subparser is registered
+    # here only so `shellx --help` can advertise it as a subcommand).
+    sub.add_parser(
+        "run",
+        help="Run a process with matching secrets injected (same as `shellx [--tag=...] [--process=...] <proc> [args...]`)",
+        description=(
+            "Run a process with matching secrets injected into its environment. "
+            "Behaves identically to invoking `shellx` directly with positional "
+            "process args, but is exposed as an explicit subcommand so completion "
+            "can suggest process names."
+        ),
+    )
+
     return p
 
 
@@ -875,6 +893,7 @@ def main(argv: list) -> int:
             "rm",
             "export",
             "import",
+            "run",
             "help",
             "-h",
             "--help",
@@ -884,6 +903,19 @@ def main(argv: list) -> int:
             return _exec_main(argv)
     elif argv and argv[0].startswith("--") and argv[0] not in ("--help", "-h"):
         return _exec_main(argv)
+
+    # `run` is a routing marker — its real arguments follow the same
+    # `--tag=...`/`--process=...`/`--`/<proc> grammar as bare exec mode,
+    # so we hand the tail directly to `_exec_main` instead of letting
+    # argparse reject the unknown positional/flag values.
+    if argv and argv[0] == "run":
+        # Strip a leading `-h`/`--help` so `shellx run --help` still works.
+        if len(argv) == 2 and argv[1] in ("-h", "--help"):
+            print(
+                "Usage: shellx run [--tag=a,b,c] [--process=NAME] [--] <proc> [args...]"
+            )
+            return 0
+        return _exec_main(argv[1:])
 
     parser = _build_parser()
     if not argv:

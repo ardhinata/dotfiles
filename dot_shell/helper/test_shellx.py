@@ -458,5 +458,115 @@ class TestDerivedSlug(unittest.TestCase):
                 self.assertEqual(shellx._read_slug(), shellx._derived_slug())
 
 
+class TestRunSubcommandRouting(unittest.TestCase):
+    """shellx 1.4.0 added `shellx run` as an explicit subcommand that
+    behaves identically to bare exec mode (`shellx <proc> [args...]`).
+    The subcommand exists so zsh completion can attach process-name
+    completion to `shellx run <TAB>` without polluting the parent
+    `shellx <TAB>` subcommand list. These tests pin that contract."""
+
+    def setUp(self):
+        # Capture (proc, passthrough) handed to os.execvpe instead of
+        # actually exec'ing — we don't want a real subprocess spawned
+        # from the test runner.
+        self._captured = {}
+        self._exec_sentinel = unittest.mock.MagicMock(
+            side_effect=lambda *a, **kw: self._capture(*a, **kw)
+        )
+        # Patch os.execvpe at the module level so both cmd_exec and
+        # _exec_main route through the sentinel.
+        self._patcher = unittest.mock.patch.object(
+            shellx.os, "execvpe", self._exec_sentinel
+        )
+        self._patcher.start()
+        # Avoid the "store not initialized" die — give a fake store path.
+        self._slug_path_patcher = unittest.mock.patch.object(
+            shellx, "_resolve_store_path", return_value="/tmp/fake-shellx-store"
+        )
+        self._slug_path_patcher.start()
+        self._idx_patcher = unittest.mock.patch.object(
+            shellx, "_read_idx", return_value={}
+        )
+        self._idx_patcher.start()
+
+    def tearDown(self):
+        self._patcher.stop()
+        self._slug_path_patcher.stop()
+        self._idx_patcher.stop()
+
+    def _capture(self, proc, argv, env):
+        self._captured["proc"] = proc
+        self._captured["argv"] = argv
+        self._captured["env_injected"] = env.get("RUNPRIV_VARS")
+        # Don't actually exec; raise so the test sees a clean boundary.
+        raise SystemExit(42)
+
+    def _run_and_capture(self, args):
+        try:
+            shellx.main(args)
+        except SystemExit as e:
+            self.assertEqual(e.code, 42)
+
+    def test_run_subcommand_executes_proc(self):
+        """`shellx run echo hi` execs echo with args ['hi']."""
+        self._run_and_capture(["run", "echo", "hi"])
+        self.assertEqual(self._captured["proc"], "echo")
+        self.assertEqual(self._captured["argv"], ["echo", "hi"])
+
+    def test_run_subcommand_with_separator(self):
+        """`shellx run -- echo hi` execs echo with args ['hi']."""
+        self._run_and_capture(["run", "--", "echo", "hi"])
+        self.assertEqual(self._captured["proc"], "echo")
+        self.assertEqual(self._captured["argv"], ["echo", "hi"])
+
+    def test_run_subcommand_with_tag(self):
+        """`shellx run --tag=a,b -- echo hi` execs echo with args ['hi']."""
+        self._run_and_capture(["run", "--tag=a,b", "--", "echo", "hi"])
+        self.assertEqual(self._captured["proc"], "echo")
+        self.assertEqual(self._captured["argv"], ["echo", "hi"])
+
+    def test_run_subcommand_with_process(self):
+        """`shellx run --process=gh -- gh auth status` execs gh with args."""
+        self._run_and_capture(["run", "--process=gh", "--", "gh", "auth", "status"])
+        self.assertEqual(self._captured["proc"], "gh")
+        self.assertEqual(self._captured["argv"], ["gh", "auth", "status"])
+
+    def test_bare_exec_mode_still_works(self):
+        """`shellx echo hi` (no `run`) is unchanged — still execs echo."""
+        self._run_and_capture(["echo", "hi"])
+        self.assertEqual(self._captured["proc"], "echo")
+        self.assertEqual(self._captured["argv"], ["echo", "hi"])
+
+    def test_bare_exec_mode_with_tag(self):
+        """`shellx --tag=a,b -- echo hi` (no `run`) is unchanged."""
+        self._run_and_capture(["--tag=a,b", "--", "echo", "hi"])
+        self.assertEqual(self._captured["proc"], "echo")
+        self.assertEqual(self._captured["argv"], ["echo", "hi"])
+
+    def test_run_subcommand_appears_in_help(self):
+        """`shellx --help` lists `run` as a subcommand (registered in the
+        subparser so completion can advertise it)."""
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            try:
+                shellx.main(["--help"])
+            except SystemExit:
+                pass
+        self.assertIn("run", buf.getvalue())
+
+    def test_run_help_does_not_dispatch_exec(self):
+        """`shellx run --help` prints usage text, does NOT exec."""
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = shellx.main(["run", "--help"])
+        self.assertEqual(rc, 0)
+        self.assertIn("shellx run", buf.getvalue())
+        self.assertNotIn("proc", self._captured)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
