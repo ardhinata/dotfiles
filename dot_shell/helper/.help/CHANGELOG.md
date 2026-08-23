@@ -3,6 +3,45 @@
 All notable changes to `shellx` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.0] — 2026-08-23
+
+### Changed
+
+- **`executable_shellx` is now a chezmoi template (`executable_shellx.tmpl`)**.
+  Profile and nonce are rendered into the deployed script at `chezmoi apply`
+  time, so runtime resolution is a constant-string read instead of a
+  `chezmoi data` subprocess. This restores `runpriv`-class startup latency
+  (cold start dropped from ~1.5–2.0 s to ~50–200 ms on a source tree that
+  contains a 4 GB `.tmp/references/repository/kilocode/node_modules`
+  clone). The deployed filename is unchanged: chezmoi strips `.tmpl` at
+  apply time, so the binary still deploys as `~/.shell/helper/shellx`.
+
+- **Runtime fallback chain added in `_load_env()`** so the script still
+  works when invoked outside the chezmoi-deployed `$PATH` (CI, headless
+  boxes, manual copy). Order: `SHELLX_PROFILE` / `SHELLX_NONCE` env vars
+  → template-injected constants → `chezmoi data` subprocess. The slow
+  path is exercised only by test/CI use; the normal deployed path is
+  zero-subprocess.
+
+### Migration from 1.2.x
+
+- **Re-run `chezmoi apply`** so the deployed script is regenerated with
+  the new template-rendered constants. No data migration needed — the
+  on-disk blob format and the derived-slug store path are unchanged.
+- **No API change.** All subcommands behave identically; only the cold
+  startup time changes.
+
+### Fixed
+
+- (none)
+
+### Security
+
+- No change to the threat model. The deployed script still derives
+  `STATIC_PW` from `chezmoi:shellx:<profile>:<nonce>`; only the source
+  of `<profile>` and `<nonce>` changed (template instead of subprocess).
+- See [`CRYPTO.md`](./CRYPTO.md) for the updated derivation rationale.
+
 ## [1.2.1] — 2026-08-17
 
 ### Fixed

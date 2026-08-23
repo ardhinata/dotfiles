@@ -2,6 +2,15 @@
 **/*.decrypted
 AGENTS.md
 
+## .tmp/ is the per-worktree scratch + reference-clone area. Per its
+## own README (`/.tmp/README.md`) the contents are NEVER committed to
+## the chezmoi source tree (only the outer .tmp/ dir is gitignored at the
+## project level; chezmoi's walker was re-evaluating it on every
+## `chezmoi data` call, paying ~1.5 s to walk the 4.4 GB
+## .tmp/references/repository/kilocode/node_modules tree). Excluding
+## here keeps chezmoi in sync with the git-level policy.
+.tmp
+
 ## Post-mortem docs live in the source tree only — reference material
 ## for maintainers, not files the user needs in ~. Keep the post-mortem
 ## in the repo so future sessions can read what failed and why.

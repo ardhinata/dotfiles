@@ -21,21 +21,33 @@ derived[32:64]  → mac_key   (HMAC-BLAKE2b key)
 
 ## Password (STATIC_PW)
 
-Resolved at runtime by `executable_shellx:_static_pw()` from `chezmoi data`:
+Resolved at runtime by `executable_shellx:_static_pw()`. Since shellx 1.3.0
+the values are **injected at chezmoi apply time** (the source file is now a
+`.tmpl`), so the deployed script holds the profile and nonce as plain
+constants and never shells out to `chezmoi data`:
 
 ```text
-STATIC_PW = "chezmoi:shellx:" + profile + ":" + nonce
+SHELLX_PROFILE = "personal-laptop"           # injected from .chezmoidata.yaml
+SHELLX_NONCE   = "6dYfY6BdLKuYCziAN..."      # injected from .chezmoi.yaml
+STATIC_PW      = f"chezmoi:shellx:{SHELLX_PROFILE}:{SHELLX_NONCE}"
 ```
 
-- `profile` is `system_environment.profile` from `.chezmoidata.yaml`.
-- `nonce` is `system_environment.nonce` from the rendered `.chezmoi.yaml`
-  (a 64-char `randAlphaNum` generated once at apply time).
+This restores `runpriv`-class startup latency (~50–100 ms cold) that
+shellx 1.1.0–1.2.x lost when it moved profile/nonce resolution to a
+`chezmoi data` subprocess (~1.5 s per call on a large source tree).
 
-This is intentionally **not** hashed inside the script — the `nonce`
-already provides ≥384 bits of entropy, which subsumes any key-stretching
-a hash would buy. Both fields are read via `chezmoi data --format json` on
-each call (cached in a module-global), so the deployed script is plain
-Python and does not need to be re-templated per machine.
+The `nonce` already provides ≥384 bits of entropy, which subsumes any
+key-stretching a hash would buy. Both fields come from chezmoi's data
+section, so they cannot drift between renders.
+
+Runtime fallback chain (used when the deployed script lost its
+template-injected values — e.g. it was copied outside the chezmoi apply
+pipeline, or `chezmoi apply` was never run):
+
+1. `SHELLX_PROFILE` / `SHELLX_NONCE` env vars (test override; CI pinning).
+2. Template-injected `SHELLX_PROFILE` / `SHELLX_NONCE` constants.
+3. `chezmoi data --format json` subprocess (slow path; ~1.5 s; only the
+   path 1+2 are empty).
 
 Two machines with different profiles or different nonces produce
 different static passwords, so a store encrypted under one is

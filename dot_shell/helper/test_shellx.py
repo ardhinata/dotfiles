@@ -20,17 +20,64 @@ import importlib.util
 import json
 import os
 import struct
+import subprocess
+import sys
+import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-_SCRIPT = _HERE / "executable_shellx"
+_SOURCE = _HERE / "executable_shellx.tmpl"
 
-_loader = importlib.machinery.SourceFileLoader("shellx", str(_SCRIPT))
-_spec = importlib.util.spec_from_loader("shellx", _loader)
-shellx = importlib.util.module_from_spec(_spec)
-_loader.exec_module(shellx)
+# Since 1.3.0 the source file is a chezmoi template. Python cannot import
+# it directly (the `{{- ... -}}` actions are not valid Python). Render it
+# via `chezmoi execute-template` into a temp file, then import the rendered
+# output. This keeps the tests hermetic — they don't depend on a deployed
+# `~/.shell/helper/shellx` or on a working chezmoi state DB.
+def _render_and_load():
+    if not _SOURCE.exists():
+        raise FileNotFoundError(f"shellx source not found: {_SOURCE}")
+    # Skip the render if SHELLX_TEST_SKIP_RENDER=1 (the deployed copy is
+    # already-rendered Python — used in CI containers where chezmoi is not
+    # installed but the binary is).
+    if os.environ.get("SHELLX_TEST_SKIP_RENDER") == "1":
+        candidates = [
+            Path("/home/ardhinata/.shell/helper/shellx"),
+            _HERE / "executable_shellx",
+        ]
+        for c in candidates:
+            if c.exists():
+                return _load_from_file(c)
+        raise FileNotFoundError("no rendered shellx found")
+    try:
+        result = subprocess.run(
+            ["chezmoi", "execute-template"],
+            stdin=_SOURCE.open("rb"),
+            capture_output=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        raise RuntimeError(
+            f"failed to render shellx template via chezmoi: {e}. "
+            f"Install chezmoi, or set SHELLX_TEST_SKIP_RENDER=1 and ensure "
+            f"the deployed ~/.shell/helper/shellx exists."
+        ) from e
+    tmp = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
+    tmp.write(result.stdout)
+    tmp.close()
+    return _load_from_file(Path(tmp.name))
+
+
+def _load_from_file(path: Path):
+    loader = importlib.machinery.SourceFileLoader("shellx", str(path))
+    spec = importlib.util.spec_from_loader("shellx", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+shellx = _render_and_load()
 
 
 class TestChaCha20(unittest.TestCase):
@@ -264,21 +311,90 @@ class TestJsoncParsing(unittest.TestCase):
 
 
 class TestStaticPasswordCache(unittest.TestCase):
-    """The _static_pw/_profile helpers cache values from `chezmoi data`."""
+    """The _static_pw/_profile helpers resolve profile + nonce from the
+    template-injected constants (or env-var override), with a `chezmoi data`
+    subprocess as the last-resort fallback."""
 
     def setUp(self):
-        # Wipe the module-level cache so each test re-reads chezmoi data.
+        # Wipe the module-level cache so each test re-resolves.
         shellx._STATIC_PW_CACHE = None
         shellx._PROFILE_CACHE = None
         shellx._NONCE_CACHE = None
+        # Clear any env-var overrides from previous tests.
+        for k in ("SHELLX_PROFILE", "SHELLX_NONCE"):
+            os.environ.pop(k, None)
 
-    def test_profile_and_pw_consistent(self):
+    def test_template_injected_values_resolve(self):
+        """The template-injected SHELLX_PROFILE/NONCE constants produce a
+        valid STATIC_PW without shelling out to `chezmoi data`."""
         pw = shellx._static_pw()
         profile = shellx._profile()
-        nonce = shellx._NONCE_CACHE  # populated by _load_env()
+        nonce = shellx._NONCE_CACHE
+        self.assertEqual(profile, shellx.SHELLX_PROFILE)
+        self.assertEqual(nonce, shellx.SHELLX_NONCE)
         self.assertIn(profile, pw)
         self.assertTrue(pw.startswith("chezmoi:shellx:"))
         self.assertTrue(pw.endswith(":" + nonce))
+
+    def test_env_var_override_takes_precedence(self):
+        """Setting SHELLX_PROFILE / SHELLX_NONCE overrides the template
+        constants — useful for tests and CI pinning."""
+        os.environ["SHELLX_PROFILE"] = "test-profile"
+        os.environ["SHELLX_NONCE"] = "n" * 64
+        pw = shellx._static_pw()
+        self.assertEqual(shellx._profile(), "test-profile")
+        self.assertEqual(shellx._NONCE_CACHE, "n" * 64)
+        self.assertTrue(pw.startswith("chezmoi:shellx:test-profile:"))
+
+    def test_empty_template_falls_back_to_chezmoi_data(self):
+        """If the deployed script lost its template-injected values, _load_env
+        shells out to `chezmoi data` and populates the cache from there.
+        We mock subprocess.run to avoid the real ~1.5 s cost in CI."""
+        # Snapshot the template constants so we can restore them after the
+        # test (we mutate module globals; other tests depend on them).
+        original_profile = shellx.SHELLX_PROFILE
+        original_nonce = shellx.SHELLX_NONCE
+        self.addCleanup(setattr, shellx, "SHELLX_PROFILE", original_profile)
+        self.addCleanup(setattr, shellx, "SHELLX_NONCE", original_nonce)
+
+        # Force the template constants to empty — simulates a script deployed
+        # outside the chezmoi apply pipeline (or a broken template).
+        shellx.SHELLX_PROFILE = ""
+        shellx.SHELLX_NONCE = ""
+        fake_json = json.dumps({
+            "system_environment": {
+                "profile": "fallback-profile",
+                "nonce": "f" * 64,
+            }
+        })
+        fake_proc = unittest.mock.MagicMock()
+        fake_proc.return_value = unittest.mock.MagicMock(
+            stdout=fake_json,
+            returncode=0,
+            stderr="",
+        )
+        with unittest.mock.patch.object(shellx.subprocess, "run", fake_proc):
+            pw = shellx._static_pw()
+        self.assertEqual(shellx._profile(), "fallback-profile")
+        self.assertEqual(shellx._NONCE_CACHE, "f" * 64)
+        self.assertTrue(pw.startswith("chezmoi:shellx:fallback-profile:"))
+        fake_proc.assert_called_once()
+
+    def test_no_chezmoi_subprocess_when_template_has_values(self):
+        """Sanity: when the template has values, no subprocess is spawned.
+        We assert by checking that the cached values are populated without
+        having called subprocess. (If the cache were empty after _load_env,
+        we'd have hit the chezmoi data branch.)"""
+        # Make sure we start clean.
+        shellx._STATIC_PW_CACHE = None
+        # Spy on subprocess.run — if the fallback path was hit, this would
+        # be called. Replace with a sentinel that fails the test.
+        with unittest.mock.patch.object(
+            shellx.subprocess, "run",
+            side_effect=AssertionError("subprocess.run called — template path should not invoke chezmoi"),
+        ):
+            shellx._load_env()
+        self.assertIsNotNone(shellx._STATIC_PW_CACHE)
 
 
 class TestDerivedSlug(unittest.TestCase):
