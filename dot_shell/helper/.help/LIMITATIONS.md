@@ -80,19 +80,42 @@ import it onto another machine.
 **Mitigations:** rotate keys periodically, never commit `*.secret.key`,
 back up only to encrypted offline storage.
 
-### Profile-name leakage
+### Profile-name leakage (resolved in 1.5.0)
 
-`STATIC_PW = "chezmoi:shellx:<profile>:<nonce>"`. The `nonce` component
-is a 64-char random alphanumeric generated once at `chezmoi apply` time,
-so it has ~384 bits of entropy and is effectively unguessable. The
-`profile` component is the remaining surface: if it is guessable (e.g.,
-`personal-laptop`) and an attacker has a ciphertext, they can try
-candidate profiles — but each candidate still requires a full scrypt
-derivation (~100 ms, ~32 MiB) to test, so online guessing is impractical
-and offline brute force is bounded by profile-name entropy.
+In shellx 1.4.x and earlier, `STATIC_PW` mixed a guessable `<profile>`
+component with the random `<nonce>`:
 
-For high-value secrets, use a non-obvious profile name; the random
-`nonce` already covers the rest.
+```text
+# 1.4.x derivation
+STATIC_PW = "chezmoi:shellx:<profile>:<nonce>"
+```
+
+If `<profile>` was guessable (e.g., `personal-laptop`) and an attacker
+had a ciphertext, they could try candidate profiles — each candidate
+requiring a full scrypt derivation (~100 ms, ~32 MiB) to test, so
+online guessing was impractical and offline brute force was bounded by
+profile-name entropy.
+
+As of **shellx 1.5.0**, `STATIC_PW` is a SHA-256 hash of
+`"com.ardju.utils:shellx:" + <nonce>` — profile is no longer part of
+the derivation at all. The deployed script embeds the 64-char hex
+digest; the nonce itself is not visible in `~/.shell/helper/shellx`.
+The attacker must crack scrypt to recover the preimage.
+
+### Cross-tool keyspace collision
+
+As of shellx 1.5.0, the shared `system_environment.nonce` is intended
+for reuse by other tools. Each tool that needs a derivation must pick
+its own `com.ardju.utils:<tool>:` reverse-DNS namespace string and
+hash it with `sha256sum` — for example, `com.ardju.utils:foo:<nonce>`
+for a hypothetical `foo` tool. The resulting hash domains are
+disjoint: two tools deriving from the same nonce produce unrelated
+256-bit outputs, so compromise of one tool's `STATIC_PW` reveals
+nothing about another.
+
+A tool that re-uses the literal `com.ardju.utils:shellx:` namespace
+would produce the same `STATIC_PW` as shellx itself, allowing it to
+decrypt shellx stores. Pick a distinct namespace.
 
 ### Side channels in ChaCha20 implementation
 

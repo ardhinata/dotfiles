@@ -13,35 +13,19 @@
 import hashlib
 import json
 import os
-import subprocess
 import sys
 
-# Mirror executable_shellx's slug derivation: blake2b(STATIC_PW)[:16].hex().
-# STATIC_PW is "chezmoi:shellx:<profile>:<nonce>", read from `chezmoi data`.
-# We re-read chezmoi data here (instead of importing shellx) to keep this
-# helper script self-contained and avoid a Python-level import cycle.
+# Mirrors executable_shellx's slug derivation: blake2b(STATIC_PW)[:16].hex().
+# STATIC_PW is injected by chezmoi at apply time as
+#   sha256sum("com.ardju.utils:shellx:" + nonce)
+# — same derivation as the main shellx script. Keeping the helper
+# self-contained (no shellx import) avoids a Python-level cycle.
+
+SHELLX_STATIC_PW = "{{- printf "%s%s" "com.ardju.utils:shellx:" .system_environment.nonce | sha256sum -}}"
 
 
 def _derived_slug() -> str:
-    proc = subprocess.run(
-        ["chezmoi", "data", "--format", "json"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if proc.returncode != 0:
-        sys.exit(0)
-    try:
-        data = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        sys.exit(0)
-    env = (data.get("system_environment") or {})
-    profile = str(env.get("profile") or "").strip()
-    nonce = str(env.get("nonce") or "").strip()
-    if not profile or not nonce:
-        sys.exit(0)
-    static_pw = f"chezmoi:shellx:{profile}:{nonce}".encode()
-    return hashlib.blake2b(static_pw, digest_size=16).hexdigest()
+    return hashlib.blake2b(SHELLX_STATIC_PW.encode(), digest_size=16).hexdigest()
 
 
 def main():
@@ -52,3 +36,40 @@ def main():
     if not os.path.isdir(store):
         sys.exit(0)
     idx_path = os.path.join(store, ".idx")
+    if not os.path.exists(idx_path):
+        sys.exit(0)
+
+    tags, procs, vars_ = set(), set(), set()
+    with open(idx_path, "r") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split("\t")
+            if len(parts) < 3:
+                continue
+            var, tag_str, proc_str = parts[0], parts[1], parts[2]
+            vars_.add(var)
+            for t in tag_str.split(","):
+                if t:
+                    tags.add(t)
+            for p in proc_str.split(","):
+                if p:
+                    procs.add(p)
+
+    if kind == "tags":
+        for t in sorted(tags):
+            print(t)
+    elif kind == "processes":
+        for p in sorted(procs):
+            print(p)
+    elif kind == "vars":
+        for v in sorted(vars_):
+            print(v)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        sys.exit(0)

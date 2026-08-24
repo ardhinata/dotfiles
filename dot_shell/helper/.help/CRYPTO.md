@@ -21,42 +21,54 @@ derived[32:64]  → mac_key   (HMAC-BLAKE2b key)
 
 ## Password (STATIC_PW)
 
-Resolved at runtime by `executable_shellx:_static_pw()`. Since shellx 1.3.0
-the values are **injected at chezmoi apply time** (the source file is now a
-`.tmpl`), so the deployed script holds the profile and nonce as plain
-constants and never shells out to `chezmoi data`:
+As of shellx 1.5.0, `STATIC_PW` is **derived at chezmoi-apply time** by
+Sprig's `sha256sum`, hashing the namespace string
+`"com.ardju.utils:shellx:<nonce>"` where `<nonce>` is the
+`system_environment.nonce` from `.chezmoi.yaml.tmpl`:
 
 ```text
-SHELLX_PROFILE = "personal-laptop"           # injected from .chezmoidata.yaml
-SHELLX_NONCE   = "6dYfY6BdLKuYCziAN..."      # injected from .chezmoi.yaml
-STATIC_PW      = f"chezmoi:shellx:{SHELLX_PROFILE}:{SHELLX_NONCE}"
+SHELLX_NONCE    = "6dYfY6BdLKuYCziAN..."      # injected from .chezmoidata.yaml
+STATIC_PW       = sha256sum("com.ardju.utils:shellx:" + SHELLX_NONCE)
+                = "12e93a040922a55cb23b228d392b32da29da138209fd67e5eae733ce5cf4850b"
 ```
 
-This restores `runpriv`-class startup latency (~50–100 ms cold) that
-shellx 1.1.0–1.2.x lost when it moved profile/nonce resolution to a
-`chezmoi data` subprocess (~1.5 s per call on a large source tree).
+The deployed script embeds `STATIC_PW` as a plain string constant and
+never shells out to `chezmoi data` — the only runtime work is one
+in-process `hashlib.sha256()` call if the test-only `SHELLX_NONCE`
+env-var override is set.
 
-The `nonce` already provides ≥384 bits of entropy, which subsumes any
-key-stretching a hash would buy. Both fields come from chezmoi's data
-section, so they cannot drift between renders.
+### Why the reverse-DNS namespace string?
 
-Runtime fallback chain (used when the deployed script lost its
-template-injected values — e.g. it was copied outside the chezmoi apply
-pipeline, or `chezmoi apply` was never run):
+The shared `system_environment.nonce` will be reused by other tools
+that need a per-namespace derivation. Each tool picks its own
+`com.ardju.utils:<tool>:<…>` namespace string and hashes it with
+`sha256sum`. The resulting hash domains are disjoint — two tools
+deriving from the same nonce produce unrelated 256-bit outputs, so
+compromise of one tool's `STATIC_PW` reveals nothing about another.
 
-1. `SHELLX_PROFILE` / `SHELLX_NONCE` env vars (test override; CI pinning).
-2. Template-injected `SHELLX_PROFILE` / `SHELLX_NONCE` constants.
-3. `chezmoi data --format json` subprocess (slow path; ~1.5 s; only the
-   path 1+2 are empty).
+`shellx` chose the namespace `com.ardju.utils:shellx:` and includes
+nothing but the nonce in the hashed string (no profile — see below).
 
-Two machines with different profiles or different nonces produce
-different static passwords, so a store encrypted under one is
-unreadable on another — even if the blob files are copied.
+### Why is `<profile>` no longer in `STATIC_PW`?
 
-**Implication:** `shellx export` on machine `home` produces a blob that
-`shellx import` cannot restore on machine `work-laptop` unless **both**
-the profile and the nonce are identical. This is by design — keep a
-per-machine export, or align the profile + nonce before importing.
+In shellx 1.4.0 the derivation was `chezmoi:shellx:<profile>:<nonce>`,
+which mixed profile and nonce as a literal string before hashing. The
+profile component was guessable (e.g. `personal-laptop`), so an attacker
+who knew the nonce still had a small candidate set to brute-force the
+combined string. As of 1.5.0, the deployed script never embeds
+`<profile>` at all, so profile guessing is no longer applicable.
+
+Side effect: two profiles on the same machine now share `STATIC_PW`
+(and therefore the same store slug). This was only ever defense-in-depth
+— profile entropy was low and this machine runs a single profile.
+
+### Two machines with different nonces produce different passwords
+
+A store encrypted on machine `home` is unreadable on machine
+`work-laptop` unless the two machines' `system_environment.nonce`
+matches. This is by design — keep a per-machine export, or align the
+nonce before importing. (As of 1.5.0, profile no longer affects the
+key.)
 
 ## Blob format (per-secret file)
 

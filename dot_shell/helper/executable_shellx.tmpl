@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # shellx — stealth-first secret manager for the chezmoi dotfiles repo.
 # Pure Python 3 stdlib (no pip, no venv). See dot_shell/helper/.help/ for docs.
-# The store slug is derived deterministically from the per-profile static
-# password (see _derived_slug), so no marker file is needed; the store lives
-# at ~/.local/share/<slug>/. Legacy stores with a hand-written .sl file
+# The store slug is derived deterministically from the static password
+# (see _derived_slug), so no marker file is needed; the store lives at
+# ~/.local/share/<slug>/. Legacy stores with a hand-written .sl file
 # continue to work (see _read_slug).
 import argparse
 import getpass
@@ -22,101 +22,52 @@ from typing import Any, NoReturn
 
 # ---- Constants ------------------------------------------------------------
 
-SHELLX_VERSION = "1.4.0"
+SHELLX_VERSION = "1.5.0"
 SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
-# Static password derived from chezmoi's `system_environment.nonce` and
-# `system_environment.profile`. Format: `chezmoi:shellx:<profile>:<nonce>` —
-# namespaced so shellx's keyspace can't collide with any other tool that
-# might derive a key from the same nonce, and scoped per profile so two
-# profiles on the same machine never share a key.
+# Static password derived at `chezmoi apply` time via Sprig's `sha256sum`:
 #
-# As of shellx 1.3.0, the deployed script is a chezmoi template: profile
-# (1.4.0 keeps this — the run subcommand change below is orthogonal.)
-# and nonce are substituted in at `chezmoi apply` time, so runtime cost is
-# zero (no subprocess to `chezmoi data`). The runtime fallback
-# (`SHELLX_PROFILE` / `SHELLX_NONCE` env vars, plus a last-resort
-# `chezmoi data` call) keeps the script working when invoked outside the
-# chezmoi-deployed $PATH (e.g. CI, headless boxes).
-SHELLX_PROFILE = "{{- .system_environment.profile -}}"
-SHELLX_NONCE = "{{- .system_environment.nonce -}}"
-_STATIC_PW_CACHE: str | None = None
-_PROFILE_CACHE: str | None = None
-_NONCE_CACHE: str | None = None
+#     STATIC_PW = sha256sum("com.ardju.utils:shellx:<nonce>")
+#
+# where `<nonce>` is `.system_environment.nonce` from `.chezmoi.yaml.tmpl`.
+# The `com.ardju.utils:<tool>:` reverse-DNS namespace is per-tool so each
+# tool that needs a derivation of the shared nonce picks its own
+# namespace string and the resulting hash domains are disjoint.
+#
+# As of shellx 1.5.0, the deployed script receives `STATIC_PW` as a
+# plain string constant — no `chezmoi data` subprocess, no profile in the
+# derivation, no runtime fallback path. The `SHELLX_NONCE` env var is
+# honored as a test-only override (recomputes `STATIC_PW` from the
+# override at runtime); the `SHELLX_PROFILE` env var no longer exists.
+SHELLX_NONCE_DEFAULT = "{{- .system_environment.nonce -}}"
+SHELLX_PROFILE_DEFAULT = "{{- .system_environment.profile -}}"
+SHELLX_STATIC_PW_DEFAULT = "{{- printf "%s%s" "com.ardju.utils:shellx:" .system_environment.nonce | sha256sum -}}"
+
+# Test-only override: setting SHELLX_NONCE in the environment replaces the
+# template-injected nonce, and STATIC_PW is recomputed from the override.
+# Used by the test suite to pin the derivation against a known input.
+# `_static_pw()` reads the env var fresh on each call (no module-global
+# cache) so test setup and CI pin overrides apply immediately.
 
 
-def _load_env() -> None:
-    """Resolve profile + nonce from template-injected constants, with env-var
-    override and a `chezmoi data` subprocess as a final fallback.
-
-    Order:
-      1. Cached values (module-global; populated on first call).
-      2. `SHELLX_PROFILE` / `SHELLX_NONCE` env vars (test override; CI pin).
-      3. Template-injected `SHELLX_PROFILE` / `SHELLX_NONCE` constants
-         populated by chezmoi at apply time.
-      4. `chezmoi data --format json` subprocess (slow path; ~1.5 s; only
-         used when the deployed script lost its template-injected values,
-         e.g. it was copied to a box without `chezmoi apply`).
-    """
-    global _STATIC_PW_CACHE, _PROFILE_CACHE, _NONCE_CACHE
-    if _STATIC_PW_CACHE is not None:
-        return
-    profile = os.environ.get("SHELLX_PROFILE", SHELLX_PROFILE).strip()
-    nonce = os.environ.get("SHELLX_NONCE", SHELLX_NONCE).strip()
-    # Empty values mean the template did not inject (e.g. the deployed
-    # script was copied outside the chezmoi apply pipeline). Fall back
-    # to `chezmoi data` so the script still works, at the cost of ~1.5 s
-    # per call. The slow path is exercised only by test/CI/headless use.
-    if not profile or not nonce:
-        # Template did not inject real values — fall back to chezmoi data.
-        data: dict[str, Any] = {}
-        try:
-            result: subprocess.CompletedProcess[str] = subprocess.run(
-                args=["chezmoi", "data", "--format", "json"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            data = json.loads(result.stdout)
-        except (
-            subprocess.CalledProcessError,
-            FileNotFoundError,
-            json.JSONDecodeError,
-        ) as e:
-            _die(
-                msg=(
-                    f"shellx: missing profile/nonce and chezmoi data lookup "
-                    f"failed ({e}). Re-run `chezmoi apply` to re-render the "
-                    f"deployed template, or set SHELLX_PROFILE and "
-                    f"SHELLX_NONCE in the environment."
-                ),
-                code=4,
-            )
-        env = data.get("system_environment") or {}
-        profile = str(env.get("profile") or "").strip()
-        nonce = str(env.get("nonce") or "").strip()
-        if not profile or not nonce:
-            _die(
-                "shellx: chezmoi data is missing system_environment.profile "
-                "or system_environment.nonce — check .chezmoidata.yaml",
-                code=4,
-            )
-    _PROFILE_CACHE = profile
-    _NONCE_CACHE = nonce
-    _STATIC_PW_CACHE = f"chezmoi:shellx:{profile}:{nonce}"
+def _resolve_nonce() -> str:
+    """Return the effective nonce: env-var override if set, otherwise the
+    template-injected default. Empty string if neither is available."""
+    return os.environ.get("SHELLX_NONCE", SHELLX_NONCE_DEFAULT).strip()
 
 
 def _static_pw() -> str:
-    """Return the cached static password, loading it on first call."""
-    _load_env()
-    assert _STATIC_PW_CACHE is not None
-    return _STATIC_PW_CACHE
-
-
-def _profile() -> str:
-    """Return the cached system_environment.profile, loading it on first call."""
-    _load_env()
-    assert _PROFILE_CACHE is not None
-    return _PROFILE_CACHE
+    """Return STATIC_PW derived from the effective nonce (env-var override
+    or template-injected default)."""
+    nonce = _resolve_nonce()
+    if not nonce:
+        _die(
+            "shellx: missing nonce — re-run `chezmoi apply` to re-render "
+            "the deployed template, or set SHELLX_NONCE in the environment.",
+            code=4,
+        )
+    return hashlib.sha256(
+        f"com.ardju.utils:shellx:{nonce}".encode()
+    ).hexdigest()
 
 
 MAGIC = b"SHX1"
@@ -468,7 +419,7 @@ def cmd_export(args) -> int:
         "// shellx export — DO NOT EDIT by hand. Re-export with `shellx export`.",
         "// Format version: 1",
         "// Hostname:        " + host,
-        "// Profile:         " + _profile(),
+        "// Profile:         " + SHELLX_PROFILE_DEFAULT,
         "// Slug:            " + slug,
         "// Exported at:     "
         + datetime.now(timezone.utc).isoformat(timespec="seconds"),

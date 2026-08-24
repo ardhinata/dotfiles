@@ -143,14 +143,16 @@ entries plus any pre-existing entries that were not in the export.
 
 ### Round-trip guarantee
 
-For a same-profile import, every `shellx --tag=… -- proc …` invocation
+For a same-nonce import, every `shellx --tag=… -- proc …` invocation
 that worked before the export will work identically after the import.
 
-A cross-profile import (different `STATIC_PW`) will decrypt the JSONC
+A cross-nonce import (different `STATIC_PW`) will decrypt the JSONC
 fine (the JSONC is plaintext), but the import-side encryption uses the
 **target machine's** `STATIC_PW`. So a `home` export imported on a
 `work-laptop` machine becomes a `work-laptop` store. The profile name
-in the JSONC header is informational only.
+in the JSONC header is informational only — as of shellx 1.5.0,
+profile is no longer part of `STATIC_PW`, so two profiles on one
+machine now share the same store slug (see [`LIMITATIONS.md`](./LIMITATIONS.md)).
 
 ## Schema versioning
 

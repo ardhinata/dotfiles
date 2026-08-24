@@ -17,6 +17,7 @@ the deployed filename has no `.py` extension.
 
 import importlib.machinery
 import importlib.util
+import hashlib
 import json
 import os
 import struct
@@ -310,107 +311,93 @@ class TestJsoncParsing(unittest.TestCase):
             shellx._parse_jsonc(text)
 
 
-class TestStaticPasswordCache(unittest.TestCase):
-    """The _static_pw/_profile helpers resolve profile + nonce from the
-    template-injected constants (or env-var override), with a `chezmoi data`
-    subprocess as the last-resort fallback."""
+class TestStaticPasswordDerivation(unittest.TestCase):
+    """As of shellx 1.5.0, `STATIC_PW = sha256sum("com.ardju.utils:shellx:<nonce>")`
+    is derived at `chezmoi apply` time and injected as a plain string constant
+    (`SHELLX_STATIC_PW_DEFAULT`). The runtime `_static_pw()` only recomputes
+    from the nonce when the test-only `SHELLX_NONCE` env-var override is set.
+    There is no `chezmoi data` subprocess fallback."""
 
     def setUp(self):
-        # Wipe the module-level cache so each test re-resolves.
-        shellx._STATIC_PW_CACHE = None
-        shellx._PROFILE_CACHE = None
-        shellx._NONCE_CACHE = None
-        # Clear any env-var overrides from previous tests.
-        for k in ("SHELLX_PROFILE", "SHELLX_NONCE"):
-            os.environ.pop(k, None)
+        # Clear any env-var override from previous tests.
+        os.environ.pop("SHELLX_NONCE", None)
 
-    def test_template_injected_values_resolve(self):
-        """The template-injected SHELLX_PROFILE/NONCE constants produce a
-        valid STATIC_PW without shelling out to `chezmoi data`."""
-        pw = shellx._static_pw()
-        profile = shellx._profile()
-        nonce = shellx._NONCE_CACHE
-        self.assertEqual(profile, shellx.SHELLX_PROFILE)
-        self.assertEqual(nonce, shellx.SHELLX_NONCE)
-        self.assertIn(profile, pw)
-        self.assertTrue(pw.startswith("chezmoi:shellx:"))
-        self.assertTrue(pw.endswith(":" + nonce))
+    def test_sprig_and_python_sha256_agree(self):
+        """`SHELLX_STATIC_PW_DEFAULT` (rendered by Sprig's sha256sum at apply
+        time) matches the value `hashlib.sha256` produces in Python. If Sprig
+        ever changes its output format or the namespace string drifts, this
+        will fail."""
+        expected = hashlib.sha256(
+            f"com.ardju.utils:shellx:{shellx.SHELLX_NONCE_DEFAULT}".encode()
+        ).hexdigest()
+        self.assertEqual(shellx.SHELLX_STATIC_PW_DEFAULT, expected)
+        self.assertEqual(len(expected), 64)  # SHA256 hex digest
 
-    def test_env_var_override_takes_precedence(self):
-        """Setting SHELLX_PROFILE / SHELLX_NONCE overrides the template
-        constants — useful for tests and CI pinning."""
-        os.environ["SHELLX_PROFILE"] = "test-profile"
-        os.environ["SHELLX_NONCE"] = "n" * 64
-        pw = shellx._static_pw()
-        self.assertEqual(shellx._profile(), "test-profile")
-        self.assertEqual(shellx._NONCE_CACHE, "n" * 64)
-        self.assertTrue(pw.startswith("chezmoi:shellx:test-profile:"))
+    def test_static_pw_returns_injected_default(self):
+        """Without an env-var override, _static_pw() returns the
+        template-injected constant directly."""
+        self.assertEqual(shellx._static_pw(), shellx.SHELLX_STATIC_PW_DEFAULT)
 
-    def test_empty_template_falls_back_to_chezmoi_data(self):
-        """If the deployed script lost its template-injected values, _load_env
-        shells out to `chezmoi data` and populates the cache from there.
-        We mock subprocess.run to avoid the real ~1.5 s cost in CI."""
-        # Snapshot the template constants so we can restore them after the
-        # test (we mutate module globals; other tests depend on them).
-        original_profile = shellx.SHELLX_PROFILE
-        original_nonce = shellx.SHELLX_NONCE
-        self.addCleanup(setattr, shellx, "SHELLX_PROFILE", original_profile)
-        self.addCleanup(setattr, shellx, "SHELLX_NONCE", original_nonce)
+    def test_env_var_nonce_override_recomputes(self):
+        """Setting SHELLX_NONCE in the environment replaces the nonce and
+        _static_pw() recomputes STATIC_PW from the override (no subprocess).
+        The override is read fresh on each call (no module-global cache)."""
+        override_nonce = "n" * 64
+        os.environ["SHELLX_NONCE"] = override_nonce
+        expected = hashlib.sha256(
+            f"com.ardju.utils:shellx:{override_nonce}".encode()
+        ).hexdigest()
+        self.assertEqual(shellx._static_pw(), expected)
+        # And the env-var nonce was used, not SHELLX_NONCE_DEFAULT.
+        self.assertEqual(shellx._resolve_nonce(), override_nonce)
+        self.assertNotEqual(shellx._static_pw(), shellx.SHELLX_STATIC_PW_DEFAULT)
 
-        # Force the template constants to empty — simulates a script deployed
-        # outside the chezmoi apply pipeline (or a broken template).
-        shellx.SHELLX_PROFILE = ""
-        shellx.SHELLX_NONCE = ""
-        fake_json = json.dumps({
-            "system_environment": {
-                "profile": "fallback-profile",
-                "nonce": "f" * 64,
-            }
-        })
-        fake_proc = unittest.mock.MagicMock()
-        fake_proc.return_value = unittest.mock.MagicMock(
-            stdout=fake_json,
-            returncode=0,
-            stderr="",
-        )
-        with unittest.mock.patch.object(shellx.subprocess, "run", fake_proc):
-            pw = shellx._static_pw()
-        self.assertEqual(shellx._profile(), "fallback-profile")
-        self.assertEqual(shellx._NONCE_CACHE, "f" * 64)
-        self.assertTrue(pw.startswith("chezmoi:shellx:fallback-profile:"))
-        fake_proc.assert_called_once()
-
-    def test_no_chezmoi_subprocess_when_template_has_values(self):
-        """Sanity: when the template has values, no subprocess is spawned.
-        We assert by checking that the cached values are populated without
-        having called subprocess. (If the cache were empty after _load_env,
-        we'd have hit the chezmoi data branch.)"""
-        # Make sure we start clean.
-        shellx._STATIC_PW_CACHE = None
-        # Spy on subprocess.run — if the fallback path was hit, this would
-        # be called. Replace with a sentinel that fails the test.
+    def test_empty_nonce_dies_without_subprocess(self):
+        """An empty nonce produces a clear error. There is no recovery path
+        (no chezmoi data subprocess)."""
+        os.environ.pop("SHELLX_NONCE", None)
+        original_default = shellx.SHELLX_NONCE_DEFAULT
+        self.addCleanup(setattr, shellx, "SHELLX_NONCE_DEFAULT", original_default)
+        # Empty the template-injected nonce AND the env var so _resolve_nonce()
+        # returns "".
+        shellx.SHELLX_NONCE_DEFAULT = ""
         with unittest.mock.patch.object(
             shellx.subprocess, "run",
-            side_effect=AssertionError("subprocess.run called — template path should not invoke chezmoi"),
+            side_effect=AssertionError(
+                "subprocess.run called — empty nonce should die, not shell out"
+            ),
         ):
-            shellx._load_env()
-        self.assertIsNotNone(shellx._STATIC_PW_CACHE)
+            with self.assertRaises(SystemExit) as cm:
+                shellx._static_pw()
+            self.assertEqual(cm.exception.code, 4)
+
+    def test_no_subprocess_called_for_static_pw(self):
+        """Sanity: deriving STATIC_PW never spawns a subprocess. The path is
+        pure Python `hashlib.sha256` from this point on."""
+        with unittest.mock.patch.object(
+            shellx.subprocess, "run",
+            side_effect=AssertionError(
+                "subprocess.run called — static_pw derivation must be pure-Python"
+            ),
+        ):
+            # Both the default and the env-override paths must be clean.
+            _ = shellx._static_pw()
+            os.environ["SHELLX_NONCE"] = "n" * 64
+            _ = shellx._static_pw()
 
 
 class TestDerivedSlug(unittest.TestCase):
     """The store slug is derived from _STATIC_PW, so no marker file is needed."""
 
     def setUp(self):
-        # Replace _static_pw so the test doesn't depend on `chezmoi data`.
-        # _derived_slug calls _static_pw() — we mock the module-level
-        # function for the duration of the test.
+        # Replace _static_pw so the test doesn't depend on the
+        # template-injected nonce. _derived_slug calls _static_pw() —
+        # we mock the module-level function for the duration of the test.
         self._original_static_pw = shellx._static_pw
         shellx._static_pw = lambda: self._fake_pw
-        shellx._STATIC_PW_CACHE = None
 
     def tearDown(self):
         shellx._static_pw = self._original_static_pw
-        shellx._STATIC_PW_CACHE = None
 
     def test_derived_slug_is_deterministic(self):
         """Same static_pw → same slug, always."""
