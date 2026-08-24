@@ -62,8 +62,9 @@ shellx --tag=git gh pr list
 shellx -- npm whoami
 
 # Inspect the injected var list:
-shellx --tag=git env | grep '^RUNPRIV_VARS='
-# → RUNPRIV_VARS=GH_TOKEN
+shellx --tag=git env | grep -E '^(SHELLX|RUNPRIV)_VARS='
+# → SHELLX_VARS=GH_TOKEN
+# → RUNPRIV_VARS=GH_TOKEN   (legacy alias, same value)
 ```
 
 ## Zsh completion

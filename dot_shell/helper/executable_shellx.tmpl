@@ -737,7 +737,11 @@ def cmd_exec(args) -> int:
         pt = b"\x00" * len(pt)
         blob = b"\x00" * len(blob)
     if injected:
-        env["RUNPRIV_VARS"] = ",".join(injected)
+        injected_list = ",".join(injected)
+        env["SHELLX_VARS"] = injected_list
+        # RUNPRIV_VARS kept for backward compatibility — consumers that
+        # pre-date shellx 1.x expect this name.
+        env["RUNPRIV_VARS"] = injected_list
 
     try:
         os.execvpe(proc, [proc] + passthrough, env)

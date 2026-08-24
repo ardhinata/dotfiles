@@ -484,7 +484,8 @@ class TestRunSubcommandRouting(unittest.TestCase):
     def _capture(self, proc, argv, env):
         self._captured["proc"] = proc
         self._captured["argv"] = argv
-        self._captured["env_injected"] = env.get("RUNPRIV_VARS")
+        self._captured["env_shellx"] = env.get("SHELLX_VARS")
+        self._captured["env_runpriv"] = env.get("RUNPRIV_VARS")
         # Don't actually exec; raise so the test sees a clean boundary.
         raise SystemExit(42)
 
@@ -542,6 +543,30 @@ class TestRunSubcommandRouting(unittest.TestCase):
             except SystemExit:
                 pass
         self.assertIn("run", buf.getvalue())
+
+    def test_shellx_vars_env_is_set(self):
+        """When `cmd_exec` injects matching secrets, the launched process
+        receives `SHELLX_VARS` (comma-separated list of injected var names).
+        `RUNPRIV_VARS` is also set for backward compatibility."""
+        idx = {
+            "GH_TOKEN": {"tag": ["git"], "process": ["gh"], "updated": "2026-08-24"},
+            "NPM_TOKEN": {"tag": ["git"], "process": [], "updated": "2026-08-24"},
+        }
+        # Fake blobs so cmd_exec decrypts successfully (we patch decrypt_blob).
+        fake_blob = b"x" * 100
+        with unittest.mock.patch.object(shellx, "_read_idx", return_value=idx), \
+             unittest.mock.patch.object(shellx, "_read_slug", return_value="deadbeef"), \
+             unittest.mock.patch.object(shellx.os.path, "exists", return_value=True), \
+             unittest.mock.patch("builtins.open", unittest.mock.mock_open(read_data=fake_blob)), \
+             unittest.mock.patch.object(
+                 shellx, "decrypt_blob",
+                 side_effect=lambda pw, var, blob: f"val-of-{var}".encode(),
+             ):
+            self._run_and_capture(["--tag=git", "--", "env"])
+        self.assertIn("GH_TOKEN", (self._captured["env_shellx"] or "").split(","))
+        self.assertIn("NPM_TOKEN", (self._captured["env_shellx"] or "").split(","))
+        # RUNPRIV_VARS mirrors SHELLX_VARS for backward compatibility.
+        self.assertEqual(self._captured["env_shellx"], self._captured["env_runpriv"])
 
     def test_run_help_does_not_dispatch_exec(self):
         """`shellx run --help` prints usage text, does NOT exec."""

@@ -3,6 +3,18 @@
 All notable changes to `shellx` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- **`SHELLX_VARS` env var injected alongside `RUNPRIV_VARS`.** When
+  `cmd_exec` injects matching secrets into the launched process, it now
+  sets `SHELLX_VARS` to the same comma-separated list of injected
+  variable names. `RUNPRIV_VARS` is still set to the same value for
+  backward compatibility with consumers written before shellx 1.x.
+  Prefer `SHELLX_VARS` in new code; treat `RUNPRIV_VARS` as the legacy
+  alias.
+
 ## [1.5.0] — 2026-08-24
 
 ### Changed

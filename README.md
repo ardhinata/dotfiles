@@ -231,9 +231,10 @@ filenames are blake2b hashes — indistinguishable from app-cache noise
 to a static scanner. See `dot_shell/helper/.help/` (source-only) for
 the full design, crypto, and limitations.
 
-The injected process also receives `RUNPRIV_VARS`, a comma-separated
-list of injected secret names, so scripts can introspect which secrets
-are available.
+The injected process also receives `SHELLX_VARS` (and the legacy
+`RUNPRIV_VARS` alias with the same value), a comma-separated list of
+injected secret names, so scripts can introspect which secrets are
+available.
 
 #### Export / import to the chezmoi source tree
 
