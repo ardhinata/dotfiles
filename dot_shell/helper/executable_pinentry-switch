@@ -120,6 +120,8 @@ init_gpg_agent_conf() {
 			printf 'pinentry-program %s\n' "$wrapper"
 			printf 'default-cache-ttl 7200\n'
 			printf 'max-cache-ttl 86400\n'
+			printf 'default-cache-ttl-ssh 7200\n'
+			printf 'max-cache-ttl-ssh 86400\n'
 		} > "$gnupg_conf"
 		chmod 600 "$gnupg_conf"
 		printf 'pinentry-switch: init wrote %s\n' "$gnupg_conf"
@@ -159,7 +161,7 @@ init_gpg_agent_conf() {
 
 	# Silently append any missing defaults.
 	local missing=0
-	for line in 'enable-ssh-support' 'default-cache-ttl 7200' 'max-cache-ttl 86400'; do
+	for line in 'enable-ssh-support' 'default-cache-ttl 7200' 'max-cache-ttl 86400' 'default-cache-ttl-ssh 7200' 'max-cache-ttl-ssh 86400'; do
 		local key="${line%% *}"
 		# Match the key followed by whitespace or end-of-line (so a bare
 		# `enable-ssh-support` line is correctly detected as present).
