@@ -1,0 +1,7 @@
+{
+  "status": 401,
+  "shape": "object",
+  "keys_required": [
+    "error"
+  ]
+}

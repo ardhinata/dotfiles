@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "shape": "object",
+  "keys_required": [
+    "data",
+    "slug",
+    "name"
+  ]
+}
