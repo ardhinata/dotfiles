@@ -25,7 +25,7 @@ report directory.
 
 | File | Name | Role | Model | Sample tilt |
 |---|---|---|---|---|
-| `haru.md` | 春 haru (spring) | Adversarial — assume the leading candidate is wrong; surface top 3 failure modes | `openrouter/google/gemma-4-31b-it` | T=0.2, top_p=0.9 |
+| `haru.md` | 春 haru (spring) | Adversarial — assume the leading candidate is wrong; surface top 3 failure modes | `openrouter/google/gemini-2.5-flash-lite` | T=0.2, top_p=0.9 |
 | `natsu.md` | 夏 natsu (summer) | Synthesizer — propose up to 3 coherent candidate answers | `openrouter/xiaomi/mimo-v2.5` | T=0.5, top_p=0.9 |
 | `aki.md` | 秋 aki (autumn) | Assumption-auditor — list up to 3 hidden assumptions and rate `likely_wrong` | `openrouter/deepseek/deepseek-v4-flash-0731` | T=0.5, top_p=0.9 |
 | `fuyu.md` | 冬 fuyu (winter) | Comparator — rank candidates on a multi-criterion rubric | `openrouter/z-ai/glm-4.7-flash` | T=1.0, top_p=0.95 |
@@ -93,6 +93,12 @@ Three knobs are most useful:
 1. **`model:`** — swap the underlying model. The four are different
    families (Google / Xiaomi / DeepSeek / Z.ai) for inductive-bias
    diversity. Keeping this constraint is the whole point of the design.
+   **Note (2026-08-25):** haru's pick is `google/gemini-2.5-flash-lite`,
+   not `google/gemma-4-31b-it` — Google has both a Gemma family and a
+   Gemini family. The cohort still spans 4 distinct architectures
+   (Gemini / MiMo / DeepSeek-V4 / GLM); the "4 distinct families"
+   constraint is **4 distinct architecture families**, not 4 distinct
+   parent companies.
 2. **`temperature:` / `top_p:`** — sampling tilt. Per plan §2, on
    reasoning models this only affects the final-answer sampler, not the
    reasoning trace. Useful for fine control; the structural diversity
@@ -119,17 +125,24 @@ per-run YAML files do not pollute shared-context commit history
 Worst case = 4× cheap flash + 1× frontier = roughly 2-3× a single
 frontier call. The four research subagents run on flash-class models
 (~$0.035–$0.40 per million input tokens) so the per-question budget
-is small.
+is small. The 2026-08-25 pinentry-simulation live run cost **$0.08**
+for 4 research subagents (shiki ran BYOK) — well under the ceiling.
+haru's `google/gemini-2.5-flash-lite` pin starts with
+`google-ai-studio/flex` at $0.05/M in / $0.005/M cache_read, the
+cheapest live route in the cohort.
 
 ### `variant: low` coverage gap
 
 Per plan §4.2, `variant: low` is silently dropped on `natsu` and
 `fuyu` because those models fall into OpenRouter's boolean-toggle
 branch (instant/thinking only). `aki` honours it via the `[low,
-medium, high, max]` effort set; `haru` likely honours via OpenRouter's
-`reasoning.effort` envelope. Acceptable for synthesis (long-context
-coherence matters more than effort tuning) and comparison (the
-`temperature: 1.0` / `top_p: 0.95` sampling is the intended lever).
+medium, high, max]` effort set. `haru` (Gemini 2.5 Flash Lite) does
+not advertise `reasoning_effort` in its `supported_parameters`; the
+OpenRouter `reasoning.effort` envelope likely applies — verify per
+session with `kilo provider list --json`. Acceptable for synthesis
+(long-context coherence matters more than effort tuning) and
+comparison (the `temperature: 1.0` / `top_p: 0.95` sampling is the
+intended lever).
 
 ### Permissions inheritance
 
