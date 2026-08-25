@@ -109,8 +109,8 @@
         "openai/gpt-5.6-luna": {
           "options": {
             "provider": {
-              "only": ["openai"],
-              "order": ["openai"],
+              "order": ["openai/flex", "openai", "amazon-bedrock/us-east-1"],
+              "allow_fallbacks": true,
             },
             "reasoning": {
               "effort": "medium",
@@ -120,8 +120,8 @@
         "openai/gpt-5.6-luna-pro": {
           "options": {
             "provider": {
-              "only": ["openai"],
-              "order": ["openai"],
+              "order": ["openai/flex", "openai", "azure/eu"],
+              "allow_fallbacks": true,
             },
             "reasoning": {
               "effort": "high",
@@ -131,23 +131,23 @@
         "z-ai/glm-5.2": {
           "options": {
             "provider": {
-              "only": ["novita/fp8"],
-              "order": ["novita/fp8"],
+              "order": ["sail-research/fp8", "ambient/fp8", "decart/fp4"],
+              "allow_fallbacks": true,
             },
           },
         },
         "deepseek/deepseek-v4-pro-0813": {
           "options": {
             "provider": {
-              "only": ["deepseek"],
-              "order": ["deepseek"],
+              "order": ["alibaba", "deepseek", "gmicloud/fp8"],
+              "allow_fallbacks": true,
             },
           },
         },
         "~deepseek/deepseek-v4-flash-latest": {
           "options": {
             "provider": {
-              "order": ["relace/fp4", "deepinfra/fp8", "open-inference/fp4"],
+              "order": ["open-inference/fp4", "relace/fp4", "digitalocean"],
               "allow_fallbacks": true,
             },
           },
@@ -155,7 +155,7 @@
         "deepseek/deepseek-v4-flash-0731": {
           "options": {
             "provider": {
-              "order": ["relace/fp4", "deepinfra/fp8", "open-inference/fp4"],
+              "order": ["open-inference/fp4", "relace/fp4", "digitalocean"],
               "allow_fallbacks": true,
             },
           },
@@ -163,7 +163,7 @@
         "z-ai/glm-4.7-flash": {
           "options": {
             "provider": {
-              "order": ["deepinfra/bf16", "venice/fp8", "novita/bf16"],
+              "order": ["deepinfra/bf16", "venice/fp8", "cloudflare"],
               "allow_fallbacks": true,
             },
           },
@@ -179,7 +179,7 @@
         "xiaomi/mimo-v2.5": {
           "options": {
             "provider": {
-              "order": ["xiaomi/fp8", "parasail/fp8", "novita/fp8"],
+              "order": ["xiaomi/fp8", "parasail/fp8", "deepinfra/bf16"],
               "allow_fallbacks": true,
             },
           },
@@ -187,7 +187,7 @@
         "google/gemma-4-31b-it": {
           "options": {
             "provider": {
-              "order": ["chutes/fp4", "friendli", "deepinfra/turbo"],
+              "order": ["open-inference/bf16", "deepinfra/turbo", "venice/bf16"],
               "allow_fallbacks": true,
             },
           },
@@ -203,7 +203,7 @@
         "tencent/hy3": {
           "options": {
             "provider": {
-              "order": ["baidu/fp8", "tencent/fp8", "deepinfra/fp8"],
+              "order": ["gmicloud/bf16", "baidu/fp8", "tencent/fp8"],
               "allow_fallbacks": true,
             },
           },
