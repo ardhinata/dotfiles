@@ -132,6 +132,12 @@ Exclude: generic software advice, long tutorials, exhaustive file trees, obvious
 
 **When in doubt, omit.** Prefer short sections and bullets. If the repo is simple, keep the file simple. If the repo is large, summarize the few structural facts that actually change how an agent should work.
 
+## Style pass on the draft
+
+Before proposing or committing an `AGENTS.md` draft, run the `asd-ste100` skill's Scan Checklist over the prose. Active voice, one idea per sentence, plain words, no marketing adjectives, no run-on sentences joined by semicolons or em dashes.
+
+This skill owns *what to include and what to omit*. `asd-ste100` owns *how the included sentences read*. Load it after the draft is structurally complete; apply the rewrite, then re-check against this skill's length budget (AGENTS.md targets 40–80 lines, ceiling 150).
+
 ## External references
 
 Load these before drafting a new `AGENTS.md` from the template — they justify the template's structure and the writing rules above. Prefer `webfetch` over memory; the AGENTS.md-impact paper in particular informs the "every line must earn its place" stance.

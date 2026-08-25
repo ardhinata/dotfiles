@@ -173,3 +173,4 @@ When the deviation is structural (a path that contradicts the tree), surface it 
 - `~/.config/kilo/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
 - `~/.config/kilo/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
 - `.agents/docs/cache/README.md` — required cache index (per topic as well).
+- `~/.config/kilo/skills/asd-ste100/SKILL.md` — prose-clarity pass (active voice, one idea per sentence, plain words). Load when this skill produces or revises long orientation prose (this `SKILL.md` body, the canonical-layout writeups, the deviation-justification summaries). Apply it after the structural changes settle, before the doc is committed.

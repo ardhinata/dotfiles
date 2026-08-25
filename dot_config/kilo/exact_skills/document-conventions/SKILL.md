@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, Kilo rule, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For shared-context commit protocol, load the `shared-context` skill.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, Kilo rule, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For shared-context commit protocol, load the `shared-context` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions
@@ -179,6 +179,11 @@ schemas and YAML rules.
    [`references/anti-patterns.md`](references/anti-patterns.md). The most
    common drift: padding length, adding sections "just in case",
    duplicating content that already lives elsewhere.
+6. **Style pass.** Run the `asd-ste100` skill's Scan Checklist
+   over the prose (synonym rotation, hedge stacking, nominalization,
+   marketing adjectives, run-on sentences, soft phrasal verbs). This
+   skill owns *shape*; `asd-ste100` owns *clarity*. Apply it before
+   emitting the doc — no human is in the loop afterward to disambiguate.
 
 ## Captured sources
 
