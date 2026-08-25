@@ -171,7 +171,7 @@
         "google/gemini-2.5-flash-lite": {
           "options": {
             "provider": {
-              "order": ["google-ai-studio", "google"],
+              "order": ["google-ai-studio/flex", "google-ai-studio", "google"],
               "allow_fallbacks": true,
             },
           },

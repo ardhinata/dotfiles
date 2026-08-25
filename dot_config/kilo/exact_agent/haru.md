@@ -1,7 +1,7 @@
 ---
 description: Research subagent haru — assume the leading candidate answer is wrong and surface top failure modes
 mode: subagent
-model: openrouter/google/gemma-4-31b-it
+model: openrouter/google/gemini-2.5-flash-lite
 variant: low
 temperature: 0.2
 top_p: 0.9
@@ -155,6 +155,27 @@ not the reasoning trace. Your job is **evidence-grounded failure claims**, so
 low temperature keeps the claims focused and prevents creative-but-wrong
 output. Do not raise the temperature — the diversity lever here is the
 adversarial stance, not the sampling.
+
+## Variant exposure (Gemini 2.5 Flash Lite)
+
+Gemini 2.5 Flash Lite's `supported_parameters` on OpenRouter (live as of
+2026-08-25) list `reasoning`, `include_reasoning`, `temperature`,
+`top_p` — **not** `reasoning_effort`. `variant: low` likely applies via
+the OpenRouter `reasoning.effort` envelope (plan §4.2); verify per
+session with `kilo provider list --json`. If it silently drops, accept
+the limitation — haru's job (evidence-grounded failure claims) does not
+depend on effort tuning; the diversity lever is the adversarial stance.
+
+## Cache reads (the reason for this model)
+
+Gemini 2.5 Flash Lite routes via Google AI Studio with prompt-cache
+support (`input_cache_read: $0.005–$0.018/M` per the OpenRouter
+endpoint snapshot, a 90% discount on cached input tokens). The
+previous pick (`gemma-4-31b-it` on chutes/friendli/deepinfra) returned
+0% cache-read ratio because those providers do not surface prompt-cache
+billing for that model. With Gemini, repeated haru prompts (e.g. when
+the main agent spawns haru multiple times in a session) will benefit
+from caching.
 
 ## Anti-patterns
 
