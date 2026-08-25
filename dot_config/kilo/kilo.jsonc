@@ -147,16 +147,64 @@
         "~deepseek/deepseek-v4-flash-latest": {
           "options": {
             "provider": {
-              "only": ["deepseek"],
-              "order": ["deepseek"],
+              "order": ["relace/fp4", "deepinfra/fp8", "open-inference/fp4"],
+              "allow_fallbacks": true,
             },
           },
         },
         "deepseek/deepseek-v4-flash-0731": {
           "options": {
             "provider": {
-              "only": ["deepseek"],
-              "order": ["deepseek"],
+              "order": ["relace/fp4", "deepinfra/fp8", "open-inference/fp4"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "z-ai/glm-4.7-flash": {
+          "options": {
+            "provider": {
+              "order": ["deepinfra/bf16", "venice/fp8", "novita/bf16"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "google/gemini-2.5-flash-lite": {
+          "options": {
+            "provider": {
+              "order": ["google-ai-studio", "google"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "xiaomi/mimo-v2.5": {
+          "options": {
+            "provider": {
+              "order": ["xiaomi/fp8", "parasail/fp8", "novita/fp8"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "google/gemma-4-31b-it": {
+          "options": {
+            "provider": {
+              "order": ["chutes/fp4", "friendli", "deepinfra/turbo"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "meta/muse-spark-1.2-contributor": {
+          "options": {
+            "provider": {
+              "order": ["meta"],
+              "allow_fallbacks": false,
+            },
+          },
+        },
+        "tencent/hy3": {
+          "options": {
+            "provider": {
+              "order": ["baidu/fp8", "tencent/fp8", "deepinfra/fp8"],
+              "allow_fallbacks": true,
             },
           },
         },
