@@ -99,6 +99,14 @@ Write a structured YAML report to
 `.tmp/docs/subagent-runs/fuyu-<unix-ts>.yaml`. Echo a
 one-paragraph summary in your final assistant message.
 
+> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
+> the project root**. In a worktree run, the project root is the
+> worktree path, not the live repo. If the task prompt passes an
+> explicit working directory, write there. Otherwise default to
+> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
+> `$PWD` so a worktree-resident run does not pollute the live repo's
+> gitignored `subagent-runs/` directory.
+
 Report shape:
 
 ```yaml
@@ -141,6 +149,18 @@ candidates by total weighted score; call out ties explicitly.
 The **total_score** is your unweighted average (or specify weights in
 `assumptions_made`). The verifier reads the per-criterion scores, not
 the total, so transparency matters more than precision.
+
+### Rubric pruning
+
+When two candidates are within 0.10 on **any** criterion, that
+criterion carries little signal — surface it explicitly in
+`assumptions_made` and let the dominant criterion decide the ranking.
+When the top-2 candidates are within 0.05 on **all** criteria, the
+problem may not have a meaningful ranking; surface in
+`open_questions_for_main_agent` rather than forcing a total. Don't pad
+the rubric with axes that don't differentiate — 3 criteria on a
+2-candidate problem is the ceiling when one candidate is clearly
+dominant on the load-bearing axis (usually correctness).
 
 ## Sampling behaviour
 

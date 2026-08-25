@@ -101,6 +101,14 @@ Write a structured YAML report to
 `.tmp/docs/subagent-runs/natsu-<unix-ts>.yaml`. Echo a
 one-paragraph summary in your final assistant message.
 
+> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
+> the project root**. In a worktree run, the project root is the
+> worktree path, not the live repo. If the task prompt passes an
+> explicit working directory, write there. Otherwise default to
+> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
+> `$PWD` so a worktree-resident run does not pollute the live repo's
+> gitignored `subagent-runs/` directory.
+
 Report shape:
 
 ```yaml

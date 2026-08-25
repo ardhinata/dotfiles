@@ -100,6 +100,15 @@ Write a structured YAML report to
 in your final assistant message so the main agent knows the file exists.
 The verifier reads the file via `read` rather than parsing message content.
 
+> **Working directory:** the path `.tmp/docs/subagent-runs/` is
+> **relative to the project root**. In a worktree run, the project root
+> is the worktree path (e.g. `/tmp/kilo/sim`), not the live repo. The
+> task prompt may pass an explicit working directory — write there.
+> If the task prompt omits the working directory, default to
+> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
+> your `$PWD` so a worktree-resident run does not pollute the live
+> repo's gitignored `subagent-runs/` directory.
+
 Report shape:
 
 ```yaml

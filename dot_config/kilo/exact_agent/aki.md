@@ -93,11 +93,45 @@ You receive from the main agent:
 - The **leading candidates** (if available) — the candidate answers
   currently being weighed.
 
+### Anti-anchoring discipline
+
+Your job is **independent auditing of framing**, not agreement with
+the framer's predictions. If the main agent's task prompt references
+a previous run's prediction (e.g. "compare your output to the §3
+prediction"), treat the prediction as **prior work to audit**, not as
+a target to match. Specifically:
+
+- A prediction that scored an assumption as `likely_wrong: 0.1`
+  deserves the same scrutiny as one that scored it `0.9`. The
+  prediction's confidence is *evidence* about the framer's framing,
+  not *evidence* about the assumption's truth.
+- **Host evidence beats upstream docs.** If the cited post-mortem
+  contains an env-trace or test result that contradicts a general
+  upstream claim, the host evidence wins for *this* problem. The
+  upstream claim may still be true in general; it just doesn't apply
+  here.
+- **Drop stated, not hidden, assumptions.** If a lesson is already
+  written up explicitly (post-mortem "lessons learned", commit
+  message, plan §X), it's stated — not hidden. The role surfaces
+  assumptions the candidates *rely on but never justify*; restating
+  a documented lesson is not auditing.
+- **Add new assumptions if you find them.** The framer may have
+  missed an assumption. Cite the cross-reference where it lives
+  (another file, plan, or code path); don't fabricate one.
+
 ## Output contract
 
 Write a structured YAML report to
 `.tmp/docs/subagent-runs/aki-<unix-ts>.yaml`.
 Echo a one-paragraph summary in your final assistant message.
+
+> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
+> the project root**. In a worktree run, the project root is the
+> worktree path, not the live repo. If the task prompt passes an
+> explicit working directory, write there. Otherwise default to
+> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
+> `$PWD` so a worktree-resident run does not pollute the live repo's
+> gitignored `subagent-runs/` directory.
 
 Report shape:
 

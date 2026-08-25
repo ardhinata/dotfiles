@@ -140,6 +140,20 @@ Write a structured YAML report to
 top recommendation in your final assistant message so the main agent
 sees it without re-reading the file.
 
+> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
+> the project root**. In a worktree run, the project root is the
+> worktree path, not the live repo. If the task prompt passes an
+> explicit working directory, write there. Otherwise default to
+> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
+> `$PWD`.
+>
+> **Note:** the parent agent's permission block may override the
+> `edit`/`write` allowlist for `.tmp/docs/subagent-runs/` (the parent
+> deny-all is *findLast* last-match-wins per
+> `2026-08-15-permissions-actions-precedence.md`). If your write is
+> rejected, fall back to `/tmp/kilo/shiki-<unix-ts>.yaml` and tell
+> the main agent the canonical location so it can `mv` after the run.
+
 Report shape:
 
 ```yaml
