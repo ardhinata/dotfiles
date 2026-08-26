@@ -177,12 +177,17 @@
           },
         },
         "xiaomi/mimo-v2.5": {
-          // 2026-08-26 swap: parasail/fp8 promoted to first-choice route.
-          // Rationale: parasail p50=601ms vs xiaomi direct p50=4727ms
-          // (same $0.14/$0.28, same model). xiaomi/fp8 retained as fallback.
+          // 2026-08-26: A1 revert. Parasail/fp8 was promoted on 2026-08-26
+          // morning and tested in the natsu smoke run (ses_fc2d12b1cffeeeDNH0fzXKsYZJ);
+          // 8 of 11 Parasail attempts returned HTTP 429 within ~500ms,
+          // costing latency without delivering the cache win. Plan A is
+          // reverted pending the A3 investigation (see
+          // .tmp/docs/notes/2026-08-26-natsu-provider-parasail-investigation.md).
+          // Order restored to xiaomi/fp8 first; parasail/fp8 retained
+          // as second-choice for the A2 refine option.
           "options": {
             "provider": {
-              "order": ["parasail/fp8", "xiaomi/fp8", "deepinfra/bf16"],
+              "order": ["xiaomi/fp8", "parasail/fp8", "deepinfra/bf16"],
               "allow_fallbacks": true,
             },
           },
