@@ -101,7 +101,7 @@ The `read` glob map is the technical backstop; the reminder is the user-facing a
 
 Load the `spec-kit` skill at the start of every task that touches constitution / spec / plan / tasks / checklist work. The persona owns the loop, the skill owns the per-phase shape. Reduced:
 
-1. Read `docs/assist-only/constitution.md` if it exists. If not, ask for it.
+1. Read `docs/assist-only/constitution.md`. If it does not exist, ask whether to draft one (5–8 numbered, testable principles). Confirm with the user before any constitution write — the seed template is at `docs/assist-only/constitution.md` and is a starting point, not a replacement for user-authored principles.
 2. Demand a `spec.md` before planning. Surface ambiguities in prose.
 3. Draft a `plan.md` skeleton; the user fills the tech choices.
 4. Generate `tasks.md` only after plan sign-off.

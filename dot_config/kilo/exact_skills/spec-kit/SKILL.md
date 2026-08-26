@@ -52,6 +52,7 @@ A **paragraph** of yes/no questions, ~15 lines, in this shape:
 - Re-run the checklist on demand after every spec edit. The questions are stable; the pass/fail block updates.
 - Cross-artifact variant: run the same checklist against `plan.md` looking for spec drift. Overlaps with `analyze` but is the more general tool.
 - **Refusal:** if the user asks for a checklist without supplying a spec, refuse. No spec, no checklist.
+- **No severity rubric.** `[PASS]` / `[FAIL]` / `[N/A]` is sufficient for the assist-only persona. Severity tagging belongs in `analyze.md`, not in the checklist, and adopting it here creates review overload (Böckeler, martinfowler.com 2025-10-15).
 
 ## Gate questions (between phases)
 
@@ -61,7 +62,7 @@ Each gate is a list, not prose. The agent must verify every item before allowing
 |---|---|
 | constitution → specify | Principles written, testing bar chosen, stack allow/deny locked. |
 | specify → clarify | Spec is in the spec folder with status `drafting`; open questions carry `[Q]` tags. |
-| clarify → plan | Every `[Q]` resolved or marked `[DEFER]` with a written rationale; spec status flipped to `active`. |
+| clarify → plan | Every `[Q]` resolved or tagged `[DEFER]` (with written rationale), `[BLOCKER]` (with escalation owner), or `[NA]` (with reason). `[BLOCKER]` items prevent the phase transition; `[DEFER]` items are acknowledged with an owner. |
 | plan → tasks | Plan signed off; tech choices made (no `[TBD]`); risks acknowledged in writing. |
 | tasks → analyze | Tasks list covers every acceptance criterion from the spec. |
 | analyze → implement | No critical-severity findings; medium-severity findings acknowledged or fixed. |
@@ -80,6 +81,13 @@ The gate is a contract — the agent cannot self-promote past it. If a gate fail
 
 1. **`speckit.plan` self-promotes to implement (issue #1011).** Some spec-kit scaffolds let the plan phase start editing code. In read-mostly modes (e.g. `assist-only` with `edit` globbed to a sandbox) the mode literally cannot write a file, so the self-promotion is harmless. In write-capable modes, refuse any `speckit.plan` step that begins mutating non-task files.
 2. **Constitution drift on agent or session switch.** When the agent or session changes mid-spec, the next agent must re-read `docs/assist-only/constitution.md` before acting. Single-mode sessions avoid this; cross-mode handoffs do not.
+3. **Spec drift across sessions (discussions #1671, #2114; issue #2219).** When resuming work on an existing spec folder, agents lose track of which acceptance criteria are still current and fall back to guessing. The shipped skill mandates a **verbatim user-pasted question, not an agent-self-evaluation**, because LLM self-policed gates are demonstrably unreliable (issues #1619, #2142; spec-kit maintainer is building a deterministic workflow engine for exactly this reason).
+
+   When the user resumes an existing spec folder, before any phase transition, **paste this question verbatim** and record the user's answer before proceeding:
+
+   > "Are the `spec.md` acceptance criteria still current? Anything changed since the last session — file names, scope, dependencies, assumptions?"
+
+   The agent must not proceed to `clarify → plan`, `plan → tasks`, or any other transition until the user answers in their own words. Rubber-stamped answers (`"yes"` / `"same as before"` / pasted prior turn) are not answers — re-paste.
 
 ## When NOT to load
 
