@@ -96,7 +96,12 @@ You receive from the main agent:
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/fuyu-<unix-ts>.yaml`. Echo a
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-fuyu[-<topic>].yaml`
+(e.g. `20260826_113348-fuyu.yaml` or
+`20260826_113348-fuyu-model-pick-rubric.yaml`; the `<topic>` slug is
+optional — derive from the question if useful, omit if not). Compute
+`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
+clock; do not use `date +%s`). Echo a
 one-paragraph summary in your final assistant message.
 
 > **Working directory:** `.tmp/docs/subagent-runs/` is **relative to

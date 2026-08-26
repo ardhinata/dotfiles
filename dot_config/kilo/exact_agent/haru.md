@@ -95,7 +95,12 @@ You receive from the main agent (or from the spawn-time context):
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/haru-<unix-ts>.yaml` (the `edit`/
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-haru[-<topic>].yaml` (e.g.
+`20260826_113348-haru.yaml` or `20260826_113348-haru-sdd-research.yaml`;
+the `<topic>` slug is optional and used when the question carries a
+short disambiguator — derive from the question if useful, omit if not).
+Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
+(local clock; do not use `date +%s`). The `edit`/
 `write` permissions allow this location only). Echo a one-paragraph summary
 in your final assistant message so the main agent knows the file exists.
 The verifier reads the file via `read` rather than parsing message content.

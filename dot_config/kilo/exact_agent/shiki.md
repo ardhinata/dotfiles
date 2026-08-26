@@ -96,12 +96,13 @@ You receive from the main agent:
 - The list of **research subagents that ran** — typically `haru`,
   `natsu`, `aki`, `fuyu` in spawn order, but possibly a subset. Each
   subagent wrote its report to
-  `.tmp/docs/subagent-runs/<role>-<unix-ts>.yaml`.
+  `.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`.
 - The **random_seed** if the main agent used seeded random selection
   (per plan §5.1).
 
 Read the research reports using the `read` tool against
-`.tmp/docs/subagent-runs/<role>-<ts>.yaml`. Do not parse message content.
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`. Do not
+parse message content.
 
 ## Two-pass verification
 
@@ -136,7 +137,10 @@ or for any claim marked `shallow: inconclusive`:
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/shiki-<unix-ts>.yaml`. Echo the
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-shiki.yaml` (shiki does not
+take a topic slug — the role is already disambiguating). Compute
+`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
+clock; do not use `date +%s`). Echo the
 top recommendation in your final assistant message so the main agent
 sees it without re-reading the file.
 
@@ -151,7 +155,7 @@ sees it without re-reading the file.
 > `edit`/`write` allowlist for `.tmp/docs/subagent-runs/` (the parent
 > deny-all is *findLast* last-match-wins per
 > `2026-08-15-permissions-actions-precedence.md`). If your write is
-> rejected, fall back to `/tmp/kilo/shiki-<unix-ts>.yaml` and tell
+> rejected, fall back to `/tmp/kilo/YYYYMMDD_HHMMss-shiki.yaml` and tell
 > the main agent the canonical location so it can `mv` after the run.
 
 Report shape:

@@ -53,11 +53,17 @@ Default off; on for security/correctness stakes.
 
 ## Reports go to `.tmp/docs/subagent-runs/`
 
-Each subagent writes its report to `.tmp/docs/subagent-runs/<role>-<ts>.yaml`
-(e.g. `haru-2026-08-25T10-30-12Z.yaml`). The dir is `.gitignore`d in
-`.tmp/docs/.gitignore` so reports do not pollute shared-context history.
-On other projects, the same path works if `.tmp/docs/subagent-runs/`
-exists with the gitignore applied.
+Each subagent writes its report to
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`
+(e.g. `20260826_113348-haru.yaml` or
+`20260826_113348-natsu-sdd-synthesis.yaml`). The `YYYYMMDD_HHMMss`
+segment is computed at write time with `date +%Y%m%d_%H%M%S` (local
+clock; do not use `date +%s`). The optional `<topic>` slug is a short
+disambiguator derived from the question — omit when the role alone is
+clear. `shiki` never takes a topic slug. The dir is `.gitignore`d in
+`.tmp/docs/.gitignore` so reports do not pollute shared-context
+history. On other projects, the same path works if
+`.tmp/docs/subagent-runs/` exists with the gitignore applied.
 
 ## Anti-patterns
 

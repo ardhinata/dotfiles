@@ -98,7 +98,12 @@ You receive from the main agent (or from the spawn-time context):
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/natsu-<unix-ts>.yaml`. Echo a
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-natsu[-<topic>].yaml`
+(e.g. `20260826_113348-natsu.yaml` or
+`20260826_113348-natsu-sdd-synthesis.yaml`; the `<topic>` slug is
+optional — derive from the question if useful, omit if not). Compute
+`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
+clock; do not use `date +%s`). Echo a
 one-paragraph summary in your final assistant message.
 
 > **Working directory:** `.tmp/docs/subagent-runs/` is **relative to

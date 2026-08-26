@@ -80,7 +80,7 @@ The main agent **never reads raw research output directly** when ≥2
 research subagents ran. Only shiki's report enters your context. To
 audit, the main agent can surface shiki's full `claims_table`; the raw
 research YAML files are at
-`.tmp/docs/subagent-runs/{haru,natsu,aki,fuyu}-<unix-ts>.yaml`.
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-{haru,natsu,aki,fuyu}[-<topic>].yaml`.
 
 ## Customisation
 
@@ -115,7 +115,7 @@ To remove a subagent, delete the file from
 
 ### Where reports go
 
-`.tmp/docs/subagent-runs/<name>-<unix-ts>.yaml` — this directory is in
+`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<name>[-<topic>].yaml` — this directory is in
 the shared-context git repo but added to its `.gitignore` so the
 per-run YAML files do not pollute shared-context commit history
 (commit `5d6fd6f`).
