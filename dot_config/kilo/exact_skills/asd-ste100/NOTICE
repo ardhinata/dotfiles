@@ -1,0 +1,46 @@
+# Notice
+
+## About ASD-STE100
+
+ASD-STE100 Simplified Technical English is a specification of ASD, the Aerospace, Security and
+Defence Industries Association of Europe. The STE Maintenance Group maintains it. The current issue
+is Issue 9, January 2025.
+
+**This package is not the specification.** It is an independent work.
+
+- The files in `references/` **paraphrase** the writing rules. They do not reproduce the text of the
+  specification.
+- The package does **not** contain Part 2, the dictionary of about 900 approved words. That
+  dictionary is the core of the standard.
+- `references/word-substitutions.md` is an illustrative list. It is not the dictionary, and it is
+  not a substitute for the dictionary.
+
+Therefore this package cannot prove that a text conforms to ASD-STE100. Neither can the checker
+script. The skill instructs the agent to state this limit to the user.
+
+ASD gives the specification to everyone free of charge, as a PDF. Request your copy at
+`https://www.asd-ste100.org/`. Read the official document before you rely on any rule number in this
+package.
+
+`ASD-STE100` and `Simplified Technical English` are the property of their owners. This package
+claims no affiliation with ASD and no endorsement by ASD.
+
+## Sources used to build this package
+
+- ASD-STE100 official site and FAQ — `https://www.asd-ste100.org/`
+- TechScribe term checker rules for Issue 9 — `https://www.simplified-english.co.uk/rules-ste9.html`
+- TechScribe article on ASD-STE100 —
+  `https://www.techscribe.co.uk/techw/asd-simplified-technical-english.htm`
+- Acrolinx list of supported STE rules —
+  `https://support.markup.ai/hc/en-us/articles/10210995127698-STE-Simplified-Technical-English`
+- Simplified Technical English, Wikipedia —
+  `https://en.wikipedia.org/wiki/Simplified_Technical_English`
+- Agent Skills specification — `https://agentskills.io/specification`
+
+All sources were read on 2026-08-26.
+
+## Rule numbers
+
+Rule numbers changed between Issue 8 and Issue 9. The numbers in `references/writing-rules.md`
+follow Issue 9, from the TechScribe table. The Section 6 numbers are the least consistent between
+public sources. Make sure against the official PDF before you quote a Section 6 number.
