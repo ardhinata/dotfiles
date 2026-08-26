@@ -177,9 +177,12 @@
           },
         },
         "xiaomi/mimo-v2.5": {
+          // 2026-08-26 swap: parasail/fp8 promoted to first-choice route.
+          // Rationale: parasail p50=601ms vs xiaomi direct p50=4727ms
+          // (same $0.14/$0.28, same model). xiaomi/fp8 retained as fallback.
           "options": {
             "provider": {
-              "order": ["xiaomi/fp8", "parasail/fp8", "deepinfra/bf16"],
+              "order": ["parasail/fp8", "xiaomi/fp8", "deepinfra/bf16"],
               "allow_fallbacks": true,
             },
           },
