@@ -19,9 +19,27 @@ mode: workflow
 
 Recurrent task: pick 4 model-family-distinct, real-time, cache-eligible
 OpenRouter models for the haru/natsu/aki/fuyu research subagents. This
-command is the callable entry point — the canonical source of truth is
-the plan `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
-§4 (model picks) and §11 (subagent file locations).
+command is the callable entry point.
+
+## Source of truth (single source for eligibility + decision rule)
+
+All eligibility rules, role-dependent quality thresholds, and the
+phase-cascade decision rule live in
+`docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
+**§4.0** (Eligibility + decision rule). This workflow does **not**
+duplicate the rule definitions inline — Step 2 / Step 4 below read
+§4.0 dynamically so any rule added to §4.0 (R6, R7, future R8+, or
+Phase 5+) propagates without re-editing this command file.
+
+§4 (the locked-picks table) and §11 (subagent file locations) are
+the secondary references used only in Step 6 (write report — frontmatter)
+and Step 8 (apply — file paths).
+
+When the canonical plan is not reachable (e.g., another project using
+the bundled skill references), fall back to
+`.agents/kilo/skills/subagent-fleet/references/model-picks.md`
+bundled snapshot (stale past 2026-08-25 — explicitly note the fallback
+in the report's Uncertainty section).
 
 ## Why this command exists
 
@@ -75,7 +93,7 @@ report's `Scope` section.
   - `--no-bench` — skip Step 2½ (benchmark cross-check).
   - `--allow-batch` — include `:batch` endpoints (violates the
     real-time constraint, see Step 2).
-  - `--cache-r-max-ratio <0..1>` — override the default `0.2` cap.
+  - `--cache-r-max-ratio <0..1>` — override the default `0.5` cap.
 - **Required context the user supplies each run:**
   - Why the revaluation is needed (catalog drift, new family surfaced,
     budget change, training-posture change, etc.).
@@ -102,8 +120,8 @@ report's `Scope` section.
 ## Pre-flight
 
 1. Confirm the rule the user wants this run to enforce. Default rules
-   (Step 2 below). If the user supplied `--cache-r-max-ratio` or other
-   flag, fold it in.
+   (Step 2 below, sourced from plan §4.0). If the user supplied
+   `--cache-r-max-ratio` or other flag, fold it in.
 2. Load the `openrouter-api` skill if not already loaded — the catalog
    endpoints, the per-model `supported_parameters` shape, and the
    `/endpoints/zdr` route live there.
@@ -111,6 +129,13 @@ report's `Scope` section.
    (in `.agents/kilo/skills/subagent-fleet/references/`). Compare to
    what the catalog will say — that's the delta the report needs to
    cover.
+4. **Re-read plan §4.0** at
+   `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
+   §4.0 (Eligibility + decision rule) to capture the current rule set
+   (R1-Rn) and Phase 1-4 cascade. The `filter_revision` field in the
+   report must reflect the §4.0 version read — if §4.0 was edited
+   since the previous revaluation, bump `filter_revision` and note the
+   diff in the report's Scope section.
 
 ## Steps
 
@@ -133,31 +158,51 @@ not a refusal; an explicit yes allows continuing.
 
 ### Step 2 — Apply the eligibility filter
 
-Reject any model where **any** rule fires. Lower-case ids before
-matching the suffix rules.
+Apply **every rule listed in plan §4.0** (R1, R2, ..., Rn as defined
+at the time of this run). Reject any model where **any** rule fires.
+Lower-case ids before matching the suffix rules.
 
-| Rule | Condition |
-|---|---|
-| Output price | `pricing.completion > $1.1/M` (i.e., `0.0000011` per token) |
-| Input price | `pricing.prompt > $0.6/M` (i.e., `0.0000006` per token) |
-| Cache read missing | `pricing.input_cache_read` absent, null, empty string, or parses to 0 |
-| Cache read ratio | `pricing.input_cache_read > 0.2 × pricing.prompt` |
-| Real-time routes only | id matches `:batch`, `:exacto`, or any suffix tagged as deferred |
-| Parameter support | cheapest provider route's `supported_parameters` does NOT include both `temperature` and `tools` |
+§4.0 is the single source of truth for the rule definitions, the
+default thresholds, and the role-dependent overrides (e.g., R7 may
+have per-slot thresholds that differ from the default). Do **not**
+hard-code the rule values here — read §4.0 at run time.
 
-The user-definable knobs at invocation change these:
-- `--no-bench`: leaves Step 2 unchanged (it's about eligibility, not
-  benchmarking).
-- `--allow-batch`: drops the `Real-time routes only` row for `:batch`
-  endpoints only. Keeps the other rules. Mark each survivor in the
-  report with `latency_profile: batch-24h`.
-- `--cache-r-max-ratio <x>`: replaces the `0.2` in the cache read ratio
-  rule with `<x>`. Caller is responsible for noting why.
+If §4.0 is not reachable, fall back to
+`.agents/kilo/skills/subagent-fleet/references/model-picks.md`
+bundled snapshot (stale past 2026-08-25 — note the fallback in the
+report's Uncertainty section and **stop**, do not invent rules from
+training data).
 
-Print the **filter revision string** at the top of the report (e.g.,
-`filter_revision: "default-2026-08-30"` or `filter_revision:
-"default-with-cache-r-ratio-0.5"`). New rule changes belong in this
-field, not as free-form text in the body.
+The user-definable knobs at invocation change §4.0 defaults only as
+documented; rule definitions and ordering come from §4.0:
+
+- `--no-bench`: leaves §4.0 unchanged (benchmarks are not in §4.0 —
+  they're a Step 2½ cross-check).
+- `--allow-batch`: drops the **Real-time routes only** rule for
+  `:batch` endpoints only. Keeps the other §4.0 rules. Mark each
+  survivor in the report with `latency_profile: batch-24h`.
+- `--cache-r-max-ratio <x>`: replaces the `0.5` in the cache read
+  ratio rule with `<x>`. Caller is responsible for noting why.
+- `--provider-uptime-min <x>`: replaces the `0.99` uptime floor in
+  Step 9 with `<x>`. Lowering below `0.95` is discouraged and the
+  report must flag it.
+
+Print the **filter revision string** at the top of the report,
+formatted as `"<plan-§4.0-version>-<flag-summary>"`. The plan-§4.0-
+version is the date of the §4.0 section last-updated field (or the
+plan frontmatter `last-updated` if §4.0 has no per-section date).
+Example: `filter_revision: "default-2026-08-30"` or
+`filter_revision: "2026-08-30-with-cache-r-ratio-0.7"`. New rule
+changes belong in §4.0 — bump §4.0's `last-updated`, not this file.
+
+**Quality floor is non-negotiable.** R7 (the AA intelligence index
+floor per role) drops a survivor from the mix at any cost. A cheap
+model that fails R7 cannot be picked, cannot be carried into Mix B,
+and cannot be saved by a provider-pinning override. If a model is
+cheap enough to matter, that is a signal to raise the R7 floor, not
+to lower it. The user-facing principle: a subagent that returns
+confident-but-wrong output wastes more downstream cost than it
+saves on input tokens.
 
 ### Step 2½ — OPTIONAL: Benchmark cross-check
 
@@ -218,38 +263,46 @@ Captured data per survivor (one row per family):
 
 ### Step 4 — Compose Mix A and Mix B
 
-Pick 4 distinct families. **Two mixes** are produced so the user can
-choose between lowest-cost (Mix A) and more-diverse (Mix B).
+Apply **the Phase 1-4 cascade defined in plan §4.0** (Quality →
+Diversity → Cost → Training-risk). §4.0 is authoritative for the
+phase ordering, the per-phase gates, and the per-slot R7 thresholds.
+Do **not** hard-code the cascade here — read §4.0 at run time.
 
-**Mix A — strict lowest-cost.** Greedy fill: pick the family whose
-cheapest survivor has the lowest `pricing.completion`; mark that
-survivor as `R1 = haru` (adversarial). Repeat for `R2 = natsu`
-(synthesizer), `R3 = aki` (assumption-auditor), `R4 = fuyu`
-(comparator) until 4 distinct families are filled. Stop early if fewer
-than 4 families survive — drop the mix and explain in the report.
+§4.0 produces **one canonical mix** (the 4-family pick after Phase 1-4).
+This workflow's Step 4 surfaces that mix as **Mix A** so the user
+sees a stable label across revaluations, and additionally proposes
+**Mix B** as a workflow-side carve-out (not part of §4.0) for users
+who want to explore a non-flash R2 option before the next §4.0
+revision captures it.
 
-**Mix B — leverage new families surfaced by the relaxed filter.**
-Same R1-R4 assignment rule as Mix A, but with these carve-outs:
-- **R2 = natsu** gets the cheapest coding- or reasoning-tuned
-  non-flash survivor in the cheapest family (not the cheapest
-  survivor).
-- If any family surfaced by Step 3 was not present in the prior
-  report, that family gets a slot — prefer it over repeating an
-  existing slot.
-- Drop a mix if Mix B's R2 price exceeds the user's per-run ceiling
-  (default: same as the eligibility cap of $1.1/M out).
+**Mix A — §4.0 cascade output.** Run §4.0's Phase 1-4 cascade over
+the Step 2 survivors. The cascade produces 4 distinct families, one
+per slot (haru/natsu/aki/fuyu), with quality/diversity/cost/training
+gates applied in order. Slot labels: R1 = haru, R2 = natsu, R3 = aki,
+R4 = fuyu. If fewer than 4 families survive, drop Mix A and explain
+in the report's Scope section.
 
-**Tie-break precedence** when two survivors have identical
-`pricing.completion`:
+**Mix B — workflow-side non-flash carve-out (optional).** Same
+R1-R4 assignment as Mix A but with this single carve-out: **R2 =
+natsu** gets the cheapest coding- or reasoning-tuned non-flash
+survivor in the cheapest family (instead of the cheapest survivor).
+If any family surfaced by Step 3 was not present in the prior report,
+that family gets a slot in Mix B — prefer it over repeating an
+existing slot. Drop Mix B if its R2 price exceeds the user's per-run
+ceiling (default: same as the §4.0 eligibility cap on output price).
+
+**Tie-break precedence** when two survivors tie on the §4.0 sort key:
 1. If Step 2½ ran and both have `bench_verified: true` → use the higher
-   `bench_score` *only for R1 and R2*. R3 and R4 stay on price.
-2. Lower `pricing.input_cache_read`.
-3. Longer context length.
-4. Family not used yet (alphabetical).
+   `bench_score` *only for R1 and R2*. R3 and R4 stay on the §4.0 sort
+   key.
+2. §4.0's secondary tie-breaks (typically: lower cache_read, longer
+   context, family not used yet alphabetical) — read §4.0 to confirm
+   the current ordering before applying.
 
-Record both mixes as full tables in the report — same column shape as
-2026-08-23's note (id, family, `/M in`, `/M out`, `/M cache_r`, `/
-M cache_w`, ctx, T/Tb/R, training-risk, bench_score, why).
+Record Mix A as a full table in the report — same column shape as the
+table in §4.0 (id, family, `/M in`, `/M out`, `/M cache_r`, `/M
+cache_w`, ctx, T/Tb/R, training-risk, bench_score, why). If Mix B
+is rendered, use the same column shape.
 
 ### Step 5 — Training-risk pass
 
@@ -328,8 +381,13 @@ provider_pin_strategy: null
     passed or step was skipped) — per-model pinned-provider tables.
 11. **Uncertainty / re-verify** — anything ⚠ in training-risk, anything
     missing in bench_score, anything else not closed.
-12. **Recommended destination** — once a mix is applied, promote
-    the chosen rows into plan §4 and commit the plan update.
+12. **Recommended destination** — once a mix is applied, refresh the
+    §4 locked-picks table with the chosen rows (or note the post-
+    cascade pick in §11 if §4 itself was not updated by this
+    revaluation). The §4.0 eligibility + decision rule is the
+    source of truth and should **not** be edited by this revaluation
+    unless a new rule was discovered — in which case edit §4.0 first
+    and bump its `last-updated`, then re-run this command.
 13. **Date captured** — ISO date, for staleness tracking.
 
 After writing the file, commit via `kilo-shared save "checkpoint:
@@ -507,7 +565,7 @@ its own entry in the catalog).
 - **Editing `model:` without the `chezmoi diff` preview.** The user
   has been bitten by surprise writes before.
 - **Picking a mix without a cache_read ratio check.** A survivor that
-  fits Step 2's `≤ 0.2×` rule one week may slip above the cap the next;
+  fits Step 2's `≤ 0.5×` rule one week may slip above the cap the next;
   the Step 2 filter must re-run, even when only `pricing.prompt`
   changed.
 - **Skipping Step 2½ silently.** If the user said "include benchmark
@@ -560,8 +618,11 @@ its own entry in the catalog).
     §4 and only on user request.
   - Re-validate the permission block. Stays in plan §3.5 and
     `references/permission-block.md`.
-  - Promote picks back into plan §4. That's a separate commit after
-    apply — see Step 11 of the plan.
+  - Promote picks back into plan §4 (the locked-picks table).
+    That's a separate commit after apply — see Step 11 of the plan.
+    **This command does NOT edit §4.0** (the eligibility + decision
+    rule); §4.0 is the source of truth and changes to it require a
+    separate review pass.
   - Re-pin providers for models that were not picked this run.
     Step 9 only touches the 4 picked ids; legacy `order:` blocks
     for other models are unchanged.
@@ -572,8 +633,14 @@ its own entry in the catalog).
   surface, model endpoints, ZDR preview list.
 - `.agents/kilo/skills/subagent-fleet/SKILL.md` — fleet role definitions,
   current model picks (`references/model-picks.md`).
-- `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` §4 —
-  plan §4 model picks; canonical pick record after each revaluation.
+- `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
+  - **§4.0** (Eligibility + decision rule) — single source of truth for
+    eligibility rules (R1-Rn), role-dependent quality thresholds, and
+    the Phase 1-4 cascade. **This workflow reads §4.0 dynamically** —
+    do not duplicate the rules inline.
+  - **§4** (Locked-picks table) — secondary reference; refreshed by
+    Step 6 / Step 11 after each revaluation.
+  - **§11** (Subagent file locations) — file paths for Step 8 apply.
 - `.tmp/docs/notes/2026-08-23-subagent-flash-model-picks.md` — Rev 1
   (flash-class only) + Rev 2 (relaxed filter) research record; basis for
   the default filter rule values.
