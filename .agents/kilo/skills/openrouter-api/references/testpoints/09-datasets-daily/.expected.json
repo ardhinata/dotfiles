@@ -1,6 +1,7 @@
 {
   "status": 200,
   "shape": "object",
+  "auth": "cli",
   "keys_required": [
     "data"
   ]

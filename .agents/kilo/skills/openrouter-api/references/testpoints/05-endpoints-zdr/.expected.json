@@ -1,8 +1,8 @@
 {
   "status": 200,
-  "shape": "object",
+  "shape": "array",
+  "auth": "cli",
   "keys_required": [
-    "data",
     "provider_name",
     "model_id",
     "pricing"

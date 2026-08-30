@@ -2,22 +2,39 @@
 name: openrouter-api
 description: >
   Query the OpenRouter REST API to discover models, providers, endpoints,
-  benchmarks, datasets, classifications, and workspaces. Authenticates
-  with $OPENROUTER_API_KILO_CLI. Use when planning subagents that need
-  specific model ids, listing available providers/endpoints for a model,
-  looking up benchmark scores, inspecting dataset rankings, or
-  reading/updating workspaces. Key terms include openrouter, models,
-  providers, endpoints, benchmarks, datasets, subagent, model selection,
-  and OPENROUTER_API_KILO_CLI.
+  benchmarks, datasets, classifications, and inference history. Uses
+  $OPENROUTER_API_KILO_CLI for read-only discovery and model picks, and
+  $OPENROUTER_MANAGEMENT_KEY for account-admin endpoints — the per-user
+  inference log (`/activity`), per-generation request & usage metadata
+  (`/generation`, `/generation/content`), API key CRUD (`/keys`), and
+  workspace management (`/workspaces`). Use when planning subagents that
+  need specific model ids, listing available providers/endpoints for a
+  model, looking up benchmark scores, inspecting dataset rankings,
+  auditing per-generation cost and latency, reading the daily inference
+  log, or managing API keys / workspaces. Key terms include openrouter,
+  models, providers, endpoints, benchmarks, datasets, subagent, model
+  selection, OPENROUTER_API_KILO_CLI, OPENROUTER_MANAGEMENT_KEY, generation,
+  activity, inference log.
 ---
 
 # OpenRouter API
 
-Read-only and workspace-management access to OpenRouter's REST API
-(`https://openrouter.ai/api/v1`). Covers 7 groups: **benchmarks**,
-**classifications**, **datasets**, **endpoints**, **models**,
-**providers**, **workspaces**. Use it to pick exact model IDs for
-subagents, inspect provider routing, or manage workspaces.
+Read-only discovery and account-admin access to OpenRouter's REST API
+(`https://openrouter.ai/api/v1`). Covers 9 groups: **activity**,
+**benchmarks**, **classifications**, **datasets**, **endpoints**,
+**generation**, **keys**, **models**, **providers**, **workspaces**. Use
+it to pick exact model IDs for subagents, inspect provider routing,
+audit per-generation cost / latency / token usage, browse the daily
+inference log, or manage API keys and workspaces.
+
+Two auth scopes are in play:
+
+- **CLI key** — `$OPENROUTER_API_KILO_CLI`. Read-only discovery, plus
+  per-generation lookups for IDs the key itself owns.
+- **Management key** — `$OPENROUTER_MANAGEMENT_KEY`. Account-admin
+  endpoints (inference log, key / workspace CRUD) and per-generation
+  lookups across any ID in the account. Cannot be used for inference
+  (`/chat/completions`, etc.) — it is admin-only by design.
 
 ## When to load
 
@@ -27,7 +44,13 @@ subagents, inspect provider routing, or manage workspaces.
 - Looking up benchmark scores (Artificial Analysis, Design Arena,
   OpenRouter tau-bench / GPQA / web-search).
 - Listing dataset rankings (apps, daily top models, session cost).
-- Listing / reading / writing workspaces (read or the user asks).
+- Auditing a specific `gen-...` request — token counts, cost, latency,
+  provider routing, the actual prompt / completion text.
+- Reading the account-wide daily inference log (`/activity`) to debug
+  spend or attribute a run to a model + provider.
+- Listing / creating / deleting API keys (`/keys`) — provisioning
+  customers, rotating keys, or auditing the key fleet.
+- Reading workspaces (`/workspaces`).
 
 **Don't load** for raw `/chat/completions` or `/messages` inference calls —
 that's the OpenAI/Anthropic SDK pattern and lives outside this skill. The
@@ -36,14 +59,22 @@ and is useful for routing decisions even before any inference happens.
 
 ## Auth
 
-Env var: **`$OPENROUTER_API_KILO_CLI`** — read-only or workspace-scoped
-OpenRouter API key. If unset, stop and ask the user to export it; do not
-guess or fall back to a different var.
+Two env vars, picked per endpoint by auth scope:
+
+| Env var | Scope | Endpoints |
+|---|---|---|
+| `$OPENROUTER_API_KILO_CLI` | read-only discovery + own-generation lookup | `/models*`, `/providers`, `/endpoints/zdr`, `/benchmarks`, `/classifications`, `/datasets/*`, `/generation` (own IDs), `/generation/content` (own IDs) |
+| `$OPENROUTER_MANAGEMENT_KEY` | account admin — inference log, any-generation lookup, key / workspace CRUD | `/activity`, `/keys/*`, `/workspaces*`, `/generation` (any ID), `/generation/content` (any ID) |
+
+Stop and ask the user to export the relevant var if it's unset; do not
+guess or fall back to a different var. The management key cannot make
+inference calls — it is rejected at `/chat/completions` by design.
 
 ```
-Authorization: Bearer $OPENROUTER_API_KILO_CLI
-HTTP-Referer:    <your app url>     # optional but recommended for rankings
-X-OpenRouter-Title: <app name>      # optional
+Authorization: Bearer $OPENROUTER_API_KILO_CLI          # or
+Authorization: Bearer $OPENROUTER_MANAGEMENT_KEY
+HTTP-Referer:       <your app url>     # optional but recommended for rankings
+X-OpenRouter-Title: <app name>         # optional
 ```
 
 `HTTP-Referer` and `X-OpenRouter-Title` are global headers defined as
@@ -83,7 +114,11 @@ One-line summary:
 | Benchmark scores (AA / Design Arena / OpenRouter) | `GET /benchmarks` |
 | Task market-share classifications | `GET /classifications/task` |
 | App / daily / session-cost rankings | `GET /datasets/{app-rankings,rankings-daily,session-cost}` |
-| Workspaces *(needs management key)* | `GET /workspaces` |
+| Per-generation request & usage metadata *(own ID — CLI key works)* | `GET /generation?id=<gen-...>` |
+| Per-generation prompt + completion text *(own ID — CLI key works)* | `GET /generation/content?id=<gen-...>` |
+| Account-wide daily inference log *(needs management key)* | `GET /activity` |
+| API keys — list / get / create / update / delete *(needs management key)* | `GET/POST /keys`, `GET/PATCH/DELETE /keys/{hash}` |
+| Workspaces — list / get / create / update / delete *(needs management key)* | `GET /workspaces` |
 
 For per-model provider routing or pricing deltas, always fetch both
 `GET /model/{author}/{slug}` and `GET /models/{author}/{slug}/endpoints`
@@ -183,6 +218,90 @@ the `id` value verbatim. Do not paraphrase, downgrade, or substitute a
 exact slug. If you must suggest an alternative, name both the original
 and the alternative so the user can confirm.
 
+## Generation lookups (per-request audit)
+
+Every `/chat/completions` (and `/messages`) response carries a top-level
+`id` of the form `gen-...`. Two endpoints resolve that ID into
+inspectable detail:
+
+```bash
+# Request & usage metadata (model, provider, latency, tokens, cost)
+curl -sS -G \
+  -H "Authorization: Bearer $OPENROUTER_API_KILO_CLI" \
+  -d "id=$GENERATION_ID" \
+  https://openrouter.ai/api/v1/generation \
+  | jq '.data | {id, model, provider_name, tokens_prompt, tokens_completion,
+                  latency, generation_time, total_cost, finish_reason,
+                  upstream_id, request_id, session_id}'
+
+# Stored prompt and completion text (only if ZDR was NOT enabled)
+curl -sS -G \
+  -H "Authorization: Bearer $OPENROUTER_API_KILO_CLI" \
+  -d "id=$GENERATION_ID" \
+  https://openrouter.ai/api/v1/generation/content \
+  | jq '.data | {id, completion, reasoning}'
+```
+
+Both endpoints need `?id=<gen-...>` — omitting it returns a Zod
+validation 400, not 404. The CLI key can read IDs that the key itself
+authored; the management key can read any ID in the account.
+
+Useful fields in the metadata response (per the 2026-08-30 snapshot):
+
+| Field | Type | Use |
+|---|---|---|
+| `model` | string | The canonical model slug that served the request (`openai/gpt-5.2`, …). |
+| `provider_name` | string\|null | The provider that handled the request (`OpenAI`, `Infermatic`, `deepseek`, …). |
+| `tokens_prompt` / `tokens_completion` | int | Native tokenizer counts for billing. |
+| `native_tokens_cached` | int | Cached-prompt tokens (drives `cache_discount`). |
+| `native_tokens_reasoning` | int | Reasoning tokens, when the model exposes them. |
+| `latency` / `generation_time` / `moderation_latency` | number (ms) | Total wall time vs model-inference time vs moderation overhead. |
+| `total_cost` / `upstream_inference_cost` | number (USD) | What the user paid vs what OpenRouter paid upstream. |
+| `usage` | number (USD) | Effective billed amount (after discounts). |
+| `cache_discount` | number\|null | Savings from prompt-cache hits. |
+| `provider_responses[]` | array | Per-attempt record for fallbacks (`provider_name`, `latency`, `status`, `model_permaslug`). |
+| `upstream_id` | string | The provider's own ID (e.g. `chatcmpl-…`). |
+| `request_id` / `session_id` | string | Group generations that share an API request or user session. |
+| `streamed` / `cancelled` / `is_byok` | bool | Streaming, cancellation, BYOK flag. |
+| `origin` / `http_referer` / `user_agent` | string | Caller-side attribution headers. |
+| `workspace_id` / `app_id` / `external_user` | string\|null | Workspace / app / external-user attribution. |
+
+The content response returns the actual stored `prompt`, `completion`,
+and `reasoning` strings. ZDR-disabled requests are the only ones with
+content; for ZDR-enabled requests the field comes back empty.
+
+## Inference log (`/activity`)
+
+The CLI key returns **403** with `Only management keys can fetch activity
+for an account`. The management key returns a daily-rolled-up activity
+log, one row per `(date, model, endpoint)`:
+
+```bash
+curl -sS -H "Authorization: Bearer $OPENROUTER_MANAGEMENT_KEY" \
+  https://openrouter.ai/api/v1/activity \
+  | jq '.data | sort_by(-.date) | .[0:5]
+        | map({date, model, provider_name, requests, usage, prompt_tokens,
+               completion_tokens, reasoning_tokens})'
+```
+
+Per-row fields:
+
+| Field | Description |
+|---|---|
+| `date` | UTC date the row aggregates (e.g. `2026-08-28 00:00:00`). |
+| `model_permaslug` / `model` | Canonical slug and the more readable short name. |
+| `endpoint_id` / `provider_name` | Which endpoint / provider served the row. |
+| `usage` | Billed USD (BYOK excluded). |
+| `byok_usage_inference` | BYOK-attributed USD. |
+| `requests` / `byok_requests` | Request counts (BYOK vs non-BYOK). |
+| `prompt_tokens` / `completion_tokens` / `reasoning_tokens` | Token totals. |
+
+Use it to attribute spend to a model + provider, debug a sudden spike,
+or audit what BYOK vs non-BYOK traffic looked like. The endpoint returns
+the full history (no pagination parameter is documented — clients that
+need windows should filter client-side or use `/analytics` when
+available).
+
 ## Drift recovery
 
 When the API drifts from what this skill describes — a 404 where the
@@ -192,12 +311,14 @@ known-good curl starting to fail — do this:
 1. **Run the probe driver**:
    ```bash
    cd .agents/kilo/skills/openrouter-api
-   bin/probe-openrouter-api.sh                # run all testpoints
+   bin/probe-openrouter-api.sh                # run all testpoints (CLI + mgmt)
    bin/probe-openrouter-api.sh 13-model-unencoded  # run one
    ```
-   The script reads `$OPENROUTER_API_KILO_CLI`, replays every
-   testpoint in `references/testpoints/`, and prints `PASS`/`FAIL`
-   per endpoint. Exits non-zero on any FAIL.
+   The script reads `$OPENROUTER_API_KILO_CLI` and
+   `$OPENROUTER_MANAGEMENT_KEY`, replays every testpoint in
+   `references/testpoints/` (CLI-key testpoints and management-key
+   testpoints are separate), and prints `PASS`/`FAIL` per endpoint.
+   Exits non-zero on any FAIL.
 2. **Diff the catalog against the new probe output**: if a testpoint
    started FAILing, check `references/verified-endpoints.md` —
    the drift class field tells you what used to be wrong and is now
@@ -219,6 +340,9 @@ must agree.
 - **`$OPENROUTER_API_KILO_CLI` unset** — the API returns 401 and the
   spec becomes unusable. Stop and tell the user to export the var; do
   not retry with a different var name.
+- **`$OPENROUTER_MANAGEMENT_KEY` unset** — admin endpoints return 401
+  (`/keys`, `/workspaces`) or 403 (`/activity`). Stop and tell the user
+  to export the var; do not try `/keys` with the CLI key.
 - **`/models/user` empty result** — the key has no workspace, or the
   workspace has no provider preferences set. Fall back to
   `GET /models/{author}/{slug}/endpoints` for the same routing data.
@@ -232,10 +356,23 @@ must agree.
   to 30 req/min per key, 500 req/day per account. Slow down or cache.
 - **`/endpoints/zdr` is a preview** — the doc note says "preview the
   impact of ZDR"; treat the listing as advisory, not authoritative.
-- **`/workspaces` returns 401 with the CLI key** — workspace-scoped
-  write/admin endpoints require a key with management scope, not the
-  read-only CLI key. Don't pretend the CLI key can list workspaces; tell
-  the user which scope is needed.
+- **`/workspaces` returns 401 with the CLI key**, **`/activity` returns
+  403 with the CLI key**, **`/keys` returns 401 with the CLI key** —
+  all three require `$OPENROUTER_MANAGEMENT_KEY`. Don't pretend the CLI
+  key can list workspaces or read the inference log; tell the user which
+  scope is needed.
+- **`/generation` without `?id=...`** — returns **400** with a Zod
+  validation envelope (`{success:false, error:{name:"ZodError", …}}`),
+  not 404. Always pass `?id=<gen-...>`.
+- **`/generation` with an unknown ID** — returns **404** with
+  `{error:{message:"Generation <id> not found", code:404}}`. The CLI
+  key may also get 403 if the ID was authored by a different key in
+  the same account — use the management key in that case.
+- **`/generation/content` for ZDR-enabled requests** — content is
+  intentionally empty (`completion`, `reasoning`, `prompt` all
+  null/missing). ZDR is a retention opt-out, not a permission error.
+- **Management key used at `/chat/completions`** — rejected by design.
+  The key has no inference scope; it is admin-only.
 
 ## Anti-patterns
 
@@ -250,22 +387,33 @@ must agree.
   *what shape the response has*, not for *which models exist*.
 - Sending the raw OpenAPI spec to the user — it's 39k lines. Cite
   fields by name (`pricing.prompt`, `supported_parameters`) and only
-  attach the bundled 7-group subset when the user explicitly asks.
+  attach the bundled 9-group subset when the user explicitly asks.
 - Recreating subagent specs from training data. The model id space
   changes weekly; always re-fetch `/models` before picking a model.
+- Calling `/activity`, `/keys`, or `/workspaces` with the CLI key and
+  silently switching to the management key on 401/403 — the auth
+  scope is a property of the request, not the response. Pick the key
+  first, name the env var, and only then probe.
+- Hitting `/generation` without `?id=...` and reasoning from the 400
+  Zod envelope as if it were a real response. Always pass an id; if
+  the id is unknown the response is 404, not 400.
+- Reading `provider_responses[]` as a single record — it is an array
+  covering fallback attempts. `provider_name` and `latency` at the top
+  level of `/generation` are the *successful* attempt, not the
+  aggregate.
 
 ## References
 
 - [references/verified-endpoints.md](references/verified-endpoints.md) —
   per-endpoint HTTP contract (status, body size, shape, drift class),
-  generated from the 2026-08-25 probe snapshot. **Load this when you
+  generated from the 2026-08-30 probe snapshot. **Load this when you
   need to confirm an endpoint's response shape before parsing it.**
 - [references/testpoints/](references/testpoints/) — replayable
   curl fixtures + `.expected.json` shape markers. One dir per
   endpoint or query-shape probe. Run
   `bin/probe-openrouter-api.sh` to verify the contract still holds.
 - [references/openrouter-openapi.yaml](references/openrouter-openapi.yaml) —
-  stripped OpenAPI 3.x spec (7 groups; 19 paths, ~15k lines). Read this
+  stripped OpenAPI 3.x spec (9 groups; 19 paths, ~15k lines). Read this
   when you need the canonical field names or rate-limit notes for a
   specific endpoint. **Note: this bundled spec may carry the same
   encoding bugs that were fixed in the prose; verify against the live

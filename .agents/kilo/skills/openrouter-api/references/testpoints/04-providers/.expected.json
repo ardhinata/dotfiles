@@ -1,9 +1,11 @@
 {
   "status": 200,
-  "shape": "object",
+  "shape": "array",
+  "auth": "cli",
   "keys_required": [
-    "data",
     "slug",
-    "name"
+    "name",
+    "headquarters",
+    "datacenters"
   ]
 }

@@ -2,8 +2,10 @@
 set -u
 
 # Replay OpenRouter API testpoints and diff against .expected.json shape.
-# Reads $OPENROUTER_API_KILO_CLI. Writes nothing to git (no auth headers,
-# no bodies committed outside the snapshot).
+# Reads $OPENROUTER_API_KILO_CLI and $OPENROUTER_MANAGEMENT_KEY (the
+# latter only for testpoints that opt in via `.expected.json`'s `auth`
+# field set to "mgmt"). Writes nothing to git (no auth headers, no
+# bodies committed outside the snapshot).
 #
 # Usage:
 #   bin/probe-openrouter-api.sh                # run all testpoints
@@ -13,8 +15,13 @@ set -u
 # Testpoint layout (one dir per endpoint or query-shape probe):
 #   references/testpoints/<name>/
 #     request.sh    - bash script that prints the path segment to GET
-#     .expected.json - {"status": <int>, "keys_required": [...], "shape": "object"|"array"}
+#     .expected.json - {"status": <int>, "auth": "cli"|"mgmt",
+#                       "keys_required": [...], "shape": "object"|"array"}
 #     README.md     - one-paragraph note on what it checks
+#
+# Per-testpoint auth: `.expected.json`'s `auth` field defaults to "cli".
+# Set it to "mgmt" for testpoints that need $OPENROUTER_MANAGEMENT_KEY
+# (e.g. /keys, /workspaces, /activity, /generation cross-key).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -30,10 +37,6 @@ if [[ "${1:-}" == "--list" ]]; then
   exit 0
 fi
 
-if [[ -z "${OPENROUTER_API_KILO_CLI:-}" ]]; then
-  echo "FAIL: \$OPENROUTER_API_KILO_CLI is unset. Export the API key and retry." >&2
-  exit 2
-fi
 if ! command -v jq >/dev/null 2>&1; then
   echo "FAIL: jq is required." >&2
   exit 2
@@ -64,9 +67,23 @@ run_one() {
     return 1
   fi
 
+  local auth
+  auth="$(jq -r '.auth // "cli"' "$expected")"
+  local key_var="OPENROUTER_API_KILO_CLI"
+  local key_label="cli"
+  if [[ "$auth" == "mgmt" ]]; then
+    key_var="OPENROUTER_MANAGEMENT_KEY"
+    key_label="mgmt"
+  fi
+  local key_value="${!key_var:-}"
+  if [[ -z "$key_value" ]]; then
+    echo "SKIP  $name  (auth=$key_label, \$$key_var unset)"
+    return 0
+  fi
+
   local raw status body expected_status missing k
   raw="$(curl -sS -w '\n%{http_code}' \
-    -H "Authorization: Bearer $OPENROUTER_API_KILO_CLI" \
+    -H "Authorization: Bearer $key_value" \
     -H "HTTP-Referer: https://kilo.local/probe" \
     -H "X-OpenRouter-Title: kilo-probe" \
     --max-time 30 \
@@ -77,7 +94,7 @@ run_one() {
 
   expected_status="$(jq -r '.status // 200' "$expected")"
   if [[ "$status" != "$expected_status" ]]; then
-    echo "FAIL  $name  path=$path  status=$status (expected $expected_status)"
+    echo "FAIL  $name  auth=$key_label  path=$path  status=$status (expected $expected_status)"
     return 1
   fi
 
@@ -112,30 +129,45 @@ run_one() {
   summary="$(jq -c 'if type=="array" then "array(\(length))"
                  elif type=="object" then "object(keys=\(keys|length))"
                  else type end' <<<"$body" 2>/dev/null || echo "non-json")"
-  echo "PASS  $name  status=$status  body=$summary"
+  echo "PASS  $name  auth=$key_label  status=$status  body=$summary"
 }
+
+# Pre-flight: at least one key must be set; we don't want to be ambiguous
+# about why nothing ran.
+if [[ -z "${OPENROUTER_API_KILO_CLI:-}" && -z "${OPENROUTER_MANAGEMENT_KEY:-}" ]]; then
+  echo "FAIL: both \$OPENROUTER_API_KILO_CLI and \$OPENROUTER_MANAGEMENT_KEY are unset. Export at least one and retry." >&2
+  exit 2
+fi
 
 filter="${1:-}"
 ran=0
+skipped=0
 failed=0
 for tp in "$TESTPOINTS_DIR"/*/; do
   [[ "$(basename "$tp")" == snapshot-* ]] && continue
   if [[ -n "$filter" ]] && [[ "$(basename "$tp")" != "$filter" ]]; then
     continue
   fi
-  if run_one "$tp"; then
+  out="$(run_one "$tp" 2>&1)"
+  rc=$?
+  if [[ "$out" == SKIP* ]]; then
+    skipped=$((skipped+1))
+    echo "$out"
+  elif (( rc == 0 )); then
     ran=$((ran+1))
+    echo "$out"
   else
     ran=$((ran+1))
     failed=$((failed+1))
+    echo "$out"
   fi
 done
 
-if (( ran == 0 )); then
+if (( ran == 0 && skipped == 0 )); then
   echo "No testpoints matched (filter='$filter'). Try --list." >&2
   exit 2
 fi
 
 echo "----"
-echo "Ran $ran, failed $failed"
+echo "Ran $ran, skipped $skipped, failed $failed"
 exit $(( failed > 0 ? 1 : 0 ))
