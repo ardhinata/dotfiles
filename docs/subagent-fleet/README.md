@@ -23,7 +23,7 @@ specific operational changes without rewriting the canonical design.
 
 | Plan | Purpose |
 |---|---|
-| `.tmp/docs/plans/2026-08-30-subagent-max-turn-limit.md` | Add explicit `steps` / `max_tokens` per-agent runtime caps (currently implicit; defaults to `steps: 25, max_tokens: 4000`). |
+| `.tmp/docs/plans/2026-08-30-subagent-max-turn-limit.md` | Per-agent `steps` / `maxTokens` runtime caps (applied 2026-08-30T13:14Z via by-hand frontmatter edit; locked picks in [`dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md`](../../dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md)). |
 | `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` | **Old location** of the canonical design — kept readable as a `moved_from:` pointer until the migration is verified end-to-end. Will be deleted after the next revaluation confirms no site still points at the old path. |
 
 ## Why this directory exists

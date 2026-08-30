@@ -190,21 +190,21 @@ missed the very hidden assumptions the role exists to surface.
 |---|---|---|
 | R1 | Output price ≤ $1.1 / M tokens (`pricing.completion ≤ 1.1e-6`) | Verified 2026-08-23 |
 | R2 | Input price ≤ $0.6 / M tokens (`pricing.prompt ≤ 0.6e-6`) | Verified 2026-08-23 |
-| R3 | Cache read present, > 0, ≤ 0.2× input price | Verified 2026-08-23 |
+| R3 | Cache read present, > 0, ≤ 0.5× input price | Updated 2026-08-30 — relaxed from 0.2× |
 | R4 | Real-time only (no `:batch` / `:exacto` / other deferred tag) | Verified 2026-08-25 |
 | R5 | Cheapest provider route accepts both `temperature` and `tools` | Verified 2026-08-23 |
 | **R6** | **Context length ≥ 262144 tokens (≈256K)** | **New 2026-08-30** — backstop against small-context models with no benchmark data |
-| **R7** | **AA intelligence index ≥ role-dependent threshold (aki: 30; haru/natsu/fuyu: 15)** | **New 2026-08-30** — capability floor |
+| **R7** | **AA intelligence index ≥ role-dependent threshold (aki: 30; haru/natsu/fuyu: 15)** | **New 2026-08-30** — capability floor; a model below the floor cannot enter the mix for that slot regardless of cost or family |
 
 **Decision rule (Phase 1 → Phase 4 cascade):**
 
-1. **Phase 1 — Quality gate.** Drop survivors that fail R7 for the slot
-   being filled. R7 thresholds are role-dependent: the assumption-auditor
-   role depends on the strongest reasoning baseline (per §4.1, "aki
-   dominates the cohort on every AA axis … assumption-auditor benefits
-   from the strongest reasoning baseline"), so R7 for aki is set higher
-   than for the other three slots. The haru/natsu/fuyu slots tolerate
-   lower quality because their roles are not pure-reasoning.
+1. **Phase 1 — Quality gate.** Drop survivors that fail R7 for the
+   slot being filled. R7 sets a hard floor on capability — no
+   subagent goes to a model below the floor for that role. aki's
+   floor is the highest because the role is reason-grounded;
+   haru/natsu/fuyu share a lower floor because the roles are
+   task-shaped, not pure reasoning. A survivor that fails R7
+   cannot enter the mix at any cost.
 2. **Phase 2 — Diversity gate.** Bucket survivors by family (pre-slash
    prefix). Pick the cheapest survivor in each of 4 distinct families.
 3. **Phase 3 — Cost gate (exception).** If a survivor's per-call cost at
