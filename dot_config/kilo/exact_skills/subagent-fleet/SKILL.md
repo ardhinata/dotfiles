@@ -32,11 +32,12 @@ is the entry point; the canonical plan is the source of truth.
 ## Source of truth
 
 The canonical plan is
-`.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` in the
-chezmoi repo (`~/.local/share/chezmoi/` on machines with the dotfiles
-repo applied). When that file is reachable, treat it as authoritative
-and ignore the bundled references. When it is not reachable (other
-projects), use the bundled references below as the source of truth.
+`docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` in
+the chezmoi repo (`~/.local/share/chezmoi/` on machines with the
+dotfiles repo applied). When that file is reachable, treat it as
+authoritative and ignore the bundled references. When it is not
+reachable (other projects), use the bundled references below as the
+source of truth.
 
 ## References
 

@@ -1,4 +1,4 @@
-Use the subagent fleet (`haru` / `natsu` / `aki` / `fuyu` / `shiki`) for stuck-task recovery and for load-bearing verification. The fleet design, permission block, output contracts, and invocation procedure live in `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` (canonical plan). This rule owns the **when**.
+Use the subagent fleet (`haru` / `natsu` / `aki` / `fuyu` / `shiki`) for stuck-task recovery and for load-bearing verification. The fleet design, permission block, output contracts, and invocation procedure live in `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` (canonical plan). This rule owns the **when**.
 
 ## When
 
@@ -43,6 +43,6 @@ Pick the research subagent whose stance fits the failure shape:
 ## Boundary
 
 - **When to call the fleet** (this rule).
-- **How the fleet is configured, what each role does, the permission block, output contracts, invocation patterns** → `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` (canonical plan).
+- **How the fleet is configured, what each role does, the permission block, output contracts, invocation patterns** → `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` (canonical plan).
 - **Per-model sampling, variants, cost ceilings, provider picks** → the same plan §4.
 - **Per-spawn task-prompt budget (≤ 15 lines, no body-duplication, no path/filename override)** → `dot_config/kilo/exact_rules.personal.d/subagent-fleet-task-prompt-budget.md`.

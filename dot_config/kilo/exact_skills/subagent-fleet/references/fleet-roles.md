@@ -1,6 +1,6 @@
 # Fleet Roles (snapshot 2026-08-25)
 
-> Re-verify against `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` §3
+> Re-verify against `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` §3
 > when reachable. Bundled here so other projects do not need the chezmoi repo.
 
 Four research roles (`haru`/`natsu`/`aki`/`fuyu`) + one verifier (`shiki`).

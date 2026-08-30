@@ -1,6 +1,6 @@
 # Invocation Pattern (snapshot 2026-08-25)
 
-> Re-verify against `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` §5
+> Re-verify against `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` §5
 > when reachable.
 
 ## Procedure

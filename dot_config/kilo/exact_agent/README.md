@@ -5,7 +5,7 @@ are managed by chezmoi; their canonical source is
 `dot_config/kilo/exact_agent/` in the chezmoi source repo, deployed
 verbatim to this directory via `chezmoi apply`.
 
-The design is documented in `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md`
+The design is documented in `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
 ("subagent fleet for research + verification"). This README is the human
 quick-start; the plan is the source of truth.
 
@@ -167,7 +167,7 @@ This README and the 5 subagent files were authored in three turns on
 The design rationale (RCAF vs tilted-sampling tradeoff, family-diversity
 constraint, `variant: low` gap, two-pass verification flow, etc.) is
 in the plan at
-`.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md`.
+`docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`.
 
 The per-model provider/benchmark snapshot at
 `.agents/docs/cache/kilo-subagents/2026-08-25-survivor-provider-benchmark-snapshot.md`
@@ -177,7 +177,7 @@ prices drift weekly).
 
 ## See also
 
-- **Plan**: `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` —
+- **Plan**: `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` —
   full design, role descriptions, sampling rationale, validation
   checklist.
 - **Provider benchmark snapshot**:

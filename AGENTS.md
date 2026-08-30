@@ -48,6 +48,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 
 ## Pointers
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
+- **Subagent fleet canonical design** (haru/natsu/aki/fuyu/shiki): `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` (frequently referenced from agent bodies, skill references, the revaluation workflow, and the trigger rule)
 - **Full chezmoi conventions + prefix tables**: `.agents/kilo/skills/chezmoi/SKILL.md`
 - **Project rules**: `.agents/kilo/rules/chezmoi-source-project.md`
 - **Agent-context conventions (AGENTS.md, SKILL.md)**: `.agents/kilo/skills/agent-context/SKILL.md`

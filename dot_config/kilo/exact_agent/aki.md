@@ -1,7 +1,7 @@
 ---
 description: Research subagent aki — meta-list the assumptions the problem statement and leading candidates rely on but never justify
 mode: subagent
-model: openrouter/deepseek/deepseek-v4-flash-0731
+model: mistralai/ministral-3b-2512
 variant: low
 temperature: 0.5
 top_p: 0.9

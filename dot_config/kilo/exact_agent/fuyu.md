@@ -1,7 +1,7 @@
 ---
 description: Research subagent fuyu — compare two or more candidate approaches on a fixed rubric and rank them
 mode: subagent
-model: openrouter/z-ai/glm-4.7-flash
+model: upstage/solar-pro4
 variant: low
 temperature: 1.0
 top_p: 0.95

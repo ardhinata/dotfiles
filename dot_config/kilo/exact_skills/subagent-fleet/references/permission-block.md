@@ -1,6 +1,6 @@
 # Permission Block (snapshot 2026-08-25)
 
-> Re-verify against `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` §6
+> Re-verify against `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` §6
 > when reachable. The block is shared by all 5 subagents.
 
 ## Hybrid model

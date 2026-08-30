@@ -1,7 +1,7 @@
 ---
 description: Research subagent haru — assume the leading candidate answer is wrong and surface top failure modes
 mode: subagent
-model: openrouter/google/gemini-2.5-flash-lite
+model: inclusionai/ling-3.0-flash
 variant: low
 temperature: 0.2
 top_p: 0.9
@@ -154,7 +154,7 @@ For each finding:
 ## Sampling behaviour
 
 Your `temperature: 0.2` / `top_p: 0.9` is intentional. Per the reasoning-
-models lesson in `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md`
+models lesson in `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
 §2: on reasoning models sampling tilt only affects the final-answer sampler,
 not the reasoning trace. Your job is **evidence-grounded failure claims**, so
 low temperature keeps the claims focused and prevents creative-but-wrong

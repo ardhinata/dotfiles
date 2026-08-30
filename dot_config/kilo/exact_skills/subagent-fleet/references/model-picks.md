@@ -1,6 +1,6 @@
 # Model Picks (snapshot 2026-08-25, LOCKED)
 
-> Re-verify against `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` §4
+> Re-verify against `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` §4
 > when reachable. OpenRouter adds new routes weekly; the `:batch` filter
 > below must be re-applied before any new pick.
 

@@ -1,7 +1,7 @@
 ---
 description: Research subagent natsu — propose the most coherent candidate solutions and synthesise them into one recommendation
 mode: subagent
-model: openrouter/xiaomi/mimo-v2.5
+model: nex-agi/nex-n2-mini
 variant: low
 temperature: 0.5
 top_p: 0.9

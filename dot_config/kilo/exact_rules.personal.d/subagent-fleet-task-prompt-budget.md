@@ -56,4 +56,4 @@ Full design rationale, the prompt-pre-budget trace, and the budget-form rewrite:
 - **The budget itself** (this rule).
 - **When to call the fleet** → `dot_config/kilo/exact_rules.personal.d/subagent-fleet-trigger.md`.
 - **How the fleet is configured, role definitions, sampling rationale** → `dot_config/kilo/exact_agent/{haru,natsu,aki,fuyu,shiki}.md`.
-- **Fleet design, model picks, provider routing, full prompt-design history** → `.tmp/docs/plans/2026-08-17-subagent-creative-conservative.md` (canonical plan).
+- **Fleet design, model picks, provider routing, full prompt-design history** → `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` (canonical plan).
