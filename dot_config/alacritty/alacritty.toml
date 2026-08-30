@@ -13,12 +13,28 @@ opacity = 0.7
 blur = true
 
 [font]
-normal = {family = "Terminess Nerd Font Propo", style = "Medium"}
-bold = {style = "Bold"}
-italic = {style = "Italic"}
-bold_italic = {style = "Bold Italic"}
+# Terminess Nerd Font (standard variant, not Propo, not Mono). Propo is
+# proportional — alacritty fakes a fixed cell width with per-glyph
+# advance overrides, and KDE's compositor paints the overridden runs
+# out of order, which shows up as one-row tearing on rows that mix
+# box-drawing and braille cells (╰, │, ┌). The Mono variant fixes the
+# tearing but compresses Nerd Font custom glyphs into a narrower cell
+# advance so they render visibly smaller than ASCII. The standard
+# variant keeps Nerd Font glyphs at the natural Nerd Font width while
+# keeping ASCII/Unicode in fixed advances.
+normal = {family = "Terminess Nerd Font", style = "Medium"}
+# bold = {style = "Bold"}
+# italic = {style = "Italic"}
+# bold_italic = {style = "Bold Italic"}
 size = 11.0
-# builtin_box_drawing = false
+# Alacritty ships a built-in rasterizer for the Unicode box-drawing
+# block (U+2500-U+259F), the legacy computing symbol block
+# (U+1FB00-U+1FB3B), and the Powerline glyphs (U+E0B0-U+E0E3). When
+# enabled, those cells never go through the font system, so a row
+# containing ╰ or │ next to braille stays in a single render run.
+# Default is true; set it explicitly so a future `import = [...]`
+# cannot flip it off.
+builtin_box_drawing = true
 
 [selection]
 save_to_clipboard = true
