@@ -6,6 +6,7 @@ steps: 40
 color: "#B45309"
 hidden: false
 permission:
+  "*": ask
   read:
     .encryption_keys/**: deny
     .encrypted_data/**: deny

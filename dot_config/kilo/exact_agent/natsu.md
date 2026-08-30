@@ -1,13 +1,15 @@
 ---
 description: Research subagent natsu — propose the most coherent candidate solutions and synthesise them into one recommendation
 mode: subagent
-model: nex-agi/nex-n2-mini
+model: openrouter/z-ai/glm-5.3-flash
 variant: low
+steps: 40
+maxTokens: 8000
 temperature: 0.5
 top_p: 0.9
 hidden: true
 permission:
-  "*": deny
+  "*": ask
   read: allow
   glob: allow
   grep: allow
@@ -35,6 +37,7 @@ permission:
     "cat *": allow
     "tail *": allow
     "head *": allow
+    "date *": allow
   webfetch: allow
   websearch: allow
   firecrawl_*: allow

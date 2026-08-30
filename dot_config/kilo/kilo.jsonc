@@ -216,6 +216,40 @@
             },
           },
         },
+        // 2026-08-30 canonical §4.0 cascade Mix A — see
+        // .agents/docs/cache/openrouter/2026-08-30-fleet-revaluation-canonical.md
+        "deepseek/deepseek-v4-flash-0731": {
+          "options": {
+            "provider": {
+              "order": ["OpenInference", "Baidu", "Relace"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "z-ai/glm-5.3-flash": {
+          "options": {
+            "provider": {
+              "order": ["Relace", "Modal", "Novita"],
+              "allow_fallbacks": true,
+            },
+          },
+        },
+        "upstage/solar-pro4": {
+          "options": {
+            "provider": {
+              "order": ["upstage"],
+              "allow_fallbacks": false,
+            },
+          },
+        },
+        "qwen/qwen3.7-flash": {
+          "options": {
+            "provider": {
+              "order": ["alibaba"],
+              "allow_fallbacks": false,
+            },
+          },
+        },
       },
     },
     "minimax": {

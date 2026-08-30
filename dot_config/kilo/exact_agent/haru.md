@@ -1,13 +1,15 @@
 ---
 description: Research subagent haru — assume the leading candidate answer is wrong and surface top failure modes
 mode: subagent
-model: inclusionai/ling-3.0-flash
+model: openrouter/deepseek/deepseek-v4-flash-0731
 variant: low
+steps: 40
+maxTokens: 3000
 temperature: 0.2
 top_p: 0.9
 hidden: true
 permission:
-  "*": deny
+  "*": ask
   read: allow
   glob: allow
   grep: allow
@@ -35,6 +37,7 @@ permission:
     "cat *": allow
     "tail *": allow
     "head *": allow
+    "date *": allow
   webfetch: allow
   websearch: allow
   firecrawl_*: allow

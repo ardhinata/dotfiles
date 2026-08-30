@@ -7,7 +7,7 @@ temperature: 0.4
 top_p: 0.95
 hidden: true
 permission:
-  "*": deny
+  "*": ask
   read: allow
   glob: allow
   grep: allow
@@ -35,6 +35,7 @@ permission:
     "cat *": allow
     "tail *": allow
     "head *": allow
+    "date *": allow
   webfetch: allow
   websearch: allow
   firecrawl_*: allow

@@ -1,13 +1,15 @@
 ---
 description: Research subagent aki — meta-list the assumptions the problem statement and leading candidates rely on but never justify
 mode: subagent
-model: mistralai/ministral-3b-2512
+model: openrouter/poolside/laguna-s-2.1
 variant: low
+steps: 40
+maxTokens: 3000
 temperature: 0.5
 top_p: 0.9
 hidden: true
 permission:
-  "*": deny
+  "*": ask
   read: allow
   glob: allow
   grep: allow
@@ -35,6 +37,7 @@ permission:
     "cat *": allow
     "tail *": allow
     "head *": allow
+    "date *": allow
   webfetch: allow
   websearch: allow
   firecrawl_*: allow

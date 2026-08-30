@@ -1,13 +1,15 @@
 ---
 description: Research subagent fuyu — compare two or more candidate approaches on a fixed rubric and rank them
 mode: subagent
-model: upstage/solar-pro4
+model: openrouter/qwen/qwen3.7-flash
 variant: low
+steps: 40
+maxTokens: 6000
 temperature: 1.0
 top_p: 0.95
 hidden: true
 permission:
-  "*": deny
+  "*": ask
   read: allow
   glob: allow
   grep: allow
@@ -35,6 +37,7 @@ permission:
     "cat *": allow
     "tail *": allow
     "head *": allow
+    "date *": allow
   webfetch: allow
   websearch: allow
   firecrawl_*: allow
