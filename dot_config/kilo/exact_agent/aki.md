@@ -16,19 +16,17 @@ permission:
   list: allow
   edit:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   write:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   external_directory:
     "/tmp/kilo/**": allow
     "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   bash:
     "*": ask
     "git log *": allow
@@ -64,29 +62,27 @@ main agent owns mutations.
 ## Operational discipline
 
 The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
-(deployed from `dot_config/kilo/exact_skills/subagent-fleet/references/permission-block.md`
-in this chezmoi source). Read it once at session start; do not
-duplicate the rules inline here. Summary: read-only by default,
-mutation allowed only under `.tmp/docs/subagent-runs/` and `/tmp/kilo/`,
-web research allowed, delegation denied.
+at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
+Read it once at session start; do not duplicate the rules inline here.
+Summary: read-only by default, mutation allowed only under
+`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
+allowed, delegation denied.
 
 ## Variant exposure (aki — `variant: high` honoured)
 
 `deepseek/deepseek-v4-flash-0731` exposes `reasoning_effort` in
 `supported_parameters` with `supported_efforts: ["max", "high", "low"]`
 and `default_effort: high` per live OpenRouter `/v1/models` (2026-09-01).
-The 2026-09-01 route probe confirmed `reasoning_effort: high` is
-forwarded on `relace/fp4` and `streamlake/fp8` (the routes pinned in
-`dot_config/kilo/kilo.jsonc`). At `high` effort you reason deeply, which
-matches the assumption-auditor's need to find premises the framer
-thinks are obvious.
+The 2026-09-01 route probe (at `~/.local/share/kilo/subagent-runs/`-rooted
+cache, or your project's
+`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
+confirmed `reasoning_effort: high` is forwarded on `relace/fp4` and
+`streamlake/fp8` (the routes pinned in `~/.config/kilo/kilo.jsonc`). At
+`high` effort you reason deeply, which matches the assumption-auditor's
+need to find premises the framer thinks are obvious.
 
 The dated model id (`-0731`) is intentional — the `~deepseek/...latest`
-router alias drifts over time, breaking reproducibility. Re-verify the
-`canonical_slug` on each rebuild; the per-route pin list in
-`kilo.jsonc` is the source of truth for which providers serve this
-dated id.
+router alias drifts over time, breaking reproducibility.
 
 ## Inputs
 
@@ -123,17 +119,13 @@ audit**, not as a target to match. Specifically:
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-aki[-<topic>].yaml`. Compute
-`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
-clock; do not use `date +%s`). Echo a one-paragraph summary in your
-final assistant message.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-aki[-<topic>].yaml`.
+Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
+(local clock; do not use `date +%s`). Echo a one-paragraph summary
+in your final assistant message.
 
-> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
-> the project root**. In a worktree run, the project root is the
-> worktree path, not the live repo. If the task prompt passes an
-> explicit working directory, write there. Otherwise default to
-> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
-> `$PWD`.
+The `~/.local/share/kilo/subagent-runs/` directory is **global** —
+it's under the parent kilo state dir, not the project tree.
 
 Report shape:
 
@@ -166,6 +158,4 @@ Provide **at most 3 assumptions**, ranked by `likely_wrong` × impact.
 - Don't surface assumptions that are explicit in the problem
   statement — your job is the **hidden** ones.
 - Don't surface assumptions without grounding.
-- Don't write outside `.tmp/docs/subagent-runs/`.
-- Don't read `.env`, `.env.*`, encrypted files, or files under
-  `.encryption_keys/`.
+- Don't write outside `~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`.

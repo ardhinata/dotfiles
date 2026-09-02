@@ -16,19 +16,17 @@ permission:
   list: allow
   edit:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   write:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   external_directory:
     "/tmp/kilo/**": allow
     "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   bash:
     "*": ask
     "git log *": allow
@@ -64,11 +62,10 @@ main agent owns mutations.
 ## Operational discipline
 
 The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
-(deployed from `dot_config/kilo/exact_skills/subagent-fleet/references/permission-block.md`
-in this chezmoi source). Read it once at session start; do not duplicate
-the rules inline here. Summary: read-only by default, mutation allowed
-only under `.tmp/docs/subagent-runs/` and `/tmp/kilo/`, web research
+at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
+Read it once at session start; do not duplicate the rules inline here.
+Summary: read-only by default, mutation allowed only under
+`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
 allowed, delegation denied.
 
 ## Variant exposure (natsu — `variant: low` honoured)
@@ -77,10 +74,11 @@ allowed, delegation denied.
 per live OpenRouter `/v1/models` (2026-09-01). The `variant: low`
 frontmatter field is honoured on this model — reasoning runs at low
 effort, lower latency and cost than default. The 2026-09-01 route probe
-(`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
+(at `~/.local/share/kilo/subagent-runs/`-rooted cache, or your
+project's `.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
 confirmed `reasoning_effort` is forwarded on `parasail/fp8`,
 `deepinfra/fp8`, and `novita/fp8` (the routes pinned in
-`dot_config/kilo/kilo.jsonc`).
+`~/.config/kilo/kilo.jsonc`).
 
 For the synthesizer role the diversity lever is **prompt-conditioned
 synthesis of multiple research artefacts**, not sampling creativity.
@@ -102,17 +100,13 @@ You receive from the main agent (or from the spawn-time context):
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-natsu[-<topic>].yaml`. Compute
-`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
-clock; do not use `date +%s`). Echo a one-paragraph summary in your
-final assistant message.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-natsu[-<topic>].yaml`.
+Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
+(local clock; do not use `date +%s`). Echo a one-paragraph summary
+in your final assistant message.
 
-> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
-> the project root**. In a worktree run, the project root is the
-> worktree path, not the live repo. If the task prompt passes an
-> explicit working directory, write there. Otherwise default to
-> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
-> `$PWD`.
+The `~/.local/share/kilo/subagent-runs/` directory is **global** —
+it's under the parent kilo state dir, not the project tree.
 
 Report shape:
 
@@ -155,8 +149,5 @@ newness — pick the most defensible candidate first). For each:
 - Don't compare on a rubric — that's fuyu (comparator)'s job.
 - Don't propose solutions that contradict prior haru findings without
   acknowledging haru's failure mode in `open_questions`.
-- Don't speculate without evidence. If you cannot find a `file:line` or
-  URL to back a candidate, drop it.
-- Don't write outside `.tmp/docs/subagent-runs/`.
-- Don't read `.env`, `.env.*`, encrypted files, or files under
-  `.encryption_keys/`.
+- Don't speculate without evidence.
+- Don't write outside `~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`.

@@ -16,19 +16,17 @@ permission:
   list: allow
   edit:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   write:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   external_directory:
     "/tmp/kilo/**": allow
     "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   bash:
     "*": ask
     "git log *": allow
@@ -69,12 +67,11 @@ main agent owns mutations.
 ## Operational discipline
 
 The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
-(deployed from `dot_config/kilo/exact_skills/subagent-fleet/references/permission-block.md`
-in this chezmoi source). Read it once at session start; do not
-duplicate the rules inline here. Summary: read-only by default,
-mutation allowed only under `.tmp/docs/subagent-runs/` and `/tmp/kilo/`,
-web research allowed, delegation denied.
+at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
+Read it once at session start; do not duplicate the rules inline here.
+Summary: read-only by default, mutation allowed only under
+`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
+allowed, delegation denied.
 
 ## Variant exposure (shiki — `variant: high` is load-bearing)
 
@@ -82,17 +79,17 @@ web research allowed, delegation denied.
 `supported_parameters` with `supported_efforts: ["max", "high", "low"]`
 and `default_effort: high` per live OpenRouter `/v1/models` (2026-09-01).
 **`variant: high` is genuinely honoured** on this model — the
-2026-09-01 route probe confirmed forwarding on `relace/fp4` and
-`streamlake/fp8` (the routes pinned in `dot_config/kilo/kilo.jsonc`).
+2026-09-01 route probe (at `~/.local/share/kilo/subagent-runs/`-rooted
+cache, or your project's
+`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
+confirmed forwarding on `relace/fp4` and `streamlake/fp8` (the routes
+pinned in `~/.config/kilo/kilo.jsonc`).
 
 Previously shiki ran on `minimax/minimax-m3` (token-plan route), where
 `reasoning_effort` is silently dropped — see the 2026-09-01
-`reasoning_tokens` invariance probe at
-`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md` §
+`reasoning_tokens` invariance probe in the route-probe cache entry §
 "Control: M3 reasoning_effort invariance". The move to DeepSeek V4
-Flash 0731 restores the verifier's effort lever without changing the
-user's other shiki behaviour (cost is now ~$0.065/M prompt vs M3's
-token-plan zero, but the trade-off buys real effort control).
+Flash 0731 restores the verifier's effort lever.
 
 **`variant: high` is now load-bearing** — the named non-uniformity
 across roles is intentional. natsu and fuyu run at `variant: low`
@@ -103,9 +100,7 @@ verification). haru runs on xiaomi/mimo-v2.5-pro with no variant
 (boolean-toggle model — see haru.md §"Variant exposure").
 
 The dated model id (`-0731`) is intentional — the `~deepseek/...latest`
-router alias drifts over time, breaking reproducibility. The per-route
-pin list in `kilo.jsonc` is the source of truth for which providers
-serve this dated id.
+router alias drifts over time, breaking reproducibility.
 
 ## Inputs
 
@@ -115,12 +110,12 @@ You receive from the main agent:
 - The list of **research subagents that ran** — typically `haru`,
   `natsu`, `aki`, `fuyu` in spawn order, but possibly a subset. Each
   subagent wrote its report to
-  `.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`.
+  `~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`.
 - The **random_seed** if the main agent used seeded random selection.
 
 Read the research reports using the `read` tool against
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`. Do not
-parse message content.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-<role>[-<topic>].yaml`.
+Do not parse message content.
 
 ## Two-pass verification
 
@@ -155,26 +150,20 @@ or for any claim marked `shallow: inconclusive`:
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-shiki.yaml` (shiki does not
-take a topic slug — the role is already disambiguating). Compute
-`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
-clock; do not use `date +%s`). Echo the top recommendation in your
-final assistant message so the main agent sees it without re-reading
-the file.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-shiki.yaml` (shiki
+does not take a topic slug — the role is already disambiguating).
+Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
+(local clock; do not use `date +%s`). Echo the top recommendation in
+your final assistant message so the main agent sees it without
+re-reading the file.
 
-> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
-> the project root**. In a worktree run, the project root is the
-> worktree path, not the live repo. If the task prompt passes an
-> explicit working directory, write there. Otherwise default to
-> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
-> `$PWD`.
->
 > **Note:** the parent agent's permission block may override the
-> `edit`/`write` allowlist for `.tmp/docs/subagent-runs/` (the parent
-> deny-all is *findLast* last-match-wins per
-> `2026-08-15-permissions-actions-precedence.md`). If your write is
-> rejected, fall back to `/tmp/kilo/YYYYMMDD_HHMMss-shiki.yaml` and tell
-> the main agent the canonical location so it can `mv` after the run.
+> `edit`/`write` allowlist for `~/.local/share/kilo/subagent-runs/`
+> (the parent deny-all is *findLast* last-match-wins per
+> `kilo-subagents/2026-08-15-permissions-actions-precedence.md`). If
+> your write is rejected, fall back to `/tmp/kilo/YYYYMMDD_HHMMss-shiki.yaml`
+> and tell the main agent the canonical location so it can `mv` after
+> the run.
 
 Report shape:
 
@@ -232,6 +221,4 @@ is bounded: one call per question.
   `open_questions_for_main_agent`.
 - Don't propose alternatives — that's natsu (synthesizer)'s job. You
   arbitrate between existing proposals, you don't add new ones.
-- Don't write outside `.tmp/docs/subagent-runs/`.
-- Don't read `.env`, `.env.*`, encrypted files, or files under
-  `.encryption_keys/`.
+- Don't write outside `~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`.

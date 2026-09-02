@@ -5,14 +5,22 @@ agents are managed by chezmoi; their canonical source is
 `dot_config/kilo/exact_agent/` in the chezmoi source repo, deployed
 verbatim to this directory via `chezmoi apply`.
 
+**This fleet is globally deployed.** The agent bodies are
+project-agnostic — they work the same way in any working directory.
+Reports land in a global write target
+(`~/.local/share/kilo/subagent-runs/`), not under the project tree.
+
 This fleet was rebuilt 2026-09-01 from scratch (abandoning the
 2026-08-17-subagent-creative-conservative plan and all prior research
 docs) on the user's criterion: **minimise exit-early + thinking-doom-
 loop failure modes**, with family diversity dropped as a constraint.
 The benchmark that drove the shiki model pick is at
-`/tmp/kilo/shiki-bench/judge-20260901_230145.yaml` and the route probe
-at
-`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`.
+`/tmp/kilo/shiki-bench/judge-20260901_230145.yaml` (transient, delete
+when done auditing) and the route probe at
+`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md` (in
+your project's knowledge cache; if missing, see
+`~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
+§"Global write target" for the canonical location pattern).
 
 ## What is this for?
 
@@ -23,8 +31,8 @@ adversarial review, synthesis, meta-auditing, and comparison; the
 verifier arbitrates between them.
 
 The fleet is a research discovery tool — it does not modify code or
-write files outside the report directory (`.tmp/docs/subagent-runs/`
-+ `/tmp/kilo/`).
+write files outside the report directory
+(`~/.local/share/kilo/subagent-runs/`) and `/tmp/kilo/`.
 
 ## The five subagents
 
@@ -82,17 +90,17 @@ Per-model rationale:
 - **shiki** (`deepseek/deepseek-v4-flash-0731`, `variant: high`):
   **previously `minimax/minimax-m3`** — moved 2026-09-01 after the
   benchmark showed M3 silently drops `reasoning_effort` (5-point
-  invariance probe at the route-cache entry confirmed `reasoning_tokens`
-  is constant at 25 across `effort: high`, `effort: low`, no-field,
-  `enabled: true`). The token-plan-on-M3 advantage does not offset
-  the loss of the verifier's effort lever.
+  invariance probe in the route-probe cache entry confirmed
+  `reasoning_tokens` is constant at 25 across `effort: high`,
+  `effort: low`, no-field, `enabled: true`). The token-plan-on-M3
+  advantage does not offset the loss of the verifier's effort lever.
 
 ## Naming
 
 The four research subagents are named after the Japanese four seasons
 (春/夏/秋/冬). The verifier is named **shiki** (四季, "four seasons")
-because it spans all four seasonal roles. The names pair naturally with
-the four prompt-conditioned roles the design depends on:
+because it spans all four seasonal roles. The names pair naturally
+with the four prompt-conditioned roles the design depends on:
 
 - `haru` (spring) — revival / fresh attack; **attacking** the leading
   candidate.
@@ -132,7 +140,7 @@ The main agent **never reads raw research output directly** when ≥2
 research subagents ran. Only shiki's report enters your context. To
 audit, the main agent can surface shiki's full `claims_table`; the raw
 research YAML files are at
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-{haru,natsu,aki,fuyu}[-<topic>].yaml`.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-{haru,natsu,aki,fuyu,shiki}[-<topic>].yaml`.
 
 ## Customisation
 
@@ -143,17 +151,18 @@ back through the chezmoi source tree.
 Three knobs are most useful:
 
 1. **`model:`** — swap the underlying model. Re-verify against live
-   OpenRouter `/v1/models` and re-probe the route pin in `kilo.jsonc`
-   before locking production — OpenRouter prices and route health
-   drift weekly.
+   OpenRouter `/v1/models` and re-probe the route pin in
+   `~/.config/kilo/kilo.jsonc` before locking production — OpenRouter
+   prices and route health drift weekly.
 2. **`variant:`** — only honoured on models that expose
    `reasoning_effort` in `supported_parameters` (DeepSeek V4 Flash,
    Z.ai GLM 5.3 Flash, OpenAI, Anthropic adaptive). On boolean-toggle
    models (Xiaomi MiMo, Google Gemma), `variant:` is silently dropped —
    omit it from frontmatter to avoid the lie.
-3. **`permission:`** — scope edit/write to `.tmp/docs/subagent-runs/`
-   and `/tmp/kilo`. Don't widen edit or bash without a good reason;
-   the read-only default is load-bearing.
+3. **`permission:`** — scope edit/write to
+   `~/.local/share/kilo/subagent-runs/` and `/tmp/kilo`. Don't widen
+   edit or bash without a good reason; the read-only default is
+   load-bearing.
 
 To remove a subagent, delete the file from
 `dot_config/kilo/exact_agent/` in the chezmoi source and run
@@ -163,10 +172,20 @@ To remove a subagent, delete the file from
 
 ### Where reports go
 
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<name>[-<topic>].yaml` — this
-directory is in the shared-context git repo but added to its
-`.gitignore` so the per-run YAML files do not pollute shared-context
-commit history (commit `5d6fd6f`).
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-<name>[-<topic>].yaml`
+
+This directory is **global** — under the parent kilo state dir, not
+the project tree. Reports from any project land in the same place.
+The directory is created on first subagent run; if it doesn't exist
+yet, the subagent's first `mkdir -p` succeeds (it has external
+directory access for this path).
+
+The directory is not git-tracked and not gitignored — it's outside
+all repo working trees. If you want periodic cleanup, add a
+`rm -rf ~/.local/share/kilo/subagent-runs/old-*.yaml` to your shell
+cleanup, or move the reports to a per-project location from the
+parent agent (the parent can `mv` files into
+`<project>/.tmp/docs/subagent-runs/` for cross-worktree visibility).
 
 ### Cost ceiling
 
@@ -205,7 +224,10 @@ and `interactive_terminal` inside every subagent session — subagents
 cannot spawn further subagents or query the user. Parent `permission`
 concatenates; parent `deny` rules survive child permission inheritance.
 The full permission precedence is in
-`.agents/docs/cache/kilo-subagents/2026-08-15-permissions-actions-precedence.md`.
+`.agents/docs/cache/kilo-subagents/2026-08-15-permissions-actions-precedence.md`
+(in this project's knowledge cache; equivalent docs live at
+`~/.config/kilo/`-rooted references if your project lacks
+`.agents/docs/cache/`).
 
 ## Plan history
 
@@ -217,30 +239,36 @@ The full permission precedence is in
   `dot_config/kilo/exact_agent/`.
 - **2026-08-30** — empirical-pass halt (kilo `task` tool does not
   surface `gen-...` IDs, blocking the steps_used measurement layer);
-  user chose to wait for a kilo fix. See
-  `.tmp/docs/plans/2026-08-30-empirical-pass-halt.md`.
+  user chose to wait for a kilo fix.
 - **2026-09-01** — user requested a from-scratch rebuild, dropping
   the creative-conservative plan. Fleet revaluation produced 5
   research artefacts + 2 shiki consolidations + a 6-run benchmark
   (3 m3 + 3 deepseek) + a 13-route wire probe. Resulting cohort
   documented above.
+- **2026-09-02** — globalised: write target moved from
+  `.tmp/docs/subagent-runs/` (project-local) to
+  `~/.local/share/kilo/subagent-runs/` (global). Chezmoi-specific
+  sensitive-file deny rules removed (they were project conventions,
+  not global).
 
 ## See also
 
-- **Route probe cache entry**:
-  `.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`
-- **Benchmark judge YAML** (delete after audit):
-  `/tmp/kilo/shiki-bench/judge-20260901_230145.yaml`
 - **Permission block reference**:
   `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
 - **Invocation pattern reference**:
   `~/.config/kilo/skills/subagent-fleet/references/invocation-pattern.md`
-- **Model picks reference**:
-  `~/.config/kilo/skills/subagent-fleet/references/model-picks.md`
-  (currently stale — rebuild in progress; re-verify before relying)
-- **Frontmatter reference** (Kilo schema for the YAML):
+- **Model picks reference** (this project's cache; currently stale):
+  `dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md`
+- **Frontmatter reference** (Kilo schema for the YAML, project cache):
   `.agents/docs/cache/kilo-subagents/2026-08-15-agent-frontmatter-reference.md`
-- **Permission precedence**:
+- **Permission precedence** (project cache):
   `.agents/docs/cache/kilo-subagents/2026-08-15-permissions-actions-precedence.md`
-- **Reasoning variants per provider**:
+- **Reasoning variants per provider** (project cache):
   `.agents/docs/cache/kilo-subagents/2026-08-15-reasoning-variants-by-provider.md`
+- **2026-09-01 route probe** (project cache, gitignored):
+  `.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`
+- **OpenRouter API skill** (for live model re-verification):
+  `~/.config/kilo/skills/openrouter-api/SKILL.md` (deployed from
+  any project's `.agents/kilo/skills/openrouter-api/SKILL.md` or
+  from the chezmoi source at
+  `dot_config/kilo/exact_skills/` if chezmoi-managed)

@@ -16,19 +16,17 @@ permission:
   list: allow
   edit:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   write:
     "*": deny
-    ".tmp/docs/subagent-runs/**": allow
-    ".tmp/docs/subagent-runs/**/*": allow
-    "/tmp/kilo/**": allow
-    "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   external_directory:
     "/tmp/kilo/**": allow
     "/tmp/kilo/**/*": allow
+    "~/.local/share/kilo/subagent-runs/**": allow
+    "~/.local/share/kilo/subagent-runs/**/*": allow
   bash:
     "*": ask
     "git log *": allow
@@ -64,12 +62,11 @@ main agent owns mutations.
 ## Operational discipline
 
 The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
-(deployed from `dot_config/kilo/exact_skills/subagent-fleet/references/permission-block.md`
-in this chezmoi source). Read it once at session start; do not
-duplicate the rules inline here. Summary: read-only by default,
-mutation allowed only under `.tmp/docs/subagent-runs/` and `/tmp/kilo/`,
-web research allowed, delegation denied.
+at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
+Read it once at session start; do not duplicate the rules inline here.
+Summary: read-only by default, mutation allowed only under
+`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
+allowed, delegation denied.
 
 ## Variant exposure (fuyu — `variant: low` honoured)
 
@@ -79,8 +76,7 @@ frontmatter field is honoured — the comparator does not need deep
 reasoning for a 4-criterion rubric; it needs the model to **range over
 the rubric edges**, considering alternative scoring perspectives. The
 sampling tilt (`temperature: 1.0`) is the intended lever, not effort
-tuning. The 2026-09-01 route probe confirmed `reasoning_effort` is
-forwarded on the pinned routes.
+tuning.
 
 ## Inputs
 
@@ -95,17 +91,13 @@ You receive from the main agent:
 ## Output contract
 
 Write a structured YAML report to
-`.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-fuyu[-<topic>].yaml`. Compute
-`YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S` (local
-clock; do not use `date +%s`). Echo a one-paragraph summary in your
-final assistant message.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-fuyu[-<topic>].yaml`.
+Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
+(local clock; do not use `date +%s`). Echo a one-paragraph summary
+in your final assistant message.
 
-> **Working directory:** `.tmp/docs/subagent-runs/` is **relative to
-> the project root**. In a worktree run, the project root is the
-> worktree path, not the live repo. If the task prompt passes an
-> explicit working directory, write there. Otherwise default to
-> `$(git rev-parse --show-toplevel)/.tmp/docs/subagent-runs/` from
-> `$PWD`.
+The `~/.local/share/kilo/subagent-runs/` directory is **global** —
+it's under the parent kilo state dir, not the project tree.
 
 Report shape:
 
@@ -166,6 +158,4 @@ problem may not have a meaningful ranking; surface in
   just ranking by gut — at least 3 criteria required.
 - Don't hide ties. If two candidates score within 0.05 of each other
   on total, call it out in `ties:`.
-- Don't write outside `.tmp/docs/subagent-runs/`.
-- Don't read `.env`, `.env.*`, encrypted files, or files under
-  `.encryption_keys/`.
+- Don't write outside `~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`.
