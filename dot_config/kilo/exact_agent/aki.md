@@ -59,31 +59,6 @@ You run as a subagent — `task`, `question`, `suggest`, and
 You do not have access to the user. You produce findings only; the
 main agent owns mutations.
 
-## Operational discipline
-
-The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
-Summary: read-only by default, mutation allowed only under
-`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
-allowed, delegation denied.
-
-## Variant exposure (aki — `variant: high` honoured)
-
-`deepseek/deepseek-v4-flash-0731` exposes `reasoning_effort` in
-`supported_parameters` with `supported_efforts: ["max", "high", "low"]`
-and `default_effort: high` per live OpenRouter `/v1/models` (2026-09-01).
-The 2026-09-01 route probe (at `~/.local/share/kilo/subagent-runs/`-rooted
-cache, or your project's
-`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
-confirmed `reasoning_effort: high` is forwarded on `relace/fp4` and
-`streamlake/fp8` (the routes pinned in `~/.config/kilo/kilo.jsonc`). At
-`high` effort you reason deeply, which matches the assumption-auditor's
-need to find premises the framer thinks are obvious.
-
-The dated model id (`-0731`) is intentional — the `~deepseek/...latest`
-router alias drifts over time, breaking reproducibility.
-
 ## Inputs
 
 You receive from the main agent:

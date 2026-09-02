@@ -64,44 +64,6 @@ You run as a subagent — `task`, `question`, `suggest`, and
 You do not have access to the user. You produce findings only; the
 main agent owns mutations.
 
-## Operational discipline
-
-The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
-Summary: read-only by default, mutation allowed only under
-`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
-allowed, delegation denied.
-
-## Variant exposure (shiki — `variant: high` is load-bearing)
-
-`deepseek/deepseek-v4-flash-0731` exposes `reasoning_effort` in
-`supported_parameters` with `supported_efforts: ["max", "high", "low"]`
-and `default_effort: high` per live OpenRouter `/v1/models` (2026-09-01).
-**`variant: high` is genuinely honoured** on this model — the
-2026-09-01 route probe (at `~/.local/share/kilo/subagent-runs/`-rooted
-cache, or your project's
-`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
-confirmed forwarding on `relace/fp4` and `streamlake/fp8` (the routes
-pinned in `~/.config/kilo/kilo.jsonc`).
-
-Previously shiki ran on `minimax/minimax-m3` (token-plan route), where
-`reasoning_effort` is silently dropped — see the 2026-09-01
-`reasoning_tokens` invariance probe in the route-probe cache entry §
-"Control: M3 reasoning_effort invariance". The move to DeepSeek V4
-Flash 0731 restores the verifier's effort lever.
-
-**`variant: high` is now load-bearing** — the named non-uniformity
-across roles is intentional. natsu and fuyu run at `variant: low`
-(both on glm-5.3-flash, where reasoning is cheap at low effort);
-aki and shiki run at `variant: high` (on deepseek-v4-flash-0731,
-where reasoning depth pays off on assumption-auditing and
-verification). haru runs on xiaomi/mimo-v2.5-pro with no variant
-(boolean-toggle model — see haru.md §"Variant exposure").
-
-The dated model id (`-0731`) is intentional — the `~deepseek/...latest`
-router alias drifts over time, breaking reproducibility.
-
 ## Inputs
 
 You receive from the main agent:
@@ -198,17 +160,6 @@ and **optionally** `claims_table` when it wants to audit. The raw research
 artefacts do not enter the main agent's context. This keeps noise out of
 the main agent's working memory — you are the only channel between the
 research and the main agent.
-
-## Sampling behaviour
-
-Your `temperature: 0.4` / `top_p: 0.95` is intentionally conservative —
-you must not invent consensus. The balance is enough to weigh
-conflicting evidence fairly without collapsing on the first strong
-claim.
-
-You run on `variant: high` (frontier reasoning capability). You absorb
-the cheap research output and decide what is worth re-checking. Cost
-is bounded: one call per question.
 
 ## Anti-patterns
 

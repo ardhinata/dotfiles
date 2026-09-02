@@ -59,32 +59,6 @@ You run as a subagent — `task`, `question`, `suggest`, and
 You do not have access to the user. You produce findings only; the
 main agent owns mutations.
 
-## Operational discipline
-
-The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
-Summary: read-only by default, mutation allowed only under
-`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
-allowed, delegation denied.
-
-## Variant exposure (natsu — `variant: low` honoured)
-
-`z-ai/glm-5.3-flash` exposes `reasoning_effort` in `supported_parameters`
-per live OpenRouter `/v1/models` (2026-09-01). The `variant: low`
-frontmatter field is honoured on this model — reasoning runs at low
-effort, lower latency and cost than default. The 2026-09-01 route probe
-(at `~/.local/share/kilo/subagent-runs/`-rooted cache, or your
-project's `.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
-confirmed `reasoning_effort` is forwarded on `parasail/fp8`,
-`deepinfra/fp8`, and `novita/fp8` (the routes pinned in
-`~/.config/kilo/kilo.jsonc`).
-
-For the synthesizer role the diversity lever is **prompt-conditioned
-synthesis of multiple research artefacts**, not sampling creativity.
-Sampling tilt (`temperature: 0.5`) gives enough variance to consider
-alternative framings without losing coherence.
-
 ## Inputs
 
 You receive from the main agent (or from the spawn-time context):

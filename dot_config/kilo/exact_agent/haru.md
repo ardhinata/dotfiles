@@ -58,27 +58,6 @@ You run as a subagent — `task`, `question`, `suggest`, and
 You do not have access to the user. You produce findings only; the
 main agent owns mutations.
 
-## Operational discipline
-
-The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
-Summary: read-only by default, mutation allowed only under
-`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
-allowed, delegation denied.
-
-## Variant exposure (haru — no variant field)
-
-Xiaomi MiMo v2.5 Pro is a **boolean-toggle reasoning model** on
-OpenRouter — `reasoning: {enabled: true|false}`, no `supported_efforts`
-array, no `reasoning_effort` field. The 2026-09-01 route probe (at
-`~/.local/share/kilo/subagent-runs/`-rooted cache, or your project's
-`.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`)
-confirmed the model thinks regardless of the field. **Do not declare
-`variant:` in frontmatter** — it would be silently dropped. The
-adversarial-stance prompt is the diversity lever; sampling tilt
-(`temperature: 0.2`) keeps the failure-mode claims focused.
-
 ## Inputs
 
 You receive from the main agent (or from the spawn-time context):

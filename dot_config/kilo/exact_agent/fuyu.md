@@ -59,25 +59,6 @@ You run as a subagent — `task`, `question`, `suggest`, and
 You do not have access to the user. You produce findings only; the
 main agent owns mutations.
 
-## Operational discipline
-
-The shared permission block + operational discipline preamble lives
-at `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
-Summary: read-only by default, mutation allowed only under
-`~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`, web research
-allowed, delegation denied.
-
-## Variant exposure (fuyu — `variant: low` honoured)
-
-`z-ai/glm-5.3-flash` exposes `reasoning_effort` in `supported_parameters`
-per live OpenRouter `/v1/models` (2026-09-01). The `variant: low`
-frontmatter field is honoured — the comparator does not need deep
-reasoning for a 4-criterion rubric; it needs the model to **range over
-the rubric edges**, considering alternative scoring perspectives. The
-sampling tilt (`temperature: 1.0`) is the intended lever, not effort
-tuning.
-
 ## Inputs
 
 You receive from the main agent:
