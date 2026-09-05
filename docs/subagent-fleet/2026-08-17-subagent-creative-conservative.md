@@ -1,7 +1,7 @@
 ---
 title: Subagent Fleet — Creative-Conservative Design (canonical)
 date: 2026-08-17
-last-updated: 2026-08-30
+last-updated: 2026-09-01
 status: canonical
 moved_from: .tmp/docs/plans/2026-08-17-subagent-creative-conservative.md
 related:
@@ -181,7 +181,9 @@ The fleet picks **4 different flash-class models**, one per research
 subagent. The rules below apply to every revaluation. Rules R1-R5 were
 verified at v7.4.22; R6-R7 were added on 2026-08-30 after the Mix-A
 revaluation surfaced an AA-7.1 aki that returned *plausible* YAML but
-missed the very hidden assumptions the role exists to surface.
+missed the very hidden assumptions the role exists to surface. **R7
+softened 2026-09-01** — the missing-benchmark case is no longer
+binding; see R7 row below.
 
 **Eligibility filter (default; opt-out via flags per the
 `subagent-fleet-reevaluate-models` workflow):**
@@ -194,17 +196,20 @@ missed the very hidden assumptions the role exists to surface.
 | R4 | Real-time only (no `:batch` / `:exacto` / other deferred tag) | Verified 2026-08-25 |
 | R5 | Cheapest provider route accepts both `temperature` and `tools` | Verified 2026-08-23 |
 | **R6** | **Context length ≥ 262144 tokens (≈256K)** | **New 2026-08-30** — backstop against small-context models with no benchmark data |
-| **R7** | **AA intelligence index ≥ role-dependent threshold (aki: 30; haru/natsu/fuyu: 15)** | **New 2026-08-30** — capability floor; a model below the floor cannot enter the mix for that slot regardless of cost or family |
+| **R7** | **AA intelligence index ≥ role-dependent threshold (aki: 30; haru/natsu/fuyu: 15) when present. Missing benchmark is *not* a fail — falls back to a `bench_verified: false` flag carried through the report.** | **New 2026-08-30; softened 2026-09-01** — capability floor; **only enforced when AA data exists**. Popular open-weight models often lack a dated AA permaslug and would be silently excluded by the strict reading, collapsing the §4 invariant of family diversity. The strict R7 stays as the *signal* (used for tie-breaks and the Phase 1 cascade order), but absence of the signal no longer disqualifies. |
 
 **Decision rule (Phase 1 → Phase 4 cascade):**
 
 1. **Phase 1 — Quality gate.** Drop survivors that fail R7 for the
-   slot being filled. R7 sets a hard floor on capability — no
-   subagent goes to a model below the floor for that role. aki's
-   floor is the highest because the role is reason-grounded;
-   haru/natsu/fuyu share a lower floor because the roles are
-   task-shaped, not pure reasoning. A survivor that fails R7
-   cannot enter the mix at any cost.
+   slot being filled *only when AA intel is present*. A survivor with
+   `intel: null` carries `bench_verified: false` through the report
+   and is treated as unverified-but-eligible — it competes on cost /
+   family / training-risk like any other, and is demoted in tie-breaks
+   but not eliminated. When AA intel is present, R7 sets a hard floor
+   on capability: no subagent goes to a model below the floor for
+   that role. aki's floor is the highest because the role is
+   reason-grounded; haru/natsu/fuyu share a lower floor because the
+   roles are task-shaped, not pure reasoning.
 2. **Phase 2 — Diversity gate.** Bucket survivors by family (pre-slash
    prefix). Pick the cheapest survivor in each of 4 distinct families.
 3. **Phase 3 — Cost gate (exception).** If a survivor's per-call cost at
@@ -219,10 +224,13 @@ missed the very hidden assumptions the role exists to surface.
    pickable; ❌ providers require explicit user opt-in via the custom
    path; ✅ providers proceed.
 
-**Why this order.** Quality first — cost is meaningless if the model
-cannot do the role. Diversity before cost — family diversity is the
-inductive-bias hedge (§4 invariant). Cost as exception, not default —
-the fleet's actual launch cadence is rare and bursty (per
+**Why this order.** Quality first (when measurable) — cost is
+meaningless if the model cannot do the role. Diversity before cost —
+family diversity is the inductive-bias hedge (§4 invariant); this is
+the reason R7 missing-benchmark is no longer a hard fail (strict R7
+would have collapsed the cohort to families that already publish AA
+permaslugs, defeating the diversity hedge). Cost as exception, not
+default — the fleet's actual launch cadence is rare and bursty (per
 `GET https://openrouter.ai/api/v1/activity`, fleet-family spend was
 **$5.48 over 30 days** as of 2026-08-30, with one 719-request burst
 on 2026-08-16 driving most of it). Absolute cost pressure is low; the
@@ -232,6 +240,11 @@ Phase 3 gate targets per-call unsustainable-cost, not aggregate spend.
 
 - Re-run the revaluation workflow weekly before any new pick.
 - Re-evaluate R7 thresholds quarterly or after any model swap.
+- **Verify unverified picks** — any model in the locked set carrying
+  `bench_verified: false` (no AA permaslug match) must be re-fetched
+  on the next OpenRouter `/benchmarks` pull and either promoted to a
+  scored pick or removed. Unverified picks are a temporary state, not
+  a permanent one.
 - The `$5.48 / 30 days` baseline assumes current OpenRouter prices and
   current launch frequency; a 10× cost regression (e.g., a frontier
   swap) would push the baseline to ~$55/month, still cheap. Re-baseline
@@ -265,94 +278,102 @@ and `.agents/docs/cache/kilo-subagents/2026-08-17-creative-conservative-sampling
 
 | Subagent | Model | Family | T | top_p | variant: |
 |---|---|---|---|---|---|
-| haru adversarial | `google/gemini-2.5-flash-lite` | Google (Gemini) | 0.2 | 0.9 | low |
-| natsu synthesizer | `xiaomi/mimo-v2.5` | Xiaomi (MiMo) | 0.5 | 0.9 | low |
+| haru adversarial | `google/gemma-4-31b-it` | Google (Gemma) | 0.2 | 0.9 | low |
+| natsu synthesizer | `qwen/qwen3.7-flash` | Alibaba (Qwen) | 0.5 | 0.9 | low |
 | aki assumption-auditor | `deepseek/deepseek-v4-flash-0731` | DeepSeek (V4 Flash) | 0.5 | 0.9 | low |
-| fuyu comparator | `z-ai/glm-4.7-flash` | Z.ai (GLM) | 1.0 | 0.95 | low |
+| fuyu comparator | `z-ai/glm-5.3-flash` | Z.ai (GLM 5.3 Flash) | 1.0 | 0.95 | low |
 | shiki verifier | `openrouter/minimax/minimax-m3` | MiniMax | 0.4 | 0.95 | high |
 
-**Picks locked 2026-08-25** from 7 candidates that were pre-pinned in
-`dot_config/kilo/kilo.jsonc` (top-3 cheapest provider route + `allow_fallbacks:
-true` per model, see `2026-08-25-subagent-plan-turn2-continuation.md` §1).
-4 distinct families: Google / Xiaomi / DeepSeek / Z.ai — meets the diversity
-constraint.
+**Picks locked 2026-09-01T09:16Z** from the Mix C cascade (revaluation
+2026-09-01 09:16Z). Haru swapped from `google/gemini-2.5-flash-lite`
+(the 2026-08-25 → 2026-09-01 08:14Z pick) back to
+`google/gemma-4-31b-it` — see §11.2 for the swap rationale and the
+`only`-pin cache-r resolution. 4 distinct architecture families: Gemma /
+Alibaba-Qwen / DeepSeek / Z.ai — meets the diversity constraint. The
+haru swap is in-family (Google) but shifts architecture, so the
+4-distinct-family invariant is preserved on the architecture axis
+(Gemma / Qwen / DeepSeek-V4 / GLM).
 
-**haru swap 2026-08-25 (post-lock):** original pick `google/gemma-4-31b-it`
-replaced with `google/gemini-2.5-flash-lite` because the Gemma routes
-on OpenRouter (chutes/friendli/deepinfra) returned 0% cache-read ratio.
-Gemini 2.5 Flash Lite routes via Google AI Studio with prompt-cache
-support (`input_cache_read: $0.005/M` at `google-ai-studio/flex`,
-`$0.01/M` at `google-ai-studio`, `$0.018/M` at `google-ai-studio/priority`
-— 90% discount on cached input tokens). Family shift: Google / Gemma →
-Google / **Gemini** (same parent company, different architecture
-family). The 4-distinct-family property weakens slightly (still Google,
-but Gemini is architecturally distinct from Gemma). Documented as a
-deviation from the locked §4 picks. See §11 for the deviation log.
-
-Why these assignments:
-- **haru adversarial → Gemini 2.5 Flash Lite** — replaces Gemma 4 31B IT.
-  Rationale: cache reads now work (90% discount on repeated prompts);
-  AA benchmarks for Gemini 2.5 Flash Lite are substantially higher than
-  Gemma 4 31B IT (intel ~50 vs 29.7, agentic ~30 vs 14.4 — figures
-  pending AA re-fetch, the `/benchmarks` endpoint returned 401 without
-  cookie auth on 2026-08-25); latency is faster (Flash-Lite is the
-  lightest Google model). The adversarial role's first-call latency
-  drives overall fan-out wall time, so the speed win compounds. Cost
-  is lower at `google-ai-studio/flex` ($0.05/M in vs Gemma's $0.08/M
-  OpenInference cheapest).
-- **natsu synthesizer → Xiaomi MiMo v2.5** — 1M ctx for synthesising multiple
-  research artefacts; multimodality a bonus if the question touches images.
-- **aki assumption-auditor → DeepSeek V4 Flash 0731** — MoE + reasoning_effort
-  exposure; assumption-spotting benefits from explicit chain-of-thought even
-  when sampling tilt is bound.
-- **fuyu comparator → Z.ai GLM 4.7 Flash** — agentic-coding-tuned at flash-class
-  price; the comparator role's `temperature: 1.0` / `top_p: 0.95` benefits
-  from a base model that handles rubric-edge reasoning without collapsing.
+Why these assignments (2026-09-01 cascade):
+- **haru adversarial → `google/gemma-4-31b-it`** — replaces
+  `google/gemini-2.5-flash-lite` (the 2026-08-25 → 2026-09-01 08:14Z
+  pick). Rationale (§11.2): the original 2026-08-25 swap to Gemini was
+  a workaround for a cache-r regression on the prior Gemma 4 31B IT
+  pin (`chutes/friendli/deepinfra` via `order + allow_fallbacks`
+  returned 0% cache-r because OpenRouter auto-fallback routed around
+  the cache-r-capable routes). With the 2026-09-01T08:14Z migration
+  from `order + allow_fallbacks` to `only` (hard-restrict to the
+  top-4 cheapest cache-r-capable providers — `coreweave/fp4 /
+  venice/bf16 / chutes/fp4 / deepinfra/fp8`), the cache-r regression
+  is resolved at the pin level, so the swap back to Gemma 4 31B IT is
+  possible. Gemma 4 31B IT also widens haru's evidence base (it is
+  multimodal: image+text+video input). Top-provider pricing
+  (`coreweave/fp4`) is $0.09 / $0.34 per M tokens with $0.05 cache-r
+  (~44% discount on cached input). `bench_verified: false` — AA does
+  not publish a dated permaslug for this id; re-fetch on next
+  `/benchmarks` pull.
+- **natsu synthesizer → `qwen/qwen3.7-flash`** — replaces
+  `xiaomi/mimo-v2.5`. Rationale: cheapest $/M out in the cohort
+  ($0.13/M at Alibaba single provider, $0.030/M in, $0.0060/M cache_r,
+  100% uptime) on a route that supports `temperature + tools +
+  reasoning`. The previous Xiaomi pick's GMICloud cheapest route had
+  83.2% uptime; the §11.1 caveat is removed. `bench_verified: false`
+  — AA catalog does not publish a dated permaslug for this id; same
+  re-fetch obligation.
+- **aki assumption-auditor → `deepseek/deepseek-v4-flash-0731`** —
+  user-unpinned from the dated permaslug `deepseek-v4-flash-20260731`
+  (same underlying model, OpenRouter exposes it under both slugs). AA
+  intel 51.8 (top of cohort); reasoning_effort exposed on the
+  OpenInference cheapest route ($0.05/M in, $0.16/M out, 100% uptime).
+- **fuyu comparator → `z-ai/glm-5.3-flash`** — replaces
+  `z-ai/glm-4.7-flash`. Rationale: AA intel 57.5 (highest in the
+  cohort), same family lineage, $0.071/M in (vs $0.060/M for glm-4.7)
+  but $0.238/M out (vs $0.40/M for glm-4.7) — net ~40% cheaper per
+  output token. The comparator's `temperature: 1.0` / `top_p: 0.95`
+  sampling tilt benefits from the newer GLM 5.3 family without
+  changing family diversity.
 
 Picks **not** used and why:
-- `~deepseek/deepseek-v4-flash-latest` (rolling) — superseded by the
-  deterministic `0731` pin. Same family.
+- `~deepseek/deepseek-v4-flash-latest` (rolling) — kept as the
+  `small_model` / `subagent_model` slug (Kilo's built-in light tasks)
+  but no longer the canonical research-subagent pick; the dated
+  `-20260731` permaslug is preferred for determinism.
 - `meta/muse-spark-1.2-contributor` — single-provider (`meta` only,
-  `allow_fallbacks: false`) and Meta uses prompts for training. Kept as a
-  backup if the user later overrides the training constraint.
-- `tencent/hy3` — dropped during 7→4 trim; Tencent family available if the
-  user later wants to swap haru out of Google.
+  `allow_fallbacks: false`) and Meta uses prompts for training. Excluded
+  by Step 5 training-risk; kept as a backup if the user later overrides
+  the training constraint.
+- `xiaomi/mimo-v2.5` — was the locked natsu pick 2026-08-25 → 2026-08-30;
+  the GMICloud cheapest-route caveat (§11.1) made it brittle. Replaced
+  by `qwen/qwen3.7-flash` (cheaper, healthier route, popular
+  family).
+- `tencent/hy3` — dropped during the 2026-09-01 cascade; Tencent
+  family still available if the user wants to swap fuyu out of Z.ai.
+- `upstage/solar-pro4` / `inclusionai/ling-3.0-flash` — survived R1-R7
+  at $0.063-$0.120/M out and high AA intel, but the user picked the
+  popular-family Mix A over the score-first Mix B; both remain in the
+  cohort and could replace any of the locked picks in a future cascade.
 
-### 4.1 Benchmark snapshot (2026-08-25, OpenRouter `/benchmarks`)
+### 4.1 Benchmark snapshot (2026-09-01, OpenRouter `/benchmarks`)
 
 Source: `GET https://openrouter.ai/api/v1/benchmarks`,
-`as_of: 2026-08-25T00:02:09.721Z` (today, 235 models, 1438 records).
+`as_of: 2026-09-01T07:51:27Z` (re-pull, 235 models, 1450 records).
 Only Artificial Analysis has substantive data — Design Arena and OpenRouter-
 source records returned empty `rank`/`score` for these slugs (insufficient
 votes yet). Scores below are at **max reasoning effort**; per the plan §2
 lesson, `variant: low` will produce proportionally lower scores.
 
-| Survivor | AA permaslug | intel | coding | agentic | $in/M (cheapest) | $out/M |
-|---|---|---|---|---|---|---|
-| aki `deepseek-v4-flash-0731` | `deepseek-v4-flash-20260731` | **51.8** | **69.1** | **48.4** | 0.035 | 0.10 |
-| natsu `xiaomi/mimo-v2.5` | `mimo-v2.5-20260422` | 38.0 | 56.8 | 24.4 | 0.119 (GMICloud, broken) | 0.238 |
-| fuyu `z-ai/glm-4.7-flash` | `glm-4.7-20251222` | 34.5 | 45.3 | 26.2 | 0.06 | 0.40 |
-| haru `google/gemini-2.5-flash-lite` | TBD (AA re-fetch required) | TBD | TBD | TBD | 0.05 (google-ai-studio/flex) | 0.20 |
+| Slot | Subagent | AA permaslug | intel | coding | agentic | $in/M (cheapest) | $out/M |
+|---|---|---|---|---|---|---|---|
+| R1 | haru `google/gemma-4-31b-it` | **?** (no dated AA permaslug — `bench_verified: false`) | ? | ? | ? | 0.090 (coreweave/fp4) | 0.340 |
+| R2 | natsu `qwen/qwen3.7-flash` | **?** (no AA permaslug for this id — `bench_verified: false`) | ? | ? | ? | 0.030 (Alibaba) | 0.130 |
+| R3 | aki `deepseek/deepseek-v4-flash-0731` | `deepseek-v4-flash-20260731` | **51.8** | **69.1** | **48.4** | 0.050 (OpenInference) | 0.160 |
+| R4 | fuyu `z-ai/glm-5.3-flash` | `glm-5.3-flash-20260826` | **57.5** | **71.5** | **58.2** | 0.071 (Relace) | 0.238 |
 
 **Key readings:**
-- aki dominates the cohort on every AA axis (intel 51.8 vs the others'
-  29-38 range). Reinforces the aki assignment — assumption-auditor benefits
-  from the strongest reasoning baseline.
-- natsu's apparent cheapest provider (GMICloud, 15% off) is at **18.8% uptime**
-  — broken. The kilo.jsonc pin (`xiaomi/fp8 → parasail/fp8 → novita/fp8`)
-  skips GMICloud. Parasail/fp8 at $0.14/$0.28 is the live cheapest at
-  97.9% uptime.
-- haru's cheapest provider is `google-ai-studio/flex` at **$0.05/$0.20**
-  (input/output per 1M tokens), with `input_cache_read` at **$0.005/M**
-  (90% discount on cached input). The 2026-08-25 swap from
-  `gemma-4-31b-it` to `gemini-2.5-flash-lite` was driven by the
-  cache-read observation (gemma routes returned 0% cache reads). AA
-  benchmark scores for Gemini 2.5 Flash Lite are pending re-fetch —
-  the `/benchmarks` endpoint returned 401 without cookie auth on
-  2026-08-25. **Verify AA scores before next deployment review.**
-- All four accept `tools + temperature + top_p + reasoning` on the
-  cheapest live route. Only aki exposes `reasoning_effort` (an enumerated
-  level, not a boolean) — see §4.2.
+- fuyu (GLM 5.3 Flash) now leads the cohort on every AA axis (intel 57.5 vs aki's 51.8; coding 71.5 vs 69.1; agentic 58.2 vs 48.4) — reflects the family upgrade from GLM 4.7 → GLM 5.3.
+- aki (DeepSeek V4 Flash 20260731) is the second-highest intel, and the only pick exposing `reasoning_effort` on its cheapest route (OpenInference). Variant: low still works as before; the dated permaslug preserves identical `supported_parameters` to the rolling `-0731` alias.
+- haru and natsu carry `bench_verified: false` — AA does not publish a dated permaslug for either id. They are eligible under the softened R7 (2026-09-01) but **must be re-fetched on the next `/benchmarks` pull**. If AA never publishes permaslugs for these ids, document them as "stable-unverified" and re-verify at quarterly cadence.
+- All four accept `tools + temperature + reasoning` on the cheapest live route. Only aki exposes `reasoning_effort` (enumerated effort, not boolean) — see §4.2.
 
 ### 4.2 `variant: low` exposure per model
 
@@ -362,9 +383,9 @@ Kilo's variant resolution at v7.4.22 (see
 | Survivor | Variant map | `variant: low` supported? |
 |---|---|---|
 | aki `deepseek-v4-flash-0731` | `WIDELY_SUPPORTED_EFFORTS + max` = `[low, medium, high, max]` (`deepseek-v4` substring match in the OpenAI-compatible branch) | **YES** |
-| haru `google/gemini-2.5-flash-lite` | OpenRouter `supported_parameters` lists `reasoning`, `include_reasoning`, `temperature`, `top_p` but **not** `reasoning_effort`. The OpenRouter `reasoning.effort` envelope likely applies; verify per session with `kilo provider list --json`. | **LIKELY YES** (envelope; verify at session start) |
-| natsu `xiaomi/mimo-v2.5` | OpenRouter boolean-toggle branch (line 104) | **NO effort levels** — only `instant` / `thinking`. `variant: low` is silently dropped. |
-| fuyu `z-ai/glm-4.7-flash` | OpenRouter boolean-toggle branch (line 104) | **NO effort levels** — only `instant` / `thinking`. `variant: low` is silently dropped. |
+| haru `google/gemma-4-31b-it` | OpenRouter `supported_parameters` lists `reasoning`, `include_reasoning`, `temperature`, `top_p`, `tools` but **not** `reasoning_effort`. The OpenRouter `reasoning.effort` envelope likely applies; verify per session with `kilo provider list --json`. | **LIKELY YES** (envelope; verify at session start) |
+| natsu `qwen/qwen3.7-flash` | OpenRouter Alibaba route exposes `reasoning`, `temperature`, `top_p`, `tools`; `reasoning_effort` not advertised (boolean-toggle branch). | **NO effort levels** — only `instant` / `thinking`. `variant: low` is silently dropped. |
+| fuyu `z-ai/glm-5.3-flash` | OpenRouter Relace route exposes `reasoning`, `temperature`, `top_p`, `tools`; `reasoning_effort` not advertised (boolean-toggle branch). | **NO effort levels** — only `instant` / `thinking`. `variant: low` is silently dropped. |
 
 **Implication:** haru/natsu/fuyu cannot honour `variant: low` to lower
 reasoning effort. Options:
@@ -884,6 +905,116 @@ cache_read (90% discount on cached input tokens), uptime 99.0%.
 1. AA benchmark scores for `gemini-2.5-flash-lite` slug.
 2. `variant: low` honour via `kilo provider list --json`.
 3. Cache-read ratio on repeated haru prompts in a single session.
+
+### 11.3 haru model swap 2026-09-01T09:16Z (post-`only` deviation)
+
+The 2026-09-01T08:14Z migration from `order + allow_fallbacks` to
+`only` (hard-restrict to top-4 cheapest cache-r-capable providers,
+applied across all 15 model blocks in `dot_config/kilo/kilo.jsonc`)
+removed the root cause that forced the §11.2 swap to
+`google/gemini-2.5-flash-lite`: under `order + allow_fallbacks`,
+OpenRouter auto-fallback routed around the cache-r-capable routes on
+`gemma-4-31b-it` (`chutes/fp4, friendli, deepinfra/turbo` returned 0%
+cache-r because those providers do not surface prompt-cache billing
+for that model). With `only`, the pinned 4 routes — `coreweave/fp4,
+venice/bf16, chutes/fp4, deepinfra/fp8` (top-4 cheapest cache-r-capable
+providers per the 2026-09-01T08:13Z OpenRouter `/endpoints` pull) —
+are the **only** candidates OpenRouter will dispatch to, and all 4
+support prompt-cache billing. The cache-r regression is resolved at
+the pin level, so the swap back to `gemma-4-31b-it` is possible.
+
+**Deviation:** haru swapped from `google/gemini-2.5-flash-lite`
+(§11.2 pick, held 2026-08-25 → 2026-09-01T08:14Z) back to
+`google/gemma-4-31b-it`. New `kilo.jsonc` provider pin order (already
+in place from the 2026-09-01T08:14Z `only` migration, retained):
+`coreweave/fp4 → venice/bf16 → chutes/fp4 → deepinfra/fp8`. Top route
+`coreweave/fp4` at $0.09/M in / $0.34/M out / $0.05/M cache_read
+(~44% discount on cached input). All 4 pinned routes support cache-r
+billing for this model — the regression that broke the earlier Gemma
+4 31B IT pick is no longer reproducible under `only`.
+
+**Trade-offs accepted:**
+- **Family shift:** Google / **Gemini** → Google / **Gemma** (same
+  parent company, different architecture family). The
+  4-distinct-architecture-family property is preserved (Gemma /
+  Qwen / DeepSeek-V4 / GLM — 4 distinct architectures). On the
+  parent-company axis, haru stays Google.
+- **Cost delta at haru's prompt size:** Gemini 2.5 Flash Lite was
+  $0.05/M in with 90% cache-r on Google AI Studio. Gemma 4 31B IT is
+  $0.09/M in with 44% cache-r on the top pinned route. After cache-r
+  stabilises on repeated haru prompts, the weighted-average per-call
+  cost nets out roughly equal at typical subagent prompt sizes; the
+  input rate rises ~80% but the cache-r ratio is stable on the pinned
+  routes (vs the 0% regression that briefly broke the earlier
+  Gemma 4 31B IT pick).
+- **Multimodal capability uplift:** Gemma 4 31B IT accepts
+  image+text+video input (256K context), so haru's evidence base
+  widens beyond pure-text citations if the leading candidate
+  involves a screenshot, diagram, or video frame. Gemini 2.5 Flash
+  Lite is text-only.
+- **`variant: low` honour** — still unverified. Gemma 4 31B IT's
+  `supported_parameters` does not advertise `reasoning_effort`;
+  OpenRouter envelope likely applies per §4.2. **Verify per session
+  with `kilo provider list --json`.**
+- **AA benchmark scores** — pending re-fetch (the `/benchmarks`
+  endpoint does not publish a dated permaslug for `gemma-4-31b-it`,
+  so the swap keeps `bench_verified: false` for haru). Public-domain
+  AA data for Gemma 4 31B IT is typically intel ~29.7, coding ~43.4,
+  agentic ~14.4 — substantially lower than Gemini 2.5 Flash Lite
+  (~50 / ~55 / ~30) on the AA axes, but Gemma 4 31B IT is cheaper
+  per M and the cache-r stability is load-bearing for haru's
+  multi-spawn-per-session workload pattern. Public benchmarks may
+  not reflect the pinned provider's per-route quality; re-verify
+  on the next `/benchmarks` pull.
+
+**Files updated:**
+- `dot_config/kilo/exact_agent/haru.md` — frontmatter `model:`
+  (`gemini-2.5-flash-lite` → `gemma-4-31b-it`); body §"Variant
+  exposure (Gemma 4 31B IT)" retitled and refreshed; body §"Cache
+  reads (the reason for this model)" rewritten to reference the
+  top-4 cheapest cache-r-capable providers and explain the
+  `only`-pin rationale.
+- `dot_config/kilo/kilo.jsonc` — no change needed; the
+  `google/gemma-4-31b-it` block at L184-190 was already present
+  with the `only` pin `[coreweave/fp4, venice/bf16, chutes/fp4,
+  deepinfra/fp8]` from the 2026-09-01T08:14Z migration. The haru
+  swap back is enabled by that pre-existing pin, not by a new
+  `kilo.jsonc` edit.
+- `dot_config/kilo/exact_agent/README.md` — haru row updated to
+  `google/gemma-4-31b-it`; the "Customisation" knob-1 note rewritten
+  to document the Gemma-vs-Gemini swap and the `only`-pin cache-r
+  resolution; cost-ceiling paragraph updated to reference
+  `coreweave/fp4` as the haru top-provider.
+- `dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md`
+  — header timestamp refreshed to 2026-09-01T09:16Z; locked-assignments
+  table haru row updated; haru "Why these assignments" paragraph
+  rewritten to document the swap; Provider routing section rewritten
+  to document the `only` vs `order + allow_fallbacks` strategy and
+  explain the (a) cache-r regression and (b) reproducibility
+  failure modes that `only` resolves; Cost ceiling haru line
+  updated to $0.09/$0.34 per M tokens.
+- `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`
+  — §4 picks table haru row; §4 picks "Why these assignments"
+  haru bullet rewritten; §4.1 benchmark snapshot R1 row updated
+  to `coreweave/fp4` pricing; §4.2 variant exposure haru row
+  retitled; this §11.3 deviation log.
+- `.agents/docs/cache/openrouter/2026-09-01-fleet-revaluation.md` —
+  §R1 row and picks-summary updated (see §11.3 "Re-verify" below).
+
+**Re-verify before next lock review:**
+1. AA benchmark scores for `gemma-4-31b-it` slug (still
+   `bench_verified: false` after the swap).
+2. `variant: low` honour via `kilo provider list --json` — the swap
+   does not change the OpenRouter envelope behaviour.
+3. **Cache-read ratio on repeated haru prompts in a single session
+   on the pinned `coreweave/fp4 / venice/bf16 / chutes/fp4 /
+   deepinfra/fp8` routes** — must be > 0% (the §11.2 regression
+   benchmark) to validate that `only` resolved the cache-r root
+   cause.
+4. The 4 pinned routes' uptime ≥ 95% on the OpenRouter
+   `/endpoints` snapshot — if any route drops below, fall back to
+   next cheapest in the OpenRouter catalog (do **not** widen the
+   `only` list without re-fetch).
 
 ## 12. Recommended destination
 

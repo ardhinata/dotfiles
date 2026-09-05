@@ -33,13 +33,13 @@ When capture is safe and low-cost, write it **right now** to a shared-context ta
 
 Stop as soon as the note is sufficient. Do not promote findings to persistent docs from here.
 
-**Never** write notes to `.tmp/scratch/` — that dir is per-worktree ephemeral and excluded from commits by the pre-commit hook. Notes belong in `.tmp/docs/notes/` (or in a persistent location the user names).
+**Never** write *committed notes* to `.tmp/scratch/` — that dir is per-worktree ephemeral and excluded from commits by the pre-commit hook. Notes belong in `.tmp/docs/notes/` (or in a persistent location the user names). `.tmp/scratch/` is fine for *throwaway scratchpad* and for **deferred-note blocks** (see "Capture mode: deferred" below), but not for capture-as-note.
 
 ## Capture mode: deferred
 
 When immediate capture is unsafe, blocked, or would interrupt the active task, **defer with enough context to act later**.
 
-1. Add a `Deferred documentation` block to the active plan in `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` (see `plans.md`), or — when there is no plan — append a `## Deferred notes` section to the closest task scratchpad in `.tmp/scratch/`.
+1. Add a `Deferred documentation` block to the active plan in `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` (see `plans.md`), or — when there is no plan — append a `## Deferred notes` section to the closest task scratchpad in `.tmp/scratch/`. The scratchpad lives outside the shared-context repo and never commits; that is fine for a *deferral pointer* (the canonical record will land later in `.tmp/docs/notes/` or wherever the destination rule says), but it is not fine for a note you intend to keep — promote from `.tmp/scratch/` to a committed location before the worktree closes.
 2. The block must contain: the same seven fields as a captured note (finding, evidence, why it matters, scope, uncertainty, recommended destination, date).
 3. **If a memory tool is exposed** (`kilo_memory_save`): save a short pointer with the deferred topic, current state, next action, and a relative path to the file that holds the detail. Memory is a *pointer*, never the canonical record.
 4. Do not create a transient note file just to record the deferral — the plan/scratchpad block plus memory pointer is enough.
@@ -73,7 +73,7 @@ When two destinations both fit, prefer the **more verified** and the **lower-ove
 - Disposable shell output, full-file dumps, or trivial commands.
 - Speculation framed as fact. Mark uncertainty instead.
 - Anything that requires edits to `AGENTS.md`, persistent docs, or git history without the user’s approval — those are *promotion*, not capture.
-- Anything belonging in `.tmp/scratch/` — that dir is gitignored and never committed; capture for `.tmp/scratch/` is not a note, it's throwaway work (use the scratchpad, not a structured note).
+- Anything belonging in `.tmp/scratch/` for *capture* — that dir is gitignored and never committed; a scratchpad block is fine for deferral, but capture-as-note there is throwaway work. Use `.tmp/docs/notes/` for kept notes.
 
 ## Anti-patterns
 

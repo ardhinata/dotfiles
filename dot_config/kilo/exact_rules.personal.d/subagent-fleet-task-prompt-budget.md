@@ -23,7 +23,7 @@ Only the four things the body does not know:
 1. **The question** — 1-3 lines. Without this, the subagent has no job.
 2. **The required-reading list** — paths and URLs the agent must cite. The body does not know which sources are relevant to *this* question.
 3. **Per-run constraints the body does not cover** — e.g. "verify this load-bearing claim against the spec-kit post-mortem", "must_adopt target is `assist-only.md`, evidence ≤ 1 source per finding".
-4. **The report filename slug**, if any (e.g. `natsu-sdd-synthesis`). Append to the body's canonical path pattern `.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>[-<slug>].yaml`, computed at write time with `date +%Y%m%d_%H%M%S` (NOT `<unix-ts>` — different epoch, different format).
+4. **The report filename slug**, if any (e.g. `natsu-sdd-synthesis`). Append to the body's canonical path pattern `~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-<role>[-<slug>].yaml`, computed at write time with `date +%Y%m%d_%H%M%S` (NOT `<unix-ts>` — different epoch, different format).
 
 ## What the task prompt MUST NOT contain
 
@@ -32,12 +32,12 @@ Only the four things the body does not know:
 - The output YAML schema — already in the body.
 - The anti-patterns — already in the body.
 - The sampling caveats / model declaration — already in the body.
-- **The output path.** The body says `.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>.yaml`. Do not restate as `/tmp/kilo/...` or any other path. The 2026-08-26 trace showed this kind of override caused the subagent to write to the wrong directory.
+- **The output path.** The body says `~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-<role>.yaml`. Do not restate as `/tmp/kilo/` or `.tmp/docs/subagent-runs/...` or any other path. The 2026-08-26 trace showed this kind of override caused the subagent to write to the wrong directory.
 - **The filename format.** The body uses `YYYYMMDD_HHMMss` (local clock). Do not specify `<unix-ts>` or any other format. The slug is the only per-run filename override.
 
 ## Worked example
 
-Canonical example at `.tmp/docs/user_cache/sample-subagent-natsu/user-message-1.md` (committed 2026-08-26). The natsu subagent produced `20260826_152801-natsu-sdd-synthesis.yaml` at the canonical body path with 8 findings in 2.5 min wall clock.
+Canonical example at `.tmp/docs/user_cache/sample-subagent-natsu/user-message-1.md` (committed 2026-08-26). The natsu subagent produced `20260826_152801-natsu-sdd-synthesis.yaml` at the canonical body path (`~/.local/share/kilo/subagent-runs/`) with 8 findings in 2.5 min wall clock.
 
 ## Rationale and worked examples
 
@@ -46,7 +46,7 @@ Full design rationale, the prompt-pre-budget trace, and the budget-form rewrite:
 ## Anti-patterns
 
 - Restating the agent's role in the task prompt — "You are natsu, the synthesizer, your job is to…" — duplicate of body lines 45-55.
-- Specifying a different output path than `.tmp/docs/subagent-runs/YYYYMMDD_HHMMss-<role>.yaml` — leads to the 2026-08-26 path-misdirection bug.
+- Specifying a different output path than `~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-<role>.yaml` — leads to the 2026-08-26 path-misdirection bug.
 - Specifying a different filename format than `YYYYMMDD_HHMMss-<role>[-<slug>].yaml` — produces files that the canonical-finder cannot locate.
 - Pasting the entire `Instructions from:` block or `<env>` block from the parent agent's context into the task prompt — these are auto-injected; re-pasting them costs tokens without effect.
 - Adding "If you cannot find X, fall back to Y" guidance that the body already has in its `Inputs` or `Anti-patterns` section.

@@ -2,7 +2,7 @@ When the agent generates a new SSH key on the user's behalf, place it under `~/.
 
 ## SSH agent is gpg-agent
 
-All SSH credentials in this environment live in **`gpg-agent --enable-ssh-support`**, not OpenSSH `ssh-agent`. `SSH_AUTH_SOCK` is set to `$(gpgconf --list-dirs agent-ssh-socket)` (see `dot_shell/zsh/12-gpg.zsh`). Keys are encrypted at rest under `~/.gnupg/private-keys-v1.d/` and listed in `~/.gnupg/sshcontrol` by keygrip. Smartcard keys are added implicitly — do not list them.
+All SSH credentials in this environment live in **`gpg-agent --enable-ssh-support`**, not OpenSSH `ssh-agent`. `SSH_AUTH_SOCK` is set to `$(gpgconf --list-dirs agent-ssh-socket)` (see `dot_shell/zsh/12-gpg.zsh`). Keys are encrypted at rest under `~/.gnupg/private-keys-v1.d/`. Smartcard keys are added implicitly — do not list them.
 
 When this doc says "the agent", it means gpg-agent. When it says "load a key", it means `ssh-add` against the gpg-agent socket (no flag change).
 
@@ -22,16 +22,29 @@ About to create a new SSH keypair (deploy key, work-specific identity, one-off a
 
 **Important finding:** gpg-agent implements the OpenSSH agent protocol but **silently ignores the per-key lifetime** that `ssh-add -t <life>` sends. The `-t` flag appears to succeed (no error), but the key caches for the global `default-cache-ttl-ssh` / `max-cache-ttl-ssh` instead.
 
-To set a per-key TTL, edit `~/.gnupg/sshcontrol` after `ssh-add` has written the keygrip:
+## `sshcontrol` is deprecated — use `Use-for-ssh` attribute
 
+As of GnuPG 2.3.7 (announced 2022-08, verified live at `gnupg.org/documentation/manuals/gnupg/Agent-Configuration.html` and `gnupg.org/documentation/manuals/gnupg/Agent-Options.html`), `~/.gnupg/sshcontrol` is **deprecated in favor of the "Use-for-ssh" attribute in the key files**. The upstream source verbatim:
+
+> sshcontrol ... This file is deprecated in favor of the "Use-for-ssh" attribute in the key files.
+
+`gpg-agent` now decides which authentication subkeys to expose to SSH by inspecting the per-key `Use-for-ssh` attribute (set via `gpg-connect-agent`'s `keyattr` command) rather than reading `sshcontrol`. The presentation order is: negative `Use-for-ssh` first, then active smartcards, then positive `Use-for-ssh` in numeric order, then `sshcontrol` entries (deprecated, present for compatibility).
+
+To add a GPG authentication subkey for SSH use:
+
+```bash
+gpg -k --with-keygrip                                    # find the auth subkey's keygrip
+gpg-connect-agent 'keyattr <keygrip> Use-for-ssh: true' /bye
+gpg-connect-agent updatestartuptty /bye                  # pinentry + agent reload
 ```
-# Format: <40-hex-keygrip> <ttl-seconds|0=default> [flags]
-ABCDEF...1234 3600
+
+To remove it:
+
+```bash
+gpg-connect-agent 'keyattr <keygrip> Use-for-ssh: false' /bye
 ```
 
-Then restart the agent: `gpgconf --kill gpg-agent` (auto-respawns). Smartcard keys cannot have per-key TTLs.
-
-**Decision rule:** if the user wants a per-key TTL, do **not** pass `-t` to `ssh-add` and assume it worked. Edit `sshcontrol` and restart.
+**Decision rule:** do not edit `~/.gnupg/sshcontrol` for new SSH setups. Use `Use-for-ssh` via `gpg-connect-agent`. Edit `sshcontrol` only if you must support a pre-2.3.7 client.
 
 ## Anti-patterns
 
@@ -39,5 +52,6 @@ Then restart the agent: `gpgconf --kill gpg-agent` (auto-respawns). Smartcard ke
 - Putting keys directly under `~/.ssh/` (e.g. `~/.ssh/id_ed25519`) — those collide with the user's identity keys.
 - Reading existing key contents to "see what we already have" before generating — see `ssh-read-allowlist.md`.
 - Returning a key fingerprint to the user without telling them the path (or vice versa).
-- Adding `ssh-add -t 1h` and assuming the key expires in 1 h — gpg-agent ignores it. Documented above.
-- Editing `sshcontrol` and assuming the new TTL applies immediately — it does not; the agent must be restarted.
+- Adding `ssh-add -t 1h` and assuming the key expires in 1 h — gpg-agent ignores it.
+- Editing `~/.gnupg/sshcontrol` to control which GPG subkeys are exposed to SSH — deprecated since GnuPG 2.3.7; use `Use-for-ssh` via `gpg-connect-agent`.
+- Setting a per-key TTL by editing `sshcontrol`'s `<keygrip> <ttl>` column — that TTL field is also deprecated; per-key caching now lives in the global `default-cache-ttl-ssh` / `max-cache-ttl-ssh` knobs (`~/.gnupg/gpg-agent.conf`).

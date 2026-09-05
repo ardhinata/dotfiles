@@ -19,7 +19,7 @@ Tool names below show short form → actual exposed name.
 | Tier | Tool | Strong suit | Caveat |
 |---|---|---|---|
 | 1 | `webfetch` (built-in) | Known URL → markdown/HTML/text/JSON; free, no billing | Fails on JS-required pages; 404 on moved URLs (re-search to relocate) |
-| **1.5** | **`websearch`** (built-in) | **URL discovery across general/niche/standards content; 2026-fresh; free, no MCP billing** | **No multi-source synthesis, no JS rendering, no library index, no domain filters** |
+| **1.5** | **`websearch`** (built-in) | **URL discovery across general/niche/standards content; 2026-fresh; free, no MCP billing** | **No multi-source synthesis, no JS rendering, no library index, no domain filters. Verified free in this environment on 2026-09-05: routes to Exa MCP keyless (`https://mcp.exa.ai/mcp`) or Parallel MCP, not through OpenRouter; `kilo.jsonc` has `"web_search": true` set globally (`dot_config/kilo/kilo.jsonc:273`). Source: kilocode `packages/core/src/tool/websearch.ts:18`.** |
 | 2 | `tavily_search` | Same as websearch + `time_range` / `include_domains` / `search_depth` filters | MCP billing; websearch is comparable on quality |
 | 2 | `tavily_extract` | Extract content from a known URL | webfetch is free |
 | 2 | `tavily_crawl` / `tavily_map` | Multi-page crawl with depth/breadth limits | websearch cannot do this |

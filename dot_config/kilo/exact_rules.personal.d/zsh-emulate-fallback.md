@@ -1,29 +1,38 @@
 # Bash Tool — zsh Emulation Fallback
 
-The `bash` tool runs each command inside this zsh session. zsh and bash default to different behavior for some shell constructs even when the script "looks the same." Most no-match and brace-expansion cases are fixed globally in `dot_shell/zsh/00-before-zgenom.zsh` (`unsetopt NOMATCH`). Use this fallback when **a bash-style script still errors or misbehaves** despite that global flip.
+The `bash` tool runs each command inside this zsh session. zsh and bash default to different behavior for some shell constructs even when the script "looks the same."
+
+## Global state already handles the common cases
+
+`dot_shell/zsh/00-before-zgenom.zsh:29` runs `unsetopt NOMATCH`, so zsh's `no matches found` error and most brace-expansion surprises are already fixed globally. Do not reach for `emulate` to "fix" those — they are already fixed.
 
 ## When
 
-A `bash` tool invocation fails with a zsh-specific error that bash would not produce, and the command looks bash-portable. Common symptoms:
+A `bash` tool invocation fails with a zsh-specific error that bash would not produce, **and the global unsetopt has not already addressed it**, and the command looks bash-portable. Common symptoms:
 
-- `no matches found: <pattern>` after an `unsetopt NOMATCH` regression, or a pattern that uses `**`, `~`, `^`, or `#` (zsh extended glob, no bash analog).
 - `zsh: command not found: ...` for a construct that bash parses as a builtin (e.g. `[[ ... ]]` when you meant `[ ... ]`).
 - `zsh: parse error near ...` near `((` arithmetic, here-string `<<<`, or process substitution `<(...)`.
+- A pattern using bash-only glob semantics that zsh's extended glob misinterprets despite NOMATCH being unset.
 
-## The fallback
+## The fallback — what actually works
 
-Prefix the failing command with `emulate -LR sh` — **once per command**, not once per session. `-L` keeps the options local to that command, `-R` resets all settable options to the sh baseline, and `sh` tunes for bash-like behavior (POSIX_BUILTINS-adjacent, sets NO_NOMATCH + KSH_ARRAYS, disables zsh-specific pattern syntaxes):
+**`emulate -LR sh` does not do what its name suggests in zsh.** The `-L` flag in zsh means "local to the immediately surrounding shell function, if any" (see `man zshmisc` §"Shell Builtin Commands" → `emulate`). At the top level of an interactive session or of `bash -c '...'`, there is no surrounding function, so `-L` is silently ignored and the sh emulation **leaks into the persistent session** for the rest of the bash tool's lifetime — every subsequent `bash` invocation inherits NO_NOMATCH, KSH_ARRAYS, and POSIX_BUILTINS-adjacent behaviour until the session ends.
 
-```bash
-emulate -LR sh; mv /etc/nginx/conf.d/*.conf /tmp/old-$(date +%F)/
-```
+That is almost never what you want. Instead:
 
-Reach for the fallback only after confirming the command is bash-shaped. If you intentionally wrote zsh syntax (`${(s/,)var}`, `[[ ]],  zmv`, etc.), the fallback will break it — that's the point, revert and don't use the prefix.
+1. **For a single command**, run it under `bash -c '...'` so the sh emulation is scoped to the subshell and the surrounding zsh session is untouched:
 
-For real bash semantics (not just sh-shaped options), use `bash -c '...'` or a `#!/bin/sh` shebang with `shellcheck -s sh` validation — `emulate sh` does not change zsh syntax (`[[ ]]`, `(( ))`, `<(...)`, parameter flags, zsh-only variables like `$ZSH_VERSION`).
+   ```bash
+   bash -c 'mv /etc/nginx/conf.d/*.conf /tmp/old-$(date +%F)/'
+   ```
+
+2. **For real bash semantics** (not just sh-shaped options), use `bash -c '...'` with `shellcheck -s sh` validation. `emulate sh` does not change zsh syntax (`[[ ]]`, `(( ))`, `<(...)`, parameter flags, zsh-only variables like `$ZSH_VERSION`); it only flips option flags. If you wrote zsh syntax and ran `emulate -LR sh` in front of it, the command breaks differently than the original failure.
+
+3. **For a script** that must be portable, write it to a temp file with `#!/bin/sh` and run it. Do not lean on shell-emulation tricks to make a zsh-shaped script "act bash".
 
 ## Anti-patterns
 
-- Adding `emulate sh` to your interactive `.zshrc` — kills zsh features you'll actually want at the prompt. Per-command fallback only.
-- Wrapping every command in `emulate -LR sh` "to be safe" — adds noise and occasional syntax breakage. Try without first.
-- Reaching for `emulate sh` when the real fix is a different **shell**: zsh's `**`, `(a|b)` extended glob, and `$array[(i)val]` look zsh-natural but break in bash too. If the script must be portable, use `find` / `case` / explicit loops, not simulation tricks.
+- Prefix any command with `emulate -LR sh` "to be safe" — leaks sh emulation into the rest of the session and breaks zsh features you actually want.
+- Reach for `emulate sh` when the real fix is a different **shell** — zsh's `**`, `(a|b)` extended glob, and `$array[(i)val]` look zsh-natural but break in bash too. If the script must be portable, use `find` / `case` / explicit loops, not simulation tricks.
+- Add `emulate sh` to your interactive `.zshrc` — kills zsh features you'll want at the prompt. Per-command only.
+- Try `unsetopt NOMATCH` "again" to fix a `no matches found` error — it is already unset at `dot_shell/zsh/00-before-zgenom.zsh:29`. If you see the error after that line ran, the regression is somewhere else.
