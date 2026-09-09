@@ -1,6 +1,6 @@
 # Subagent research fleet — `~/.config/kilo/agent/`
 
-This directory holds the **5-subagent research fleet** for Kilo. The
+This directory holds the **6-subagent research fleet** for Kilo. The
 agents are managed by chezmoi; their canonical source is
 `dot_config/kilo/exact_agent/` in the chezmoi source repo, deployed
 verbatim to this directory via `chezmoi apply`.
@@ -22,6 +22,25 @@ your project's knowledge cache; if missing, see
 `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
 §"Global write target" for the canonical location pattern).
 
+**2026-09-09 update — second verifier added.** The fleet now has a
+**2-verifier mode** with `reki` (暦) running in parallel with shiki
+on a different model family (`z-ai/glm-5.3-flash` vs shiki's
+`deepseek/deepseek-v4-flash-0731`). The 2-verifier mode is opt-in
+(detailed in `kilo-subagents/2026-09-09-2-verifier-system.md`).
+Single-shiki remains the default and continues to be the
+**mandatory** verifier at N≥2; reki is an additional witness, not a
+replacement. Per-claim disagreement between the two is resolved by
+the main agent via the two-stage rule in
+`kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`.
+
+The 2026-09-09 session also **re-verified** shiki's reasoning-effort
+pick (`kilo-subagents/2026-09-09-shiki-m3-reasoning-effort-revisit.md`)
+— the 2026-09-01 "M3 silently drops reasoning_effort" conclusion was
+based on a single-sample 1-token prompt and is **wrong**; M3 honours
+the field as a binary thinking toggle (not a depth tier). Shiki's
+swap to V4-Flash-0731 is still justified, but on the corrected
+rationale (M3 has no enumerated depth tier, not "drops the lever").
+
 ## What is this for?
 
 When the main agent is stuck or wants a second opinion on a research
@@ -34,7 +53,7 @@ The fleet is a research discovery tool — it does not modify code or
 write files outside the report directory
 (`~/.local/share/kilo/subagent-runs/`) and `/tmp/kilo/`.
 
-## The five subagents
+## The six subagents
 
 | File | Name | Role | Model | Variant | Sampling |
 |---|---|---|---|---|---|
@@ -42,7 +61,8 @@ write files outside the report directory
 | `natsu.md` | 夏 natsu (summer) | Synthesizer — propose up to 3 coherent candidate answers | `openrouter/z-ai/glm-5.3-flash` | `low` | T=0.5, top_p=0.9 |
 | `aki.md` | 秋 aki (autumn) | Assumption-auditor — list up to 3 hidden assumptions and rate `likely_wrong` | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.3, top_p=0.85 |
 | `fuyu.md` | 冬 fuyu (winter) | Comparator — rank candidates on a multi-criterion rubric | `openrouter/z-ai/glm-5.3-flash` | `low` | T=1.0, top_p=0.95 |
-| `shiki.md` | 四季 shiki (four seasons) | Verifier — read the research YAML reports and produce one consolidated answer. **Mandatory** when ≥2 research subagents ran. | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.4, top_p=0.95 |
+| `shiki.md` | 四季 shiki (four seasons) | Verifier 1 — read the research YAML reports and produce one consolidated answer. **Mandatory** when ≥2 research subagents ran. | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.4, top_p=0.95 |
+| `reki.md` | 暦 reki (calendar) | Verifier 2 (opt-in 2-verifier mode) — second witness, family-diverse from shiki. Runs in parallel with shiki over the same research YAMLs. | `openrouter/z-ai/glm-5.3-flash` | `high` | T=1.0, top_p=0.95 |
 
 Cohort spans **3 architecture families** (Xiaomi MiMo, Z.ai GLM,
 DeepSeek V4). Family diversity is not a constraint — exit-early and
@@ -98,9 +118,13 @@ Per-model rationale:
 ## Naming
 
 The four research subagents are named after the Japanese four seasons
-(春/夏/秋/冬). The verifier is named **shiki** (四季, "four seasons")
-because it spans all four seasonal roles. The names pair naturally
-with the four prompt-conditioned roles the design depends on:
+(春/夏/秋/冬). The first verifier is named **shiki** (四季, "four seasons")
+because it spans all four seasonal roles. The second verifier
+(`kilo-subagents/2026-09-09-2-verifier-system.md`) is named **reki**
+(暦, "calendar" / "chronology") — the second witness to the record,
+adjacent to shiki (四季) in the season-themed naming scheme. The names
+pair naturally with the four prompt-conditioned roles the design
+depends on:
 
 - `haru` (spring) — revival / fresh attack; **attacking** the leading
   candidate.
@@ -108,6 +132,8 @@ with the four prompt-conditioned roles the design depends on:
 - `aki` (autumn) — harvest / review; **auditing** assumptions.
 - `fuyu` (winter) — cold / clear; **comparing** on a rubric.
 - `shiki` (four seasons) — the cycle that contains all four.
+- `reki` (calendar) — the second witness to the chronology the cycle
+  establishes. Independent verdict; family-diverse from shiki.
 
 If you prefer different mnemonics, the YAML `subagent:` field in each
 file's output contract can be any short slug you choose — the field
@@ -123,6 +149,7 @@ task(natsu, "Propose candidates for: <question>")
 task(aki, "List hidden assumptions in: <framing>")
 task(fuyu, "Compare approaches A and B on correctness/cost/risk/complexity")
 task(shiki, "Verify the research-*.yaml reports for: <question>")
+task(reki, "Independently verify the research-*.yaml reports for: <question>")
 ```
 
 ### Programmatically (main-agent fan-out)
@@ -130,17 +157,24 @@ task(shiki, "Verify the research-*.yaml reports for: <question>")
 The main agent uses the invocation pattern in
 `~/.config/kilo/skills/subagent-fleet/references/invocation-pattern.md`.
 The default is **N=4** (all four research subagents in parallel), then
-shiki. For high-stakes questions the main agent may run haru first,
-refine the question, then run natsu/aki/fuyu with the refined
-question.
+**shiki** (mandatory verifier at N≥2). For high-stakes questions the
+main agent may additionally spawn **reki** (the second verifier)
+for the 2-verifier mode — opt-in trigger is N≥3 research subagents,
+≥3 load-bearing claims, or a public-artifact answer (see
+`kilo-subagents/2026-09-09-2-verifier-system.md`). For questions where
+the adversarial pass reveals the original framing was wrong, the main
+agent may run haru first, refine the question, then run natsu/aki/fuyu
+with the refined question.
 
 ### What you see in your context
 
 The main agent **never reads raw research output directly** when ≥2
-research subagents ran. Only shiki's report enters your context. To
-audit, the main agent can surface shiki's full `claims_table`; the raw
-research YAML files are at
-`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-{haru,natsu,aki,fuyu,shiki}[-<topic>].yaml`.
+research subagents ran. **Single-verifier mode:** only shiki's report
+enters your context. **2-verifier mode:** both shiki's and reki's
+reports enter for the disagreement-resolution merge step (the verifier
+pair is the only channel). To audit, the main agent can surface the
+verifier's full `claims_table`; the raw research YAML files are at
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-{haru,natsu,aki,fuyu,shiki,reki}[-<topic>].yaml`.
 
 ## Customisation
 
@@ -189,11 +223,11 @@ parent agent (the parent can `mv` files into
 
 ### Cost ceiling
 
-The 4 research subagents run on flash-class models
-(`$0.03–$0.075/M` prompt). Aki and shiki share `deepseek-v4-flash-0731`
-at `variant: high` ($0.065/M prompt + ~$0.016/M cache_read). Worst-case
-4-call research + 1 shiki ≈ $0.30/M aggregate. Well within the
-per-question budget.
+See `~/.config/kilo/skills/subagent-fleet/references/model-picks.md`
+§"Cost ceiling" for the current N=4 + 2-verifier pair per-call and
+per-month table. Aggregate order of magnitude: ~$0.30/M input across
+the worst-case 4-call research + 1 shiki; well within the per-question
+budget.
 
 ### Variant exposure table
 
@@ -204,6 +238,17 @@ per-question budget.
 | aki | deepseek-v4-flash-0731 | YES | `high` | YES |
 | fuyu | z-ai/glm-5.3-flash | YES | `low` | YES |
 | shiki | deepseek-v4-flash-0731 | YES | `high` | YES |
+| reki | z-ai/glm-5.3-flash | YES | `high` | YES |
+
+Note: shiki's swap from `minimax/minimax-m3` to
+`deepseek/deepseek-v4-flash-0731` (2026-09-01) was re-validated
+2026-09-09 — see `kilo-subagents/2026-09-09-shiki-m3-reasoning-effort-revisit.md`.
+The 2026-09-01 "M3 silently drops reasoning_effort" finding was based
+on a low-sample 1-token prompt and is withdrawn; M3 honours the field
+as a binary thinking toggle. Shiki stays on V4-Flash-0731 because the
+real reason was the missing depth tier (M3's `low/medium/high` are
+equivalent in spirit; V4-Flash-0731 has three real tiers: Non-think /
+High / Max), not because M3 drops the lever.
 
 ### Permission block externalisation
 
@@ -257,7 +302,8 @@ The full permission precedence is in
   `~/.config/kilo/skills/subagent-fleet/references/permission-block.md`
 - **Invocation pattern reference**:
   `~/.config/kilo/skills/subagent-fleet/references/invocation-pattern.md`
-- **Model picks reference** (this project's cache; currently stale):
+- **Model picks reference** (this project's cache; currently stale —
+  picks the 2026-08-25 / 2026-09-01 era cohort with shiki on M3):
   `dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md`
 - **Frontmatter reference** (Kilo schema for the YAML, project cache):
   `.agents/docs/cache/kilo-subagents/2026-08-15-agent-frontmatter-reference.md`
@@ -265,8 +311,20 @@ The full permission precedence is in
   `.agents/docs/cache/kilo-subagents/2026-08-15-permissions-actions-precedence.md`
 - **Reasoning variants per provider** (project cache):
   `.agents/docs/cache/kilo-subagents/2026-08-15-reasoning-variants-by-provider.md`
-- **2026-09-01 route probe** (project cache, gitignored):
+- **2026-09-01 route probe** (project cache):
   `.agents/docs/cache/kilo-subagents/2026-09-01-shiki-route-probe.md`
+- **2026-09-09 shiki M3 reasoning revisit** (supersedes 2026-09-01's
+  M3 control section; reki.md body references):
+  `.agents/docs/cache/kilo-subagents/2026-09-09-shiki-m3-reasoning-effort-revisit.md`
+- **2026-09-09 fleet 3-model recommendation** (research cohort
+  recommendation, manual edit checklist):
+  `.agents/docs/cache/kilo-subagents/2026-09-09-fleet-3model-recommendation.md`
+- **2026-09-09 2-verifier system design** (shiki + reki
+  architecture, trigger thresholds, §5 deviation accounting):
+  `.agents/docs/cache/kilo-subagents/2026-09-09-2-verifier-system.md`
+- **2026-09-09 verifier disagreement resolution** (two-stage
+  tie-break: main agent ≤3 tool calls, then targeted fan-out):
+  `.agents/docs/cache/kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`
 - **OpenRouter API skill** (for live model re-verification):
   `~/.config/kilo/skills/openrouter-api/SKILL.md` (deployed from
   any project's `.agents/kilo/skills/openrouter-api/SKILL.md` or
