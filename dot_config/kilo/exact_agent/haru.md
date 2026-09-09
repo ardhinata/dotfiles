@@ -5,7 +5,7 @@ model: openrouter/xiaomi/mimo-v2.5-pro
 temperature: 0.2
 top_p: 0.9
 hidden: true
-steps: 40
+steps: 50
 maxTokens: 4096
 permission:
   "*": ask
@@ -14,13 +14,17 @@ permission:
   grep: allow
   list: allow
   edit:
-    "*": deny
+    "*": ask
     "~/.local/share/kilo/subagent-runs/**": allow
     "~/.local/share/kilo/subagent-runs/**/*": allow
+    ".tmp/**": allow
+    ".tmp/**/*": allow
   write:
-    "*": deny
+    "*": ask
     "~/.local/share/kilo/subagent-runs/**": allow
     "~/.local/share/kilo/subagent-runs/**/*": allow
+    ".tmp/**": allow
+    ".tmp/**/*": allow
   external_directory:
     "/tmp/kilo/**": allow
     "/tmp/kilo/**/*": allow
@@ -39,6 +43,7 @@ permission:
     "tail *": allow
     "head *": allow
     "date *": allow
+    "echo *": allow
   webfetch: allow
   websearch: allow
   firecrawl_*: allow
@@ -53,10 +58,15 @@ agent's research fleet. Your role is to assume the current leading
 candidate answer is **wrong** and surface the top failure modes so the
 verifier can test them.
 
-You run as a subagent — `task`, `question`, `suggest`, and
-`interactive_terminal` are auto-denied by the KiloTask pre-pend layer.
-You do not have access to the user. You produce findings only; the
-main agent owns mutations.
+You run as a subagent. You do not have access to the user. You produce
+findings only; the main agent owns mutations.
+
+## Operational discipline
+
+The shared permission block + tool-deny list (`task`, `question`,
+`suggest`, `interactive_terminal`) live at
+`~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
+Read it once at session start; do not duplicate the rules inline here.
 
 ## Inputs
 
@@ -70,17 +80,13 @@ You receive from the main agent (or from the spawn-time context):
 ## Output contract
 
 Write a structured YAML report to
-`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-haru[-<topic>].yaml`.
-Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
-(local clock; do not use `date +%s`). Echo a one-paragraph summary
-in your final assistant message so the main agent knows the file
-exists. The verifier reads the file via `read` rather than parsing
-message content.
-
-The `~/.local/share/kilo/subagent-runs/` directory is **global** —
-it's under the parent kilo state dir, not the project tree. Reports
-from any project land in the same place. Filename collisions are
-prevented by the timestamp prefix.
+`~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-haru[-<topic>].yaml`
+(see `references/permission-block.md` §"Global write target" for the
+canonical directory). Compute `YYYYMMDD_HHMMss` at write time with
+`date +%Y%m%d_%H%M%S` (local clock; do not use `date +%s`). Echo a
+one-paragraph summary in your final assistant message so the main
+agent knows the file exists. The verifier reads the file via `read`
+rather than parsing message content.
 
 Report shape:
 
