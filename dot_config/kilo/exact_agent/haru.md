@@ -1,7 +1,7 @@
 ---
 description: Research subagent haru — assume the leading candidate answer is wrong and surface top failure modes
 mode: subagent
-model: openrouter/xiaomi/mimo-v2.5-pro
+model: openrouter/xiaomi/mimo-v2.5
 temperature: 0.2
 top_p: 0.9
 hidden: true
