@@ -2,7 +2,7 @@ Search and inspection commands must stay within a **bounded path**. An unbounded
 
 ## When
 
-About to run `grep -r`, `rg`, `find`, `fd`, or any tool that walks a directory tree.
+About to run `grep -r`, `rg`, `find`, `fd`, or any tool that walks a directory tree. Prefer Kilo's dedicated tools (`glob`, `grep`, `read`) first — they are token-aware and already scope to the workspace. This rule applies when those tools are insufficient and the agent must shell-side grep, rg, or find.
 
 ## Default scope — the working directory
 
@@ -24,6 +24,8 @@ When the question is genuinely about a known global location, target that direct
 | gpg-agent config / state | `~/.gnupg/` |
 | SSH config (allowlisted only) | `~/.ssh/config`, `~/.ssh/config.d/` |
 | Shared agent context (notes/plans) | `~/.local/share/kilo/` |
+| **Subagent-fleet reports** | `~/.local/share/kilo/subagent-runs/` |
+| **Per-project shared-context repo** (notes, plans, postmortems) | `.tmp/docs/` (working tree of the per-project git repo) |
 | Shell history for this project | `~/.local/share/zsh/` or specific file |
 
 If the question might touch multiple of these, run **one bounded call per dir** rather than one giant one.

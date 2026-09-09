@@ -23,7 +23,7 @@ Everything else under `~/.ssh/`, including but not limited to:
 
 ## Don't query the key file — ask the agent
 
-All SSH credentials in this environment are loaded into **gpg-agent**. Once a key is loaded, the on-disk file is no longer the source of truth — gpg-agent holds the live key material encrypted at rest under `~/.gnupg/private-keys-v1.d/` and exposes operations over the agent socket.
+SSH credentials live in gpg-agent (see `ssh-agent-keys-location.md`); query the agent via `ssh-add -l`, never the file.
 
 When the user asks "which SSH key is loaded?", "what's the fingerprint?", "is this key in the agent?", or anything else about currently usable SSH identity — **ask the agent, not the file**: `ssh-add -l` (fingerprints), `gpg --list-keys --with-keygrip`, `gpgconf --list-dirs agent-ssh-socket` (only `.pub` siblings are safe for `ssh-keygen -lf`).
 
