@@ -25,10 +25,12 @@ Pick the research subagent whose stance fits the failure shape:
 
 ## Process
 
-0. **Load the budget enforcer** at `~/.config/kilo/rules.personal.d/subagent-fleet-task-prompt-budget.md` before composing the per-spawn `task` prompt. The task prompt MUST be ≤ 15 lines of non-body content; restating role / output contract / sampling / anti-patterns from the body is a duplicate-signal anti-pattern.
+0. Load the budget enforcer (`subagent-fleet-task-prompt-budget.md`) before composing the per-spawn `task` prompt.
 1. Write the question, the leading candidate (if any), and the relevant context into the subagent prompt. Pass haru's output to `fuyu` when both ran in the same fan-out (plan §5).
 2. Run research subagents in parallel.
-3. Run `shiki` (verifier, `openrouter/minimax/minimax-m3`, `variant: high`) when two or more research subagents ran. Read only shiki's report.
+3. Run `shiki` (verifier — see `references/model-picks.md` for the
+   current model + sampling) when two or more research subagents ran.
+   Read only shiki's report.
 4. Act on shiki's recommendation, or escalate to the user if shiki's `open_questions_for_main_agent` lists items that block the main agent.
 
 ## Anti-patterns

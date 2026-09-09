@@ -1,10 +1,13 @@
-# Fleet Roles (snapshot 2026-08-25)
+# Fleet Roles
 
-> Re-verify against `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` §3
-> when reachable. Bundled here so other projects do not need the chezmoi repo.
+Four research roles (`haru`/`natsu`/`aki`/`fuyu`) + two verifiers
+(`shiki` mandatory, `reki` opt-in 2-verifier mode). Each returns a
+structured YAML report the verifier pair can consume.
 
-Four research roles (`haru`/`natsu`/`aki`/`fuyu`) + one verifier (`shiki`).
-Each returns a structured YAML report the verifier can consume.
+For current model assignments, sampling tilts, route pins, and cost
+ceilings, see `references/model-picks.md`. For the shared permission
+block + tool-deny list + global write target, see
+`references/permission-block.md`.
 
 ---
 
@@ -17,9 +20,6 @@ Each returns a structured YAML report the verifier can consume.
 **Output:** ranked list of top 3 failure modes for the leading candidate.
 Each: failure claim, evidence (`file:line` or URL), confidence (0-1),
 preconditions for the failure.
-
-**Sampling tilt:** conservative (`temperature: 0.2`, `top_p: 0.9`).
-**Variant:** `low` (where supported).
 
 **Pick when:** the obvious answer is suspicious, security review, or any
 time the question carries "is X actually true?"
@@ -37,9 +37,6 @@ if spawned after haru in the same fan-out (best-effort, not guaranteed).
 reasoning summary, evidence (`file:line` or URL), confidence (0-1),
 open questions for the verifier.
 
-**Sampling tilt:** balanced (`temperature: 0.5`, `top_p: 0.9`).
-**Variant:** `low`.
-
 **Pick when:** the answer space is open and the agent needs a coherent
 synthesis with candidates ranked.
 
@@ -55,9 +52,6 @@ leading candidates rely on but never justify.
 **Output:** ranked list of assumptions. Each: assumption statement,
 why it matters, how likely it is wrong (0-1), what would change if it
 were false.
-
-**Sampling tilt:** balanced (`temperature: 0.5`, `top_p: 0.9`).
-**Variant:** `low`.
 
 **Pick when:** the problem statement itself may be wrong, or hidden
 assumptions block progress.
@@ -75,27 +69,16 @@ pass leading candidates from prior subagent runs.
 **Output:** ranked comparison table. Each criterion: score per candidate
 (0-1), reasoning per score, overall ranking, ties called out.
 
-**Sampling tilt:** creative (`temperature: 1.0`, `top_p: 0.95`) — let
-the rubric reasoning range.
-**Variant:** `low`.
-
 **Pick when:** two or more candidates are on the table and no rubric
 exists. Pair with `haru` for load-bearing comparisons.
 
 ---
 
-## shiki — verifier (四季, mandatory at N≥2)
+## shiki — verifier 1 (四季, mandatory at N≥2)
 
 **Stance:** neutral arbiter. Reads the artefacts from the research
 subagents, cross-checks claims, produces one consolidated report for
 the main agent.
-
-**Model:** `openrouter/minimax/minimax-m3` (frontier reasoning model).
-This is the only subagent on a non-flash model.
-
-**Variant:** `high` (one call per question; cost bounded).
-
-**Sampling tilt:** balanced (`temperature: 0.4`, `top_p: 0.95`).
 
 ### Two-pass verification
 
@@ -132,17 +115,18 @@ findings:
 assumptions_made: [<optional list>]
 ```
 
-`load_bearing: true` is the signal to shiki that this claim must go
-through deep verification.
+`load_bearing: true` is the signal to shiki (and reki) that this claim
+must go through deep verification.
 
-### shiki consolidated report envelope
+### shiki consolidated report envelope (single-verifier mode)
 
 ```yaml
 subagent: shiki
 question: <echo>
 provenance:
   research_ran: [<list of haru|natsu|aki|fuyu in spawn order>]
-  verifier_model: openrouter/minimax/minimax-m3
+  verifier_model: <populated by KiloTask.resolveModel>
+  variant: <populated by KiloTask.resolveModel>
   random_seed: <if used>
 recommendation:
   claim: <one-sentence top recommendation>
@@ -160,3 +144,75 @@ open_questions_for_main_agent: [<max 3>]
 The main agent reads only `recommendation`, `open_questions_for_main_agent`,
 and optionally `claims_table` when it wants to audit. Raw research artefacts
 do not enter the main agent's context.
+
+### shiki consolidated report envelope (2-verifier mode)
+
+```yaml
+subagent: shiki
+question: <echo>
+provenance:
+  research_ran: [<list of haru|natsu|aki|fuyu in spawn order>]
+  verifier_model: <populated by KiloTask.resolveModel>
+  variant: <populated by KiloTask.resolveModel>
+  random_seed: <if used>
+  verifier_pair: [shiki, reki]
+recommendation:
+  claim: <one-sentence top recommendation>
+  confidence: 0.0-1.0
+  rationale: <2-3 sentences>
+  disagreements_with_reki: <int — count of load_bearing claims where shiki.verdict ≠ reki.verdict>
+claims_table:
+  - claim: <from research subagent>
+    source: <haru|natsu|aki|fuyu>
+    confidence: <from research subagent>
+    shallow: pass|fail|inconclusive|N/A
+    deep: confirmed|refuted|unclear|N/A
+    shiki_verdict: accept|reject|needs-escalation
+    reki_verdict: <accept|reject|needs-escalation|N/A>
+    shiki_reki_match: true|false|N/A
+    final_verdict: accept|reject|needs-escalation       # per-claim resolution by shiki's reading
+open_questions_for_main_agent: [<max 3>]
+```
+
+In 2-verifier mode, the main agent also reads reki's report for the
+disagreement-resolution merge step (see
+`kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`).
+
+---
+
+## reki — verifier 2 (暦, opt-in 2-verifier mode)
+
+**Stance:** second witness. Independent verdict over the **same** research
+YAMLs, family-diverse from shiki. If you agree with shiki on every claim,
+you are not adding value — the disagreement-detection signal is the
+purpose.
+
+**Stance rules** (see `reki.md` for full body):
+
+1. **Independent verdict first** — complete your own two-pass
+   verification before reading shiki's report.
+2. **Sample aggressively** — use the creative sampling tilt to consider
+   alternative framings on `shallow: inconclusive` claims.
+3. **Disagree loudly, but justified** — surface disagreements clearly;
+   don't downweight family-diverse evidence.
+4. **Cross-family evidence is your edge** — when your model family
+   identifies a failure mode that a same-family verifier would typically
+   miss, that's the signal the main agent is paying you for.
+5. **Don't blindly agree** — if you and shiki agree on every claim,
+   re-check at least one claim by reading the original source directly.
+
+**Trigger** (main agent decides):
+
+- N≥3 research subagents ran, **OR**
+- ≥3 `load_bearing: true` claims expected, **OR**
+- The answer lands in a public artifact (commit, PR, doc) or commits
+  cost/scope.
+
+**Pick when:** the verifier pair adds value (high-stakes decisions,
+public artifacts) and the user has opted into the 2-verifier cost.
+
+### reki report envelope
+
+Same as shiki's 2-verifier mode envelope, with `subagent: reki` and
+`disagreements_with_shiki` in `recommendation`. See
+`~/.config/kilo/agent/reki.md` for the canonical body.

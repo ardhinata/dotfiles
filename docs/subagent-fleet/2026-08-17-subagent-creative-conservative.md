@@ -173,6 +173,13 @@ report** the verifier can consume. The fifth is the verifier — named
   - Provenance: list of all research subagents that ran (haru/natsu/aki/fuyu
     in the order the main agent spawned them) and which claims came from each.
 
+<!-- 2026-09-09 fleet-prompt-cleanup (Phase 5): the model ids in this section
+are design-history / audit metadata. They are NOT a runtime signal and are
+NOT repeated in any subagent body, the fleet skill, or the trigger rule.
+Evidence: kilo-subagents/2026-09-09-agent-prompt-peer-identity-evidence.md
+(Choi/Zhu/Li 2026, ACL 2026 Main, arXiv 2510.07517). The current locked
+picks live in `dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md`. -->
+
 ## 4. Model selection (generalised criteria + locked picks)
 
 ### 4.0 Eligibility + decision rule (generalised 2026-08-30)
@@ -907,6 +914,85 @@ cache_read (90% discount on cached input tokens), uptime 99.0%.
 3. Cache-read ratio on repeated haru prompts in a single session.
 
 ### 11.3 haru model swap 2026-09-01T09:16Z (post-`only` deviation)
+### 11.4 verifier tier extension (reki added), 2026-09-09
+
+Post-lock deviation adding a second verifier to the fleet. Shiki (the
+§5 mandatory verifier) remains unchanged on
+`deepseek/deepseek-v4-flash-0731` variant high T=0.4 top_p=0.95.
+A second verifier, **reki** (暦), is added on
+`z-ai/glm-5.3-flash` variant high T=1.0 top_p=0.95, running **in
+parallel** with shiki over the same research YAMLs. The two produce
+independent `claims_table`s; the main agent reconciles per the rule
+in `dot_config/kilo/exact_agent/reki.md` body. The pair's per-claim
+disagreements are resolved by the two-stage algorithm in
+`kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`
+(stage 1: main agent ≤ 3 tool calls; stage 2: targeted aki+fuyu
+fan-out for interpretation-asymmetry disagreements).
+
+**§5 deviation is additive, not a violation:**
+- §5's mandate that shiki runs at N≥2 is **untouched** — shiki still
+  runs, still produces a verdict, still mandatory.
+- §5's noise-isolation rule is **preserved** — the main agent still
+  reads only the verifier pair's `recommendation` +
+  `open_questions_for_main_agent` blocks (and optionally
+  `claims_table` on audit); raw research YAMLs still do not enter
+  main-agent context.
+- What changes: "shiki is the only channel" becomes "the verifier
+  pair is the only channel". §3.5 / §5 step 4–5 gains a second
+  spawn (reki) and a merge step (reconciliation rule). This is
+  recorded here as the §11.4 entry per the established
+  post-lock-deviation convention.
+
+**Trigger** (opt-in; main agent decides):
+- N ≥ 3 research subagents ran, **OR**
+- ≥ 3 `load_bearing: true` claims expected, **OR**
+- The answer lands in a public artifact (commit, PR, doc) or commits
+  cost/scope.
+
+**Cost:** reki adds ~$0.005/call on top of shiki's ~$0.01; per
+N=4 fan-out ~+$0.005–0.01; monthly +$0.20–0.60 at 40 fan-outs/month
+(noise level). **Wall-clock unchanged** (parallel execution).
+
+**Provider pin (new):** reki shares natsu/fuyu's pin block
+(`parasail/fp8, deepinfra/fp8, novita/fp8`) — verified healthy per
+`kilo-subagents/2026-09-01-shiki-route-probe.md`. No new provider
+block in `kilo.jsonc`.
+
+**Files added:**
+- `dot_config/kilo/exact_agent/reki.md` — new body (canonical
+  verifier 2 definition).
+- `dot_config/kilo/exact_agent/shiki.md` — co-existence preamble
+  added (§"Co-existence with reki (2-verifier mode)"), output
+  envelope extended with `shiki_verdict` / `reki_verdict` columns
+  for 2-verifier mode.
+
+**Files updated (this is a §11.4 deviation, not a §4 amend):**
+- `dot_config/kilo/exact_agent/README.md` — cohort table now 6
+  rows; variant-exposure table now 6 rows; "See also" adds the
+  2026-09-09 cache entries.
+- `dot_config/kilo/exact_skills/subagent-fleet/SKILL.md` — frontmatter
+  triggers add `reki`, `verifier pair`, `disagreement resolution`;
+  roles-at-a-glance table now 6 rows; invocation summary mentions
+  the 2-verifier mode trigger.
+- `dot_config/kilo/exact_skills/subagent-fleet/references/fleet-roles.md`
+  — snapshot updated to 2026-09-09; reki section added with stance
+  rules and the 2-verifier-mode output envelope.
+- `dot_config/kilo/exact_skills/subagent-fleet/references/invocation-pattern.md`
+  — snapshot updated to 2026-09-09; 2-verifier trigger added;
+  disagreement-resolution rule referenced; reports-path section
+  updated to `~/.local/share/kilo/subagent-runs/` (was
+  `.tmp/docs/subagent-runs/`, project-local — moved 2026-09-02).
+- `dot_config/kilo/exact_skills/subagent-fleet/references/model-picks.md`
+  — snapshot updated to 2026-09-09; reki row added; haru entry
+  corrected back to `xiaomi/mimo-v2.5-pro` (the 2026-09-01 swap to
+  gemma-4-31b-it was a side-effect of an `only`-migration worktree,
+  not the durable state — see `kilo-subagents/2026-09-09-fleet-3model-recommendation.md`
+  for the manual-edit checklist).
+
+**§11.5 — M3 reasoning-effort re-validation (2026-09-09T06:38Z).** Side
+note. The §11.4 swap did not depend on the M3 lever; this entry is
+documented separately because it corrects a prior-decision evidence.
+The 2026-09-01 s
 
 The 2026-09-01T08:14Z migration from `order + allow_fallbacks` to
 `only` (hard-restrict to top-4 cheapest cache-r-capable providers,
