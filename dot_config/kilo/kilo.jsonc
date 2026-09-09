@@ -21,6 +21,7 @@
     "external_directory": {
       "/tmp/kilo/*": "allow",
       "/tmp/*": "allow",
+      "/home/ardhinata/.local/share/kilo/subagent-runs/*": "allow",
     },
     "interactive_terminal": {
       "*": "ask",
@@ -33,7 +34,7 @@
     },
   },
   "model": "openrouter/minimax/minimax-m3",
-  "small_model": "openrouter/~deepseek/deepseek-v4-flash-latest",
+  "small_model": "openrouter/deepseek/deepseek-v4-flash-0731",
   "agent": {
     "orchestrator": {
       "disable": true,
@@ -99,6 +100,7 @@
         },
       },
       "models": {
+        // Pin minimax-m3 to MiniMax provider for token plan
         "minimax/minimax-m3": {
           "options": {
             "provider": {
@@ -106,140 +108,58 @@
             },
           },
         },
-        "openai/gpt-5.6-luna": {
-          "options": {
-            "provider": {
-              "only": ["openai/flex", "azure", "openai", "amazon-bedrock/us-east-1"],
-            },
-            "reasoning": {
-              "effort": "medium",
-            },
-          },
-        },
-        "openai/gpt-5.6-luna-pro": {
-          "options": {
-            "provider": {
-              "only": ["openai/flex", "azure", "openai", "azure/eu"],
-            },
-            "reasoning": {
-              "effort": "high",
-            },
-          },
-        },
-        "z-ai/glm-5.2": {
-          "options": {
-            "provider": {
-              "only": ["deepinfra/fp4", "sail-research/fp8", "ambient/fp8", "decart/fp4"],
-            },
-          },
-        },
         "deepseek/deepseek-v4-pro-0813": {
           "options": {
             "provider": {
-              "only": ["streamlake", "gmicloud/fp8", "alibaba", "deepinfra/fp8"],
-            },
-          },
-        },
-        "~deepseek/deepseek-v4-flash-latest": {
-          // 2026-09-01: open-inference/fp8 removed (user-reported <1 tok/s);
-          // sail-research, akashml, relace dropped because they do not
-          // appear on the canonical deepseek/deepseek-v4-flash endpoint
-          // listing any longer. Replaced by the top-3 by combined
-          // throughput and price: baidu/fp8 (76 tok/s, $0.078/M,
-          // 99.99% uptime) → alibaba/fp8 (78 tok/s, $0.134/M, 99.79%) →
-          // cloudflare (71 tok/s, 99.98% uptime, already in use).
-          "options": {
-            "provider": {
-              "only": ["baidu/fp8", "alibaba/fp8", "cloudflare"],
+              "only": [
+                "novita/fp8",
+                "gmicloud/fp8",
+                "streamlake",
+                "ionstream/fp4",
+                "baidu/fp8",
+                "coreweave/fp8",
+                "sail-research/fp4",
+                "parasail/fp8",
+              ],
             },
           },
         },
         "deepseek/deepseek-v4-flash-0731": {
-          // 2026-09-01 (route probe): sail-research/fp4 returned 429
-          // (no_asap_capacity) and akashml/fp8 returned 503
-          // (backends_unhealthy) on the 2026-09-01 probe; dropped.
-          // relace/fp4 and streamlake/fp8 confirmed reasoning_effort
-          // forwarding (12 + 10 reasoning tokens on a 1-token probe).
           "options": {
             "provider": {
-              "only": ["relace/fp4", "streamlake/fp8"],
+              "only": [
+                "reka/fp4",
+                "streamlake/fp8",
+                "open-inference/fp8",
+                "baidu/fp8",
+                "deepinfra/fp8",
+                "relace/fp4",
+              ],
             },
           },
         },
         "z-ai/glm-5.3-flash": {
-          // 2026-09-01 (route probe): parasail, deepinfra, novita all
-          // forward reasoning_effort (9/7/6 tokens on a 1-token probe).
-          // atlas-cloud/fp8 does not serve glm-5.3-flash-20260826.
           "options": {
             "provider": {
-              "only": ["parasail/fp8", "deepinfra/fp8", "novita/fp8"],
-            },
-          },
-        },
-        "xiaomi/mimo-v2.5-pro": {
-          // 2026-09-01 (route probe): deepinfra and xiaomi/fp8 confirmed.
-          // gmicloud/fp8 and parasail/fp8 do not serve
-          // xiaomi/mimo-v2.5-pro-20260422.
-          "options": {
-            "provider": {
-              "only": ["deepinfra/fp8", "xiaomi/fp8"],
-            },
-          },
-        },
-        "z-ai/glm-4.7-flash": {
-          "options": {
-            "provider": {
-              "only": ["deepinfra/bf16", "venice/fp8", "cloudflare", "novita/bf16"],
-            },
-          },
-        },
-        "google/gemini-2.5-flash-lite": {
-          "options": {
-            "provider": {
-              "only": ["google-ai-studio/flex", "google-vertex/eu", "google-vertex", "google-ai-studio"],
+              "only": [
+                "gmicloud/fp8",
+                "deepinfra/fp4",
+                "z-ai/fp8",
+                "relace/fp4",
+                "wafer",
+                "makora",
+                "novita/fp8",
+              ],
             },
           },
         },
         "xiaomi/mimo-v2.5": {
-          // 2026-09-01: top-4 cheapest T+Tb-supporting providers per the
-          // OpenRouter endpoint pull. The 2026-08-26 A1 revert note
-          // (parasail/fp8 returning HTTP 429) is preserved here as
-          // historical context — parasail now sits 4th, not 2nd, and
-          // OpenRouter's auto-fallback (now disabled by `only`) would
-          // no longer reach it if it 429s again.
           "options": {
-            "provider": {
-              "only": ["gmicloud/fp8", "deepinfra/fp8", "xiaomi/fp8", "parasail/fp8"],
-            },
+            // "provider": {
+            //   "only": ["gmicloud/fp8", "deepinfra/fp8", "xiaomi/fp8", "parasail/fp8"],
+            // },
           },
         },
-        "google/gemma-4-31b-it": {
-          "options": {
-            "provider": {
-              "only": ["coreweave/fp4", "venice/bf16", "chutes/fp4", "deepinfra/fp8"],
-            },
-          },
-        },
-        "meta/muse-spark-1.2-contributor": {
-          "options": {
-            "provider": {
-              "only": ["meta"],
-            },
-          },
-        },
-        "tencent/hy3": {
-          "options": {
-            "provider": {
-              "only": ["tencent/fp8", "deepinfra/fp8", "novita", "phala"],
-            },
-          },
-        },
-        // 2026-09-01 Mix A — see
-        // .agents/docs/cache/openrouter/2026-09-01-fleet-revaluation.md.
-        // Dated permaslugs (-20260731 / -20260826 / -20260727) removed
-        // 2026-09-01 per user request; the dated entries duplicated
-        // coverage of the non-dated ids above. Provider routing lives
-        // in the canonical non-dated entries only.
       },
     },
     "minimax": {
@@ -261,7 +181,7 @@
     "scannerMaxBatchRetries": 5,
     "dimension": 1536,
   },
-  "subagent_model": "openrouter/~deepseek/deepseek-v4-flash-latest",
+  "subagent_model": "openrouter/~deepseek/deepseek-v4-flash-0731",
   "instructions": [
     "~/.config/kilo/rules/*.md",
     "~/.config/kilo/rules.personal.d/*.md",
@@ -271,7 +191,7 @@
     "network": "allow",
   },
   "subagent_variant_overrides": {
-    "openrouter/~deepseek/deepseek-v4-flash-latest": "high",
+    "openrouter/~deepseek/deepseek-v4-flash-0731": "high",
   },
   "web_search": true,
 }
