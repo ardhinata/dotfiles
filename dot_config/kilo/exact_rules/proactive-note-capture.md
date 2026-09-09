@@ -21,7 +21,7 @@ When capture is safe and low-cost, write it **right now** to a shared-context ta
 
 - **Path**: `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` (or update the file already created for that task). The dir is the working tree of the per-project shared context repo (see `~/.config/kilo/skills/project-layout/SKILL.md` §"Shared context repo").
 - **Before creating**: run `kilo-shared pull origin main` to surface any cross-worktree collisions, then list `.tmp/docs/notes/`, `head -n 10` each file, and reuse / merge into an existing note on the same task. Do not duplicate.
-- **After creating**: run `kilo-shared save "<short-message>"` from the project root to commit the new note. Per the `proactive-note-capture` enforcement rule, **every write to `.tmp/docs/` must end with a commit** — uncommitted notes are flagged as in-flight in the shared context repo's status.
+- **After creating**: run `kilo-shared save "<short-message>"` from the project root to commit the new note. Per the `proactive-note-capture` enforcement rule, **every write to `.tmp/docs/` must end with a commit** — uncommitted notes vanish on worktree destroy and never reach sibling worktrees.
 - **Sections to fill** — keep tight:
   1. **Finding** — one or two sentences, plain language.
   2. **Evidence** — exact file paths, command outputs, URLs, or code locations that justify it.

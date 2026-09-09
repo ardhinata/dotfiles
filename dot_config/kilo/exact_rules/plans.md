@@ -4,7 +4,7 @@ For any planning phase or multi-step task, **always** persist the plan and conte
 
 ## Locations
 
-- **Shared context (default):** `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` — git-tracked in the per-project shared context repo (`~/.local/share/kilo/shared-context/<project-slug>.git/`), one branch per Agent Manager worktree, persisted across worktrees and machines. **Every write must end with `kilo-shared save "<short-message>"`** (per the `project-layout` skill and `shared-context` skill).
+- **Shared context (default):** `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` — git-tracked in the per-project shared context repo (`~/.local/share/kilo/shared-context/<project-slug>.git/`), one branch per Agent Manager worktree, persisted across worktrees and machines. Commit-after-write per the shared-context commit protocol (see `proactive-note-capture.md`).
 - **Persistent (user-requested):** when the user says "persistent plan", "keep this plan", "save this plan in the repo", or names a path, use **that** location instead (e.g. `docs/plans/<task-slug>.md`, a project `plans/` dir, or whatever the user specifies). Confirm the path if ambiguous. Persistent plans **may be committed** to the project repo — write them with the project's normal conventions (frontmatter, headings, code style).
 
 "Transient" vs "persistent" no longer means "ephemeral vs durable" — both are durable. The distinction is now **scope**: shared-context plans are visible across worktrees via git; persistent (project-tracked) plans are part of the project's source-of-truth documentation.
