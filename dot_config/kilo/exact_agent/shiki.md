@@ -74,16 +74,15 @@ on a *family-diverse* model. In this configuration:
 - You both run your own **independent** two-pass workload (Pass 1 +
   Pass 2). Do not coordinate or share intermediate state.
 - You both produce independent `claims_table`s.
+- In the canonical parallel mode, you do **not** see reki's report
+  during your run — reki's YAML is not on disk when you are running.
+  The `reki_verdict` column in your `claims_table` is `N/A` by
+  design; the main agent reconciles both reports post-hoc.
 - The main agent reconciles your two verdicts per the rule in
   `.agents/docs/cache/kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`
   — a two-stage tie-break (main agent resolves with ≤ 3 tool calls,
   then escalates to a targeted 4-season fan-out for interpretation
   disagreements).
-- After your two-pass verification is complete, you may read reki's
-  YAML to populate the per-claim `shiki_verdict` / `reki_verdict`
-  columns in your `claims_table`. Do **not** read reki's YAML
-  *before* completing your own verification — anchoring destroys the
-  disagreement-detection signal.
 
 In the 2-verifier mode, the §5 read contract becomes "the verifier
 pair is the only channel" — the main agent reads both your and
@@ -225,10 +224,10 @@ reki alongside you.
 - Don't propose alternatives — that's natsu (synthesizer)'s job. You
   arbitrate between existing proposals, you don't add new ones.
 - Don't write outside `~/.local/share/kilo/subagent-runs/` and `/tmp/kilo/`.
-- In the 2-verifier mode: don't read reki's YAML before completing
-  your own two-pass verification — anchoring destroys the
-  disagreement-detection signal. Read it only to populate the
-  `reki_verdict` column after your own verdicts are written.
+- In the canonical 2-verifier parallel mode, reki's YAML is not on
+  disk when you run — anti-anchoring is about your own anticipation,
+  not reki's text. Don't try to read reki's report; it doesn't exist
+  yet. The main agent reconciles both reports post-hoc.
 - In the 2-verifier mode: don't silently change your verdict to
   match reki's. The disagreement is the value; surface it in
   `disagreements_with_reki` and let the main agent route it.
