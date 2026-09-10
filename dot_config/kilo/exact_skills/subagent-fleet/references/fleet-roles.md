@@ -103,20 +103,43 @@ the main agent.
 ```yaml
 subagent: <haru|natsu|aki|fuyu>
 question: <echo of the input question>
+status: complete | partial              # partial = continuation batch; main agent resumes on the same context via task_id
+batch: <integer, 1+>                    # batch index; 1 for first batch
 findings:
   - claim: <one-sentence claim>
     evidence:
       - type: file|url|code|numerical
         ref: <file:line or URL or expression>
-        snippet: <optional excerpt>
+      snippet: <optional excerpt>
     confidence: 0.0-1.0
     load_bearing: <true|false>     # security / correctness / cost
     open_questions: [<optional list>]
 assumptions_made: [<optional list>]
+continuation_request:                  # only present on status: partial
+  remaining_findings: <integer>
+  next_actions: [<short list>]
 ```
 
 `load_bearing: true` is the signal to shiki (and reki) that this claim
-must go through deep verification.
+must go through deep verification. `status: partial` is the signal to
+shiki/reki that the report is incomplete and the verifier must refuse
+with escalation (see "Refusal on partial input" in each verifier body).
+The continuation subagent is the same session as the prior batch —
+the runtime preserves message history and tool outputs via `task_id`
+(`.agents/docs/cache/kilo-subagents/2026-09-10-subagent-continuation-primitive.md`),
+so the subagent continues from where it left off without re-deriving
+prior tool calls.
+
+### Verifier behaviour on partial research input
+
+Both `shiki` and `reki` apply the same rule: if **any** research
+subagent YAML has `status: partial`, the verifier refuses with
+escalation on every claim from that YAML. The default is refuse —
+the user can opt-in per-spawn via a `verifier: accept_partial` flag
+in the parent's task prompt to switch to partial-recommendation mode
+with explicit uncertainty markers. The continuation path is owned by
+the main agent (it tracks per-spawn continuation counts and re-spawns
+the research subagent with `task_id=<prior_sessionID>`).
 
 ### shiki consolidated report envelope (single-verifier mode)
 

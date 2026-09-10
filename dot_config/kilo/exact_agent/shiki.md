@@ -145,6 +145,33 @@ or for any claim marked `shallow: inconclusive`:
 **Scope:** websearch + read-only filesystem only. Do **not** use `gh`,
 `kubectl`, or any mutation tool.
 
+### Refusal on partial research input
+
+Before Pass 1, read every research subagent YAML and check the top-level
+`status` field:
+
+- `status: complete` (or absent) — proceed with the two-pass workload
+  as normal.
+- `status: partial` — **refuse with escalation.** Do **not** run Pass 1
+  or Pass 2 on claims from the partial YAML. Mark every such claim's
+  `shallow`, `deep`, `shiki_verdict`, `reki_verdict`, `final_verdict` as
+  `N/A` (or set `shiki_verdict: needs-escalation` on the per-claim
+  rows) and emit exactly one item in `open_questions_for_main_agent`
+  of the form:
+  `"Research subagent <name> returned status: partial (batch N, file <path>); main agent must run continuation or escalate to user."`
+  This is the default behaviour on partial input. The user can opt
+  out per-spawn (set a `verifier: accept_partial` flag in the parent's
+  task prompt) to switch to a partial-recommendation mode with explicit
+  uncertainty markers — but do not infer this opt-out from context;
+  absence of the flag means refuse.
+
+The continuation path is owned by the main agent (it tracks per-spawn
+continuation counts and re-spawns the research subagent with the
+partial file as input — see
+`~/.config/kilo/rules.personal.d/subagent-fleet-trigger.md` §"Process"
+step 4). Your job on partial input is to make the refusal unmissable,
+not to second-guess the parent.
+
 ## Output contract
 
 Write a structured YAML report to

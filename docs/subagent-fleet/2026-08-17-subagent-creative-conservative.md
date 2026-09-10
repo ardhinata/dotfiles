@@ -444,6 +444,18 @@ The main agent must **never read raw research subagent output directly** when
 N ≥ 2 — shiki is the only channel into the main agent's context. This
 keeps the noise out of the main agent's working memory.
 
+**Carve-out for continuation requests (2026-09-10):** the main agent
+parses the research subagent's final message for the literal
+`continuation_request: <N>` marker line. This is a control signal, not
+a finding, and is exempt from the noise-isolation rule. The parent
+honours the marker by re-spawning with `task_id=<prior_sessionID>`,
+which preserves the subagent's full message history, tool outputs,
+and model state — true same-context continuation (runtime proof at
+`packages/opencode/src/tool/task.ts:55-60, 166-173` and
+`packages/opencode/src/kilocode/task-resume.ts:1`,
+see `.agents/docs/cache/kilo-subagents/2026-09-10-subagent-continuation-primitive.md`).
+Cap on continuations: ≤ 2 per spawn; the 3rd escalates to the user.
+
 ### 5.0 Task-prompt budget (revised 2026-08-25)
 
 The main agent's `task` prompt to each subagent should be **≤ 15 lines**
