@@ -57,12 +57,19 @@ write files outside the report directory
 
 | File | Name | Role | Model | Variant | Sampling |
 |---|---|---|---|---|---|
-| `haru.md` | 春 haru (spring) | Adversarial — assume the leading candidate is wrong; surface top 3 failure modes | `openrouter/deepseek/deepseek-v4-flash-0731` | `low` | T=0.2, top_p=0.9 |
-| `natsu.md` | 夏 natsu (summer) | Synthesizer — propose up to 3 coherent candidate answers | `openrouter/z-ai/glm-5.3-flash` | `low` | T=0.5, top_p=0.9 |
-| `aki.md` | 秋 aki (autumn) | Assumption-auditor — list up to 3 hidden assumptions and rate `likely_wrong` | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.3, top_p=0.85 |
-| `fuyu.md` | 冬 fuyu (winter) | Comparator — rank candidates on a multi-criterion rubric | `openrouter/z-ai/glm-5.3-flash` | `low` | T=1.0, top_p=0.95 |
-| `shiki.md` | 四季 shiki (four seasons) | Verifier 1 — read the research YAML reports and produce one consolidated answer. **Mandatory** when ≥2 research subagents ran. | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.4, top_p=0.95 |
+| `haru.md` | 春 haru (spring) | Adversarial — assume the leading candidate is wrong; surface top 3 failure modes | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=1.0, top_p=0.95 |
+| `natsu.md` | 夏 natsu (summer) | Synthesizer — propose up to 3 coherent candidate answers | `openrouter/z-ai/glm-5.3-flash` | `high` | T=1.0, top_p=0.95 |
+| `aki.md` | 秋 aki (autumn) | Assumption-auditor — list up to 3 hidden assumptions and rate `likely_wrong` | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=1.0, top_p=0.95 |
+| `fuyu.md` | 冬 fuyu (comparator) | Comparator — rank candidates on a multi-criterion rubric | `openrouter/z-ai/glm-5.3-flash` | `high` | T=1.0, top_p=0.95 |
+| `shiki.md` | 四季 shiki (four seasons) | Verifier 1 — read the research YAML reports and produce one consolidated answer. **Mandatory** when ≥2 research subagents ran. | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=1.0, top_p=0.95 |
 | `reki.md` | 暦 reki (calendar) | Verifier 2 (opt-in 2-verifier mode) — second witness, family-diverse from shiki. Runs in parallel with shiki over the same research YAMLs. | `openrouter/z-ai/glm-5.3-flash` | `high` | T=1.0, top_p=0.95 |
+
+Caps (steps / maxTokens):
+
+| Role | steps | maxTokens | Notes |
+|---|---|---|---|
+| haru, natsu, aki, fuyu | 30 | 6144 | Cohort cap harmonised 2026-09-10T08:07Z. Paired with the `task_id` continuation channel (≤ 2 continuations per spawn; the 3rd escalates to user) and the `verifier: refuse-on-partial` default. |
+| shiki, reki | 50 | 8192 | Verifier cap reduced 2026-09-10T13:40Z. Two-pass workload on heavy runs (Pass 1 + Pass 2 over 18-21 claims) reaches ~35-45 turns at peak — `steps` held at 50 to avoid mid-Pass-2 truncation. `maxTokens` is the binding-cost lever. |
 
 Cohort spans **2 architecture families** (Z.ai GLM, DeepSeek V4).
 Family diversity is not a constraint — exit-early and
@@ -88,27 +95,28 @@ criterion filters for are:
 
 Per-model rationale:
 
-- **haru** (`deepseek/deepseek-v4-flash-0731`, `variant: low`):
-  Non-think tier — the reasoning channel is disabled, so the
-  adversarial stance in the prompt does the entire job and the
-  model produces structured YAML directly. Pairs with `aki` on the
-  same model at `high`; haru's `low` lever is the deliberate
-  contrast (adversarial without deep reflection) and reduces per-
-  call cost vs aki.
-- **natsu** (`z-ai/glm-5.3-flash`, `variant: low`): reasoning_effort
+- **haru** (`deepseek/deepseek-v4-flash-0731`, `variant: high`):
+  Think tier at `high` effort — the reasoning channel is enabled, so
+  the adversarial stance surfaces failure modes with full reflection.
+  Pairs with `aki` on the same model at the same `high` effort tier
+  but opposite `T`; the deliberate effort-and-temperature contrast
+  (attack with full reflection at high temperature vs audit with full
+  reflection at low temperature) is the design intent.
+- **natsu** (`z-ai/glm-5.3-flash`, `variant: high`): reasoning_effort
   is forwarded on `parasail/fp8`, `deepinfra/fp8`, `novita/fp8` (all
-  confirmed in the route probe). `low` effort is cheap; the synthesis
-  lever is the prompt-conditioned role, not deep reasoning.
+  confirmed in the route probe). `high` effort and `T=1.0` — the
+  synthesis lever is the prompt-conditioned role plus wide
+  temperature sampling to range over candidate coherence.
 - **aki** (`deepseek/deepseek-v4-flash-0731`, `variant: high`):
   dated id (not the `~latest` router alias, which drifts), pinned
   to `relace/fp4` and `streamlake/fp8` (sail-research and akashml
   dropped today — 429/503 on the route probe). `high` effort for
-  deep assumption-hunting.
-- **fuyu** (`z-ai/glm-5.3-flash`, `variant: low`): same model as
-  natsu, but `T=1.0` to range over the rubric edges. Avoids the
-  qwen3.7-flash doom-loop risk that the v2 aki assumption audit
-  flagged (qwen defaults to >60% reasoning tokens regardless of
-  effort).
+  deep assumption-hunting; the low-temperature (1.0) sampling
+  avoids the doom-loop risk that the v2 aki assumption audit
+  flagged on qwen defaults.
+- **fuyu** (`z-ai/glm-5.3-flash`, `variant: high`): same model as
+  natsu at the same `high` effort tier and `T=1.0` to range over
+  the rubric edges.
 - **shiki** (`deepseek/deepseek-v4-flash-0731`, `variant: high`):
   **previously `minimax/minimax-m3`** — moved 2026-09-01 after the
   benchmark showed M3 silently drops `reasoning_effort` (5-point

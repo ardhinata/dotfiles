@@ -12,9 +12,24 @@
 >   research subagents. Paired with the new continuation protocol in
 >   the subagent bodies and the verifier refusal-on-partial rule in
 >   shiki/reki. Plan:
->   `.tmp/docs/plans/2026-09-10-subagent-30step-6k-continuation.md`.
+>   `~/.local/share/chezmoi/.tmp/docs/plans/2026-09-10-subagent-30step-6k-continuation.md`.
+> - Verifier cap (`shiki`, `reki`) reduced from `maxTokens: 10240 → 8192`
+>   while keeping `steps: 50`. Rationale: heavy verifier runs (deploy-script
+>   verdict at 18KB ≈ 4500 tokens, laravel-lang verdict at 289 lines ≈
+>   3500 tokens) fit at ~55% of the new cap; light runs (2008-byte avg
+>   per the 2026-08-30 empirical pass) fit at ~5%. `steps` is left at 50
+>   because the two-pass workload on heavy runs (Pass 1 + Pass 2 over
+>   18-21 claims) consumes ~35-45 turns at peak — lowering `steps` would
+>   force mid-Pass-2 truncation on the heaviest runs. The `maxTokens`
+>   reduction is the binding-constraint reduction; `steps` is not.
 
 ## Procedure
+
+0. **Load the task-prompt budget** at
+   `references/task-prompt-budget.md` before composing any `task`
+   prompt. The budget rule is in the skill (not in `exact_rules.personal.d/`)
+   because it is only useful at the spawn moment; paying the context
+   cost every turn was wasted tokens.
 
 1. **Decide N** — number of research subagents to launch. The
    `subagent-fleet-trigger` rule's "Pick" table maps failure shapes to
@@ -30,54 +45,111 @@
 
 3. **Spawn in parallel** — same prompt for each. Pass `haru`'s output
    to `fuyu` when both run in the same fan-out.
-
-4. **Continuation protocol (after every research subagent returns)** —
+4. **Capture `task_id`** from the `<task id="<sessionID>" state="...">`
+   envelope on every research subagent spawn. Store indexed by
+   `(role, question, batch_index)` in your session memory. On a
+   continuation request, look up the prior `task_id` for the same
+   role + question and pass it as `task_id=<prior_sessionID>` to the
+   re-spawn. Without this capture, the per-spawn continuation cap
+   cannot be honoured — you have no resume handle. The runtime
+   primitive is `task_id=<prior_sessionID>`; the cache entry
+   `~/.local/share/chezmoi/.agents/docs/cache/kilo-subagents/2026-09-10-subagent-continuation-primitive.md`
+   documents the parent-only resume guard.
+5. **Continuation protocol (after every research subagent returns)** —
    parse the subagent's final message for the literal
    `continuation_request: <N>` line. If present:
-   - Track per-spawn continuations (≤ 2; the 3rd escalates to user via
-     the `question` tool).
-   - On honour, re-spawn with `task_id=<prior_sessionID>` and a short
-     continuation prompt: "Continue from where you left off. Read the
-     partial YAML at `<path>`. Append the remaining findings to that
-     file, switch `status: partial` → `complete`, increment `batch:`."
-     The runtime preserves the subagent's full message history and
-     tool outputs via `task_id` —
-     `.agents/docs/cache/kilo-subagents/2026-09-10-subagent-continuation-primitive.md`
-     has the runtime proof (parent-only guard at
-     `packages/opencode/src/tool/task.ts:166-173`, permission re-merge
-     at `tool/task.ts:213-220`). The subagent does **not** re-derive
-     its prior tool calls — they are in the resumed session.
+- Track per-spawn continuations (≤ 2; the 3rd escalates to user via
+      the `question` tool).
+    - On honour, re-spawn with `task_id=<prior_sessionID>` (looked up
+      from the per-spawn table in step 4) and a short continuation
+      prompt: "Continue from where you left off. Read the partial YAML
+      at `<path>`. Append the remaining findings to that file, switch
+      `status: partial` → `complete`, increment `batch:`." The runtime
+      preserves the subagent's full message history and tool outputs
+      via `task_id`. The subagent does **not** re-derive its prior tool
+      calls — they are in the resumed session.
 
-5. **Mandatory `shiki` when N≥2.** When N=1, spawn `shiki` only when
+6. **Mandatory `shiki` when N≥2.** When N=1, spawn `shiki` only when
    the agent flags the single research subagent's output as load-bearing
    (cited in the final answer).
 
-6. **Opt-in `reki` (2-verifier mode)** — spawn reki in parallel with
+7. **Opt-in `reki` (2-verifier mode)** — spawn reki in parallel with
    shiki when **any** of:
    - N≥3 research subagents ran, **OR**
    - ≥3 `load_bearing: true` claims expected, **OR**
    - The answer lands in a public artifact (commit, PR, doc) or commits
      cost/scope.
 
-7. **Refusal on partial input (both verifiers)** — if any research
+8. **Refusal on partial input (both verifiers)** — if any research
    subagent YAML has `status: partial`, the verifier refuses with
    escalation on every claim from that YAML. The default is refuse;
    the user can opt-in per-spawn via a `verifier: accept_partial` flag.
 
-8. **Reconciliation (2-verifier mode only)** — the main agent reads both
-   verifier reports and applies the two-stage disagreement-resolution
-   rule (see
-   `kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`):
-   - Stage 1: main agent resolves with ≤ 3 tool calls (webfetch /
-     websearch / firecrawl_scrape / tavily_extract) for shaping-artefact
-     and evidence-asymmetry disagreements.
-   - Stage 2: targeted 4-season fan-out (aki + fuyu interpretive roles
-     only) for interpretation-asymmetry disagreements.
+9. **Reconciliation (2-verifier mode only)** — see §"Reconciliation
+   algorithm" below for the full algorithm. Briefly: stage 1 main-agent
+   resolves with ≤ 3 tool calls for phrasing-artefact and
+   evidence-asymmetry disagreements; stage 2 targeted 4-season fan-out
+   (aki + fuyu) for interpretation-asymmetry disagreements.
 
-9. **Read only the verifier pair's `recommendation` +
-   `open_questions_for_main_agent` blocks** (and optionally
-   `claims_table` for audit). Decide whether to escalate to the user
-   or accept.
+10. **Read only the verifier pair's `recommendation` +
+    `open_questions_for_main_agent` blocks** (and optionally
+    `claims_table` for audit). Decide whether to escalate to the user
+    or accept.
+
+## Reconciliation algorithm (2-verifier mode)
+
+For any load-bearing claim where `shiki_verdict ≠ reki_verdict`:
+
+1. **Diagnose the disagreement shape** — read both verifier `reasoning`
+   fields and classify:
+   - **Shape 1 — phrasing artefact.** Both verifiers agree on the
+     underlying fact but answered different questions or framed the
+     same evidence in opposing phrasings. Symptom: one's `reasoning`,
+     when stripped of framing language, matches the other's.
+   - **Shape 2 — evidence asymmetry.** One verifier located a source
+     the other did not. Both reason correctly from their respective
+     evidence. Symptom: `sources`/`citations` arrays differ; one has
+     a specific URL the other doesn't.
+   - **Shape 3 — interpretation asymmetry.** Both cite the same
+     evidence but disagree on what it means. Symptom: `reasoning`
+     chains reach opposite `final_verdict`s while citing overlapping
+     sources. Genuine epistemic disagreement.
+
+2. **Stage 1 — main-agent-as-tie-breaker.** Resolves shapes 1 and 2
+   without spawning more subagents:
+   - **Shape 1** — re-read both reasonings, strip framing language.
+     If they collapse to the same fact-claim, accept at lower
+     confidence. If not, re-classify as shape 2 or 3.
+   - **Shape 2** — call `webfetch` / `websearch` / `firecrawl_scrape`
+     / `tavily_extract` directly on the disputed citation. Resolve
+     per the direct-read evidence.
+   - **Ceiling: ≤ 3 tool calls per disagreement, ≤ ~30s reasoning
+     time.** Beyond this, anchoring risk grows and stage 2 is cheaper.
+   - **No subagent spawns from this context** — spawning a subagent
+     from the tie-break re-introduces §5 noise.
+
+3. **Stage 2 — targeted 4-season fan-out.** Triggers when stage 1
+   exhausts its budget, or directly in narrow cases:
+   - **Security-critical domain** — false-accept cost is asymmetric;
+     the marginal cost of a fan-out is justified.
+   - **Recurring disagreement type** — same shape ≥ 3 times across
+     recent runs; build a domain-specific protocol.
+   - **Both verifier reasonings < 100 tokens** — too thin to
+     diagnose; reject and escalate.
+   - **Fan-out:** research roles `aki` + `fuyu` (interpretive, not
+     evidence-collecting). Verifier roles `shiki` + `reki` re-verify
+     the targeted research. Scope: the specific disagreement only,
+     not the original full question.
+   - **Cost: ~$0.025–0.035 + ~80–120s.**
+
+4. **Persistent disagreement** — if stage 2 also disagrees on the
+   same shape, accept the lower-confidence verdict with
+   `flag: persistent_disagreement` so the disagreement is reported
+   to the user rather than silently picked. Never loop indefinitely.
+
+When shiki/reki both **accept** or both **reject** a non-load-bearing
+claim: `accept_at_lower_confidence` or `reject` respectively — no
+reconciliation needed.
 
 ## Hard rules
 

@@ -52,7 +52,7 @@ If you change the canonical file's path (rename or relocation), update:
 4. `dot_config/kilo/exact_skills/subagent-fleet/SKILL.md` (1 site).
 5. `dot_config/kilo/exact_skills/subagent-fleet/references/*.md` (4 sites — one per role reference).
 6. `dot_config/kilo/exact_rules.personal.d/subagent-fleet-trigger.md` (2 sites).
-7. `dot_config/kilo/exact_rules.personal.d/subagent-fleet-task-prompt-budget.md` (1 site).
+7. `dot_config/kilo/exact_skills/subagent-fleet/references/task-prompt-budget.md` (1 site — migrated 2026-09-10 from `exact_rules.personal.d/subagent-fleet-task-prompt-budget.md`).
 8. `AGENTS.md` (1 site in the Pointers section).
 
 Use `grep -r "2026-08-17-subagent-creative-conservative"` to verify

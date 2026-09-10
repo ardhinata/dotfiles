@@ -141,7 +141,7 @@ After deploying, verify:
    (`mkdir -p` if needed; the deploy-time script could do this).
 4. Subagent isolation — confirm parent's `edit`/`bash` allow does NOT
    leak into subagents. Parent's `deny` survives per
-   `.agents/docs/cache/kilo-subagents/2026-08-17-revalidation-v7.4.22-deep.md:21-26`.
+   `~/.local/share/chezmoi/.agents/docs/cache/kilo-subagents/2026-08-17-revalidation-v7.4.22-deep.md:21-26`.
 5. Per-model behaviour — run a single known question with N=4
    (`haru + natsu + aki + fuyu` in parallel). Confirm `shiki`'s
    `claims_table` has rows for each research subagent and the

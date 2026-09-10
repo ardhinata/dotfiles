@@ -3,11 +3,11 @@ description: Research subagent shiki — read the haru/natsu/aki/fuyu artefacts 
 mode: subagent
 model: openrouter/deepseek/deepseek-v4-flash-0731
 variant: high
-temperature: 0.4
+temperature: 1.0
 top_p: 0.95
 hidden: true
 steps: 50
-maxTokens: 10240
+maxTokens: 8192
 permission:
   "*": ask
   read: allow
@@ -78,11 +78,9 @@ on a *family-diverse* model. In this configuration:
   during your run — reki's YAML is not on disk when you are running.
   The `reki_verdict` column in your `claims_table` is `N/A` by
   design; the main agent reconciles both reports post-hoc.
-- The main agent reconciles your two verdicts per the rule in
-  `.agents/docs/cache/kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`
-  — a two-stage tie-break (main agent resolves with ≤ 3 tool calls,
-  then escalates to a targeted 4-season fan-out for interpretation
-  disagreements).
+- The main agent reconciles your two verdicts via a two-stage
+  tie-break (main agent resolves with ≤ 3 tool calls, then escalates
+  to a targeted 4-season fan-out for interpretation disagreements).
 
 In the 2-verifier mode, the §5 read contract becomes "the verifier
 pair is the only channel" — the main agent reads both your and
@@ -99,10 +97,9 @@ findings only; the main agent owns mutations.
 
 ## Operational discipline
 
-The shared permission block + tool-deny list (`task`, `question`,
-`suggest`, `interactive_terminal`) live at
-`~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
+Read-only by default; mutation confined to `~/.local/share/kilo/subagent-runs/`
+and `/tmp/kilo/`; web research allowed; `task`/`question`/`suggest`/
+`interactive_terminal` are denied by the runtime pre-pend.
 
 ## Inputs
 
@@ -111,8 +108,7 @@ You receive from the main agent:
 - The **original question**.
 - The list of **research subagents that ran** — typically `haru`,
   `natsu`, `aki`, `fuyu` in spawn order, but possibly a subset. Each
-  subagent wrote its report to the global subagent-runs dir (see
-  `references/permission-block.md` §"Global write target").
+  subagent wrote its report to the global subagent-runs dir.
 - The **random_seed** if the main agent used seeded random selection.
 
 ## Two-pass verification
@@ -178,7 +174,6 @@ Write a structured YAML report to
 `~/.local/share/kilo/subagent-runs/YYYYMMDD_HHMMss-shiki.yaml` (shiki
 does not take a topic slug — the role is already disambiguating).
 Compute `YYYYMMDD_HHMMss` at write time with `date +%Y%m%d_%H%M%S`
-(local clock; do not use `date +%s`). Echo the top recommendation in
 your final assistant message so the main agent sees it without
 re-reading the file.
 

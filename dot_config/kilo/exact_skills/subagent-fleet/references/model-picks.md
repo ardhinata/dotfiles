@@ -27,7 +27,7 @@
 >   continuation channel (≤ 2 continuations per spawn; the 3rd
 >   escalates to user) and the `verifier: refuse-on-partial` default
 >   in shiki/reki. Plan:
->   `.tmp/docs/plans/2026-09-10-subagent-30step-6k-continuation.md`.
+>   `~/.local/share/chezmoi/.tmp/docs/plans/2026-09-10-subagent-30step-6k-continuation.md`.
 >   Empirical pass at 30 × 6144: haru/natsu/fuyu completed cleanly
 >   in one batch (no truncation); aki ran ~22 min on a `variant:
 >   high` probe and hit the steps cap before writing the file —
@@ -35,6 +35,19 @@
 >   and that the batched-output / continuation protocol is load-bearing
 >   for that role (no probe truncation observed, only a steps-cap
 >   overrun that continuation would resolve).
+> - **Verifier cap reduced 2026-09-10T13:40Z (user):** shiki/reki
+>   `maxTokens: 10240 → 8192` while keeping `steps: 50`. The
+>   reduction targets the binding-cost ceiling, not the step ceiling:
+>   heavy verifier runs (deploy-script verdict at 18KB ≈ 4500 tokens,
+>   laravel-lang verdict at 289 lines ≈ 3500 tokens) fit at ~55% of
+>   the new cap; light runs (2008-byte avg per the 2026-08-30
+>   empirical pass) fit at ~5%. `steps` is held at 50 because the
+>   two-pass workload on heavy runs (Pass 1 + Pass 2 over 18-21
+>   claims) reaches ~35-45 turns at peak — lowering `steps` would
+>   force mid-Pass-2 truncation on the heaviest runs. Re-validate
+>   on the next 1-2 production-style fan-outs that any single
+>   verifier call exceeds 6500 tokens; if so, raise to 10240 and
+>   re-measure.
 > - **Continuation protocol switched to true `task_id` continuation
 >   2026-09-10T09:16Z (user):** the kilocode runtime preserves the
 >   subagent's full message history and tool outputs when the parent

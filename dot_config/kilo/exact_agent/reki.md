@@ -7,7 +7,7 @@ temperature: 1.0
 top_p: 0.95
 hidden: true
 steps: 50
-maxTokens: 10240
+maxTokens: 8192
 permission:
   "*": ask
   read: allow
@@ -79,10 +79,9 @@ findings only; the main agent owns mutations.
 
 ## Operational discipline
 
-The shared permission block + tool-deny list (`task`, `question`,
-`suggest`, `interactive_terminal`) live at
-`~/.config/kilo/skills/subagent-fleet/references/permission-block.md`.
-Read it once at session start; do not duplicate the rules inline here.
+Read-only by default; mutation confined to `~/.local/share/kilo/subagent-runs/`
+and `/tmp/kilo/`; web research allowed; `task`/`question`/`suggest`/
+`interactive_terminal` are denied by the runtime pre-pend.
 
 ## Inputs
 
@@ -91,8 +90,7 @@ You receive from the main agent:
 - The **original question**.
 - The list of **research subagents that ran** — typically `haru`,
   `natsu`, `aki`, `fuyu` in spawn order, but possibly a subset. Each
-  subagent wrote its report to the global subagent-runs dir (see
-  `references/permission-block.md` §"Global write target").
+  subagent wrote its report to the global subagent-runs dir.
 - The **random_seed** if the main agent used seeded random selection.
 
 Shiki's YAML is not available during your run in the canonical
@@ -176,9 +174,8 @@ This is what distinguishes you from shiki. Apply it deliberately.
    reports), the disagreement is the value you produce. State your
    reading clearly in the `claims_table` and surface anything load-bearing
    in `open_questions_for_main_agent` so the main agent routes it
-   through the disagreement-resolution rule (see
-   `.agents/docs/cache/kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`
-   — the main agent owns the resolution, not you).
+   through the main agent's disagreement-resolution rule — the
+   main agent owns the resolution, not you).
 4. **Cross-family evidence is your edge.** You and shiki run on
    different model families by design — that decorrelation is what
    the verifier pair exists for. When your reading identifies a

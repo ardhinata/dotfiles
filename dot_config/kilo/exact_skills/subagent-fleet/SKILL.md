@@ -61,17 +61,24 @@ Load on demand. Do not load all of them at once.
 | `references/invocation-pattern.md` | About to spawn research subagents — need the N-research + shiki rules, the 2-verifier mode trigger, and the output contracts. |
 | `references/model-picks.md` | Need the current model id, family, `variant:`, or sampling tilt for each role. |
 | `references/permission-block.md` | Need the permission allowlist shared by all 6 subagents (or the operational discipline preamble). |
+| `references/task-prompt-budget.md` | About to compose a `task` prompt for any of the 6 subagents — must read before any spawn (≤ 15 lines, no body-duplication, no output-path or filename-format overrides). |
 
-## The six roles at a glance
+## Failure-shape → role mapping
 
-| Role | Stance | Pick when |
+Pick the research subagent whose stance fits the failure shape. The
+trigger rule owns the *when*; this table owns the *which*.
+
+| Failure shape | First pick | Optional second pick |
 |---|---|---|
-| `haru` (adversarial, 春) | Leading answer is wrong | Failure-mode search, security review, the obvious answer is suspicious |
-| `natsu` (synthesizer, 夏) | Propose the most coherent candidate | Need a candidate synthesis, or the answer space is open |
-| `aki` (assumption-auditor, 秋) | List unjustified assumptions | The problem statement itself may be wrong, or hidden assumptions block progress |
-| `fuyu` (comparator, 冬) | Compare candidates on a fixed rubric | Two or more candidates are on the table and no rubric exists |
-| `shiki` (verifier, 四季) | Neutral arbiter; consolidates N research subagents | N≥2 research subagents ran; **mandatory** channel back to the main agent |
-| `reki` (second verifier, 暦) | Independent verifier; family-diverse from shiki | 2-verifier mode: N≥3 research, ≥3 load-bearing claims, or public-artifact answer |
+| Leading answer may be wrong | `haru` (adversarial) | `shiki` verifier on haru's output |
+| Need a coherent answer / candidate synthesis | `natsu` (synthesizer) | `aki` (assumption-auditor) |
+| Multiple candidates on the table, no rubric | `fuyu` (comparator) | `shiki` verifier |
+| Problem statement itself may be wrong | `aki` (assumption-auditor) | `natsu` or `fuyu` |
+| A single load-bearing claim needs verification | `haru` (find failure modes) + `shiki` verifier | — |
+| **High-stakes public artifact (commit, PR, doc), or ≥3 `load_bearing: true` claims expected** | **the full N-research fan-out + `shiki` + `reki`** | — |
+
+`shiki` is mandatory at N≥2; `reki` is opt-in, family-diverse from
+shiki, run in parallel with shiki over the same research YAMLs.
 
 ## Invocation (one-line summary)
 
