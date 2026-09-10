@@ -1,34 +1,58 @@
-# Model Picks (snapshot 2026-09-09)
+# Model Picks (snapshot 2026-09-10)
 
 > **Drift-prone metadata only.** The cohort table (role → model →
-> variant → sampling) lives in `dot_config/kilo/exact_agent/README.md`
-> §"The six subagents". This file keeps the *why*, *routes*, *cost*,
-> and *re-verification cadence* — the parts that drift weekly and
-> don't fit in the README's reference table.
+> variant → sampling → steps/maxTokens) lives in
+> `dot_config/kilo/exact_agent/README.md` §"The six subagents". This
+> file keeps the *why*, *routes*, *cost*, and *re-verification
+> cadence* — the parts that drift weekly and don't fit in the
+> README's reference table.
 >
 > OpenRouter adds new routes weekly; the `:batch` filter must be
 > re-applied before any new pick. Re-verify against
 > `dot_config/kilo/exact_agent/README.md` "The six subagents" first.
 >
-> **2026-09-09 changes:**
-> - Added `reki` (second verifier, `z-ai/glm-5.3-flash`).
-> - Re-verified shiki's `deepseek/deepseek-v4-flash-0731` pick
->   (`.agents/docs/cache/kilo-subagents/2026-09-09-shiki-m3-reasoning-effort-revisit.md`):
->   the 2026-09-01 "M3 silently drops reasoning_effort" claim was
->   based on a single-sample 1-token probe and is withdrawn. M3
->   honours the field as a binary thinking toggle; the swap to
->   V4-Flash-0731 stays because V4-Flash has 3 real depth tiers
->   (Non-think / High / Max) and M3 does not.
-> - R1-R7 eligibility filter is now **soft** — the prior "4 distinct
->   families" hard invariant is advisory, not binding.
+> **2026-09-10 changes:**
+> - Swapped `haru` from `xiaomi/mimo-v2.5-pro` to
+>   `deepseek/deepseek-v4-flash-0731` at `variant: low` (Non-think).
+>   Rationale: haru's adversarial-stance prompt is the primary
+>   lever; reasoning-channel churn on MiMo produced unstable
+>   structured output. Non-think V4-Flash exits directly into YAML.
+>   Cohort collapses from 3 families to 2 (Z.ai GLM + DeepSeek V4).
+>   `aki` and `haru` now share a model at opposite effort tiers —
+>   deliberate contrast, not redundancy.
+> - **Cohort cap harmonised 2026-09-10T08:07Z (user):** all four
+>   research subagents set to `steps: 30, maxTokens: 6144`. Prior
+>   values: haru/aki 50/4096, natsu 50/8192, fuyu 50/6144. The cap
+>   is the binding worst-case — paired with the `task_id`
+>   continuation channel (≤ 2 continuations per spawn; the 3rd
+>   escalates to user) and the `verifier: refuse-on-partial` default
+>   in shiki/reki. Plan:
+>   `.tmp/docs/plans/2026-09-10-subagent-30step-6k-continuation.md`.
+>   Empirical pass at 30 × 6144: haru/natsu/fuyu completed cleanly
+>   in one batch (no truncation); aki ran ~22 min on a `variant:
+>   high` probe and hit the steps cap before writing the file —
+>   signal that 6144 is near the floor for aki at `variant: high`,
+>   and that the batched-output / continuation protocol is load-bearing
+>   for that role (no probe truncation observed, only a steps-cap
+>   overrun that continuation would resolve).
+> - **Continuation protocol switched to true `task_id` continuation
+>   2026-09-10T09:16Z (user):** the kilocode runtime preserves the
+>   subagent's full message history and tool outputs when the parent
+>   re-spawns with `task_id=<prior_sessionID>`
+>   (`packages/opencode/src/tool/task.ts:55-60, 166-173, 213-220`,
+>   guard at `packages/opencode/src/kilocode/task-resume.ts:1`). The
+>   prior simulated-continuation design (re-spawn + reconstruct from
+>   a `past_steps:` array) is dropped — it was duplicate signal
+>   (the subagent already sees its own past tool calls in the
+>   resumed session). Envelope drops the `past_steps:` field; the
+>   parent prompt becomes a single `task_id=<id>` re-spawn.
 
 ## Route pin block (verified healthy as of 2026-09-09)
 
 | Model | Verified-healthy routes | Dropped routes | Reason for drop |
 |---|---|---|---|
-| `xiaomi/mimo-v2.5-pro` (haru) | (re-verify at next cohort swap) | — | — |
 | `z-ai/glm-5.3-flash` (natsu, fuyu, reki) | `parasail/fp8`, `deepinfra/fp8`, `novita/fp8` | — | — |
-| `deepseek/deepseek-v4-flash-0731` (aki, shiki) | `relace/fp4`, `streamlake/fp8` | `sail-research/fp4`, `akashml/fp8` | 429 / 503 (route probe 2026-09-09) |
+| `deepseek/deepseek-v4-flash-0731` (haru, aki, shiki) | `relace/fp4`, `streamlake/fp8` | `sail-research/fp4`, `akashml/fp8` | 429 / 503 (route probe 2026-09-09) |
 
 Pins live in `dot_config/kilo/kilo.jsonc` (chezmoi source) →
 `~/.config/kilo/kilo.jsonc` (deployed). Per-model `options.provider.only`
@@ -38,11 +62,13 @@ lists the verified-healthy routes; routing mode is hard-restricted
 
 ## Why these assignments (2026-09-09)
 
-- **`haru` → xiaomi/mimo-v2.5-pro** — boolean-toggle reasoning (no
-  effort lever), but it just thinks regardless and produces 24-30
-  reasoning tokens on a 1-token probe. Cheap, stable, the
-  adversarial-stance prompt does the real work. Variant field is
-  intentionally omitted from frontmatter (would be silently dropped).
+- **`haru` → deepseek/deepseek-v4-flash-0731 (`variant: low`)** —
+  Non-think tier; reasoning channel disabled, so the adversarial
+  stance in the prompt produces structured YAML directly. Pairs
+  with `aki` on the same model at `variant: high` — the deliberate
+  effort contrast (attack without deep reflection vs audit with
+  full reflection) is the design intent. Cost drops vs the prior
+  MiMo pick on cache reads.
 - **`natsu` → z-ai/glm-5.3-flash** — AA Intelligence 57.5 (highest of
   the 3-model cohort), supports `temperature`/`top_p`/`reasoning_effort`
   (forwarded on the routes above). 1.31M context, 131K max completion,

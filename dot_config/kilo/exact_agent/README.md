@@ -57,15 +57,15 @@ write files outside the report directory
 
 | File | Name | Role | Model | Variant | Sampling |
 |---|---|---|---|---|---|
-| `haru.md` | 春 haru (spring) | Adversarial — assume the leading candidate is wrong; surface top 3 failure modes | `openrouter/xiaomi/mimo-v2.5-pro` | none (boolean toggle) | T=0.2, top_p=0.9 |
+| `haru.md` | 春 haru (spring) | Adversarial — assume the leading candidate is wrong; surface top 3 failure modes | `openrouter/deepseek/deepseek-v4-flash-0731` | `low` | T=0.2, top_p=0.9 |
 | `natsu.md` | 夏 natsu (summer) | Synthesizer — propose up to 3 coherent candidate answers | `openrouter/z-ai/glm-5.3-flash` | `low` | T=0.5, top_p=0.9 |
 | `aki.md` | 秋 aki (autumn) | Assumption-auditor — list up to 3 hidden assumptions and rate `likely_wrong` | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.3, top_p=0.85 |
 | `fuyu.md` | 冬 fuyu (winter) | Comparator — rank candidates on a multi-criterion rubric | `openrouter/z-ai/glm-5.3-flash` | `low` | T=1.0, top_p=0.95 |
 | `shiki.md` | 四季 shiki (four seasons) | Verifier 1 — read the research YAML reports and produce one consolidated answer. **Mandatory** when ≥2 research subagents ran. | `openrouter/deepseek/deepseek-v4-flash-0731` | `high` | T=0.4, top_p=0.95 |
 | `reki.md` | 暦 reki (calendar) | Verifier 2 (opt-in 2-verifier mode) — second witness, family-diverse from shiki. Runs in parallel with shiki over the same research YAMLs. | `openrouter/z-ai/glm-5.3-flash` | `high` | T=1.0, top_p=0.95 |
 
-Cohort spans **3 architecture families** (Xiaomi MiMo, Z.ai GLM,
-DeepSeek V4). Family diversity is not a constraint — exit-early and
+Cohort spans **2 architecture families** (Z.ai GLM, DeepSeek V4).
+Family diversity is not a constraint — exit-early and
 thinking-doom-loop resistance are. See "Cohort design" below.
 
 Each is `mode: subagent, hidden: true` — invisible to the `@`-autocomplete
@@ -88,11 +88,13 @@ criterion filters for are:
 
 Per-model rationale:
 
-- **haru** (`xiaomi/mimo-v2.5-pro`): boolean-toggle reasoning (no
-  effort lever), but it just thinks regardless and produces 24-30
-  reasoning tokens on a 1-token probe. Cheap, stable, the
-  adversarial-stance prompt does the real work. Variant field is
-  intentionally omitted from frontmatter (would be silently dropped).
+- **haru** (`deepseek/deepseek-v4-flash-0731`, `variant: low`):
+  Non-think tier — the reasoning channel is disabled, so the
+  adversarial stance in the prompt does the entire job and the
+  model produces structured YAML directly. Pairs with `aki` on the
+  same model at `high`; haru's `low` lever is the deliberate
+  contrast (adversarial without deep reflection) and reduces per-
+  call cost vs aki.
 - **natsu** (`z-ai/glm-5.3-flash`, `variant: low`): reasoning_effort
   is forwarded on `parasail/fp8`, `deepinfra/fp8`, `novita/fp8` (all
   confirmed in the route probe). `low` effort is cheap; the synthesis
