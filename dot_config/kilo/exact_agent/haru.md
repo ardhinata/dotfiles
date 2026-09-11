@@ -3,8 +3,6 @@ description: Research subagent haru — assume the leading candidate answer is w
 mode: subagent
 model: openrouter/deepseek/deepseek-v4-flash-0731
 variant: high
-temperature: 1.0
-top_p: 0.95
 steps: 30
 maxTokens: 6144
 hidden: true
@@ -76,6 +74,12 @@ You receive from the main agent (or from the spawn-time context):
 - The **leading candidate(s)** — the answer(s) currently most likely.
 - **Relevant context** — files, URLs, prior research artefacts as
   applicable. Best-effort.
+
+If the input is not sufficient for the task, inform the main agent
+by outputting a literal text `need_more_context: <explanation why it is insufficient>`
+and stop.
+Do this after you have gathered some evidence; do not decide that
+the input is insufficient at the beginning of the first few turns.
 
 ## Output contract
 

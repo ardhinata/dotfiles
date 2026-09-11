@@ -3,8 +3,6 @@ description: Research subagent natsu — propose the most coherent candidate sol
 mode: subagent
 model: openrouter/z-ai/glm-5.3-flash
 variant: high
-temperature: 1.0
-top_p: 0.95
 steps: 30
 maxTokens: 6144
 hidden: true
@@ -79,6 +77,12 @@ You receive from the main agent (or from the spawn-time context):
   and is now spawning natsu with haru's adversarial findings. Use haru
   to refine the candidate but do not be derailed — your job is
   synthesis, not defence.
+
+If the input is not sufficient for the task, inform the main agent
+by outputting a literal text `need_more_context: <explanation why it is insufficient>`
+and stop.
+Do this after you have gathered some evidence; do not decide that
+the input is insufficient at the beginning of the first few turns.
 
 ## Output contract
 

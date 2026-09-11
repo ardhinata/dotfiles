@@ -67,7 +67,7 @@
     "firecrawl": {
       "type": "remote",
       "url": "https://mcp.firecrawl.dev/v2/mcp-oauth",
-      "enabled": true,
+      "enabled": false,
     },
     "context7": {
       "type": "remote",
@@ -130,7 +130,6 @@
               "only": [
                 "reka/fp4",
                 "streamlake/fp8",
-                "open-inference/fp8",
                 "baidu/fp8",
                 "deepinfra/fp8",
                 "relace/fp4",
