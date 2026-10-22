@@ -1,0 +1,36 @@
+{{- /*
+  Exports the OpenRouter opencode index key from the per-machine ejson store.
+
+  Store : .encrypted_data/ejson_store/<machine_name>.json   (ejson-encrypted)
+  Key   : .encrypted_data/ejson_key/<machine_name>.key.age  (age-encrypted)
+  The ejson private key never sits in this repo in plaintext: the tracked
+  .key.age is unwrapped with chezmoi's age identities at apply time.
+
+  Decryption runs through one guarded pipeline so that every failure mode
+  (missing file, no age identity, key/store mismatch) degrades to a warning
+  instead of aborting the whole `chezmoi apply`.
+
+  To rotate the ejson key: edit the plaintext .key, then re-encrypt with
+  `chezmoi encrypt --output <file>.key.age <file>` and commit the .key.age.
+*/ -}}
+{{- $machine := .system_environment.machine_name -}}
+{{- $root := joinPath .chezmoi.sourceDir .source_structure.encrypted_data -}}
+{{- $store := joinPath $root "ejson_store" (printf "%s.json" $machine) -}}
+{{- $keyFile := joinPath $root "ejson_key" (printf "%s.key.age" $machine) -}}
+{{- $secret := "" -}}
+{{- if and (stat $store) (stat $keyFile) -}}
+{{-   $cmd := printf "set -o pipefail; if chezmoi decrypt %s 2>/dev/null | ejson decrypt --key-from-stdin %s 2>/dev/null; then :; else echo __EJSON_FAILED__; fi" $keyFile $store -}}
+{{-   $out := trim (output "bash" "-c" $cmd) -}}
+{{-   if ne $out "__EJSON_FAILED__" -}}
+{{-     $secret = dig "opencode_index_key" "" (fromJson $out) -}}
+{{-   end -}}
+{{- end -}}
+{{- if $secret -}}
+# Export OpenRouter opencode index key if opencode is installed
+if [[ -n $(which opencode) ]]; then
+	export OPENROUTER_API_OPENCODE_INDEX="{{ $secret }}"
+fi
+{{- else -}}
+{{ warnf "ejson: opencode index key unavailable for %s (store or key.age missing/undecryptable)" $machine -}}
+# OpenRouter opencode index key unavailable on this machine
+{{- end -}}

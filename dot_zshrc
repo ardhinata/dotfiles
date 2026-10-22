@@ -76,6 +76,7 @@ fi
 source "${SHELL_TOOL_DIR}/zsh/10-common-export.zsh"
 source "${SHELL_TOOL_DIR}/zsh/12-gpg.zsh"
 source "${SHELL_TOOL_DIR}/zsh/15-zgenom-helper-func.zsh"
+source "${SHELL_TOOL_DIR}/zsh/20-ejson-environment-load.zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
