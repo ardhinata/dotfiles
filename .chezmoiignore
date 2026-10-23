@@ -34,6 +34,13 @@ dot_shell/helper/.help
 ## Use `shellx import <file>` to explicitly restore secrets onto a machine.
 .encrypted_data/env_store/shellx*
 
+## OpenCode's background-service credential is generated at runtime by OpenCode
+## itself and rotates on its own schedule. It must never enter the source tree:
+## it is a plaintext password, and chezmoi would otherwise deploy a stale copy
+## that fights the live service. Unmanaged on purpose — chezmoi forget
+## ~/.config/opencode/service.json (2026-10-23).
+dot_config/opencode/private_service.json
+
 ## Dynamic ignore for files that failed to be decrypted
 {{ $script := joinPath .chezmoi.sourceDir .source_structure.helper "check_decrypt.sh" -}}
 {{ $keyDir := joinPath .chezmoi.sourceDir .source_structure.encryption_keys -}}

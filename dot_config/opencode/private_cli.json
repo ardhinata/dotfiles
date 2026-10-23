@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "animations": true,
+  "session": {
+    "thinking": "show"
+  },
+  "diffs": {
+    "single": true
+  },
+  "scroll": {
+    "acceleration": true
+  },
+  "debug": {
+    "devtools": true
+  },
+  "theme": {
+    "name": "catppuccin-macchiato"
+  },
+  "experimental": {
+    "new-designs": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+    "mergeOnCleanup": true,
+    "stallThresholdMs": 300000,
+    "stallMinSteps": 5,
+    "stallTokenThreshold": 200,
+    "timeoutMs": 1800000,
+    "rateLimitCapacity": 10,
+    "dashboardPort": 4747,
+    "defaultModel": "openrouter/minimax/minimax-m3.1-flash",
+    "modelPool": ["openrouter/minimax/minimax-m3.1-flash", "deepseek/deepseek-v4.1-flash", "z-ai/glm-5.3-flash"],
+    "modelsByAgent": {
+    },
+    "modelAssignment": "default",
+    "promptForModels": true
+}

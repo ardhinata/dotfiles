@@ -1,0 +1,117 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "shell": "/usr/bin/bash",
+  "username": "ardhinata",
+  "plugins": [
+    "cc-safety-net@latest",
+    "opencode-handoff@latest",
+    "@cortexkit/opencode-magic-context@latest",
+    "@cortexkit/aft-opencode@0.62.0",
+    "-opencode.tool.shell",
+    "-opencode.tool.patch",
+    "@dietrichgebert/ponytail",
+    "@hueyexe/opencode-ensemble@latest"
+  ],
+  "instructions": [
+    "~/.config/opencode/rules/*.md"
+  ],
+  "permissions": [
+    { "action": "external_directory", "resource": "~/.local/share/opencode/worktree/**", "effect": "allow" }
+  ],
+  "snapshots": true,
+  "watcher": {
+    "ignore": [
+      ".git/**",
+      "node_modules/**"
+    ]
+  },
+  "formatter": true,
+  "model": "openrouter/minimax/minimax-m3.1-flash",
+  "agents": {
+    "title": {
+      "model": "openrouter/qwen/qwen3.7-flash"
+    }
+  },
+  "providers": {
+    // Openrouter-specific provider settings to pin the inference provider to cheapest available
+    "openrouter": {
+      "package": "@opencode/ai/providers/openrouter",
+      "models": {
+        "deepseek/deepseek-v4.1-flash": {
+          "settings": {
+            "provider": {
+              "only": [
+                "decart/fp4",
+                "open-inference/fp4",
+                "sail-research/fp4",
+                "deepinfra/fp8",
+                "relace"
+              ]
+            }
+          }
+        },
+        "minimax/minimax-m3": {
+          "settings": {
+            "provider": {
+              "only": [
+                "minimax"
+              ]
+            }
+          }
+        },
+        "minimax/minimax-m3.1-flash": {
+          "settings": {
+            "provider": {
+              "only": [
+                "minimax"
+              ]
+            }
+          }
+        },
+        "z-ai/glm-5.3": {
+          "settings": {
+            "provider": {
+              "only": [
+                "wafer/us",
+                "wafer/fp4",
+                "sail-research/fp8",
+                "relace",
+                "siliconflow/fp8",
+                "novita/fp8",
+                "inference-net/fp4"
+              ]
+            }
+          }
+        },
+        "z-ai/glm-5.3-flash": {
+          "settings": {
+            "provider": {
+              "only": [
+                "open-inference/fp4",
+                "streamlake/fp8",
+                "novita/fp8",
+                "relace",
+                "sail-research/fp4",
+
+              ]
+            }
+          }
+        },
+        "xiaomi/mimo-v2.6-flash": {
+          "settings": {
+            "provider": {
+              "only": [
+                "makora/fp8",
+                "novita/fp8",
+                "xiaomi/fp8"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "compaction": {
+    "auto": false
+  }
+}
