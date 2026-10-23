@@ -13,6 +13,7 @@ and every subagent body
 | File | Purpose |
 |---|---|
 | [`2026-08-17-subagent-creative-conservative.md`](2026-08-17-subagent-creative-conservative.md) | **Canonical design** — 5 subagent roles, output contracts, model-selection rules, invocation pattern, permission block. Frequently referenced. Migrated here 2026-08-30 from `.tmp/docs/plans/`. |
+| [`../agent-case-studies.md`](../agent-case-studies.md) | **Case studies** — per-agent design lessons and transferable rules harvested from the 7 agents. Added 2026-10-23 when the fleet was ruled out of the OpenCode migration. Source of truth for *why* each agent is shaped the way it is. |
 
 ## Shared-context augmentations (ephemeral)
 
