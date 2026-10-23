@@ -67,7 +67,7 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 
 | Field | Value |
 |---|---|
-| Path | `~/.config/<vendor>/skills/<slug>/SKILL.md` (or project-local `.agents/<vendor>/skills/<slug>/`, `.<vendor>/skills/<slug>/`) |
+| Path | `~/.agents/skills/<slug>/SKILL.md` (or project-local `.agents/<vendor>/skills/<slug>/`, `.<vendor>/skills/<slug>/`) |
 | Frontmatter | **Required.** `name` (≤ 64 chars, lowercase letters/digits/hyphens, no `--`, no leading/trailing hyphen, matches parent dir), `description` (≤ 1024 chars, non-empty, third person, names *what* and *when*). Optional: `license`, `compatibility` (≤ 500 chars), `metadata`, `allowed-tools` (experimental). |
 | Required sections | H1 (the skill's name or one-line summary), body content per the agentskills.io "Recommended sections" — step-by-step instructions, examples, edge cases |
 | Optional sections | `## When to load`, `## Quick start`, `## Workflow`, `## Anti-patterns`, `## References`, `## Captured …` |
@@ -82,7 +82,7 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 
 | Field | Value |
 |---|---|
-| Path | `~/.config/<vendor>/skills/<slug>/references/<file>.md` |
+| Path | `~/.agents/skills/<slug>/references/<file>.md` |
 | Frontmatter | None |
 | Required sections | H1 (matching filename slug), body |
 | Optional sections | TOC if file > 100 lines, link back to `SKILL.md` |
@@ -167,7 +167,7 @@ without it?". Cut otherwise.
 | Section order | Loose; entries list near top |
 | Length budget | < 100 lines |
 | Validation | Every entry file in this directory appears in the table |
-| Source | `web-tools-priority.md` (global rule); `~/.config/<vendor>/skills/project-context/references/knowledge-cache.md` |
+| Source | `web-tools-priority.md` (global rule); `~/.agents/skills/project-context/references/knowledge-cache.md` |
 
 ---
 
@@ -233,7 +233,7 @@ without it?". Cut otherwise.
 | Section order | Loose; the above is conventional |
 | Length budget | 50–300 lines |
 | Validation | Linked from any active runbook or related doc; action items moved into a durable tracker |
-| Source | `~/.config/<vendor>/skills/project-layout/SKILL.md` §"Shared context repo"; `shared-context` skill |
+| Source | `~/.agents/skills/project-layout/SKILL.md` §"Shared context repo"; `shared-context` skill |
 
 ---
 

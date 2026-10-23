@@ -163,7 +163,7 @@ do), reference the **directory** as the identifier:
 
 ```markdown
 See [the project-context skill](../../project-context/SKILL.md).
-See [the chezmoi skill](../../../../../.agents/<vendor>/skills/chezmoi/SKILL.md).
+See [the chezmoi skill](../../../../.agents/skills/chezmoi/SKILL.md).
 ```
 
 Never use a bare `[SKILL.md]()` link.

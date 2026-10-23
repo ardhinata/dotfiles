@@ -310,7 +310,7 @@ known-good curl starting to fail — do this:
 
 1. **Run the probe driver**:
    ```bash
-   cd .agents/kilo/skills/openrouter-api
+   cd .agents/skills/openrouter-api
    bin/probe-openrouter-api.sh                # run all testpoints (CLI + mgmt)
    bin/probe-openrouter-api.sh 13-model-unencoded  # run one
    ```

@@ -15,7 +15,7 @@ _No specs yet. Create the first one with: `mkdir -p docs/assist-only/specs/$(dat
 ## See also
 
 - [Constitution](../constitution.md) — locked principles the specs inherit from.
-- [spec-kit skill](../../dot_config/kilo/exact_skills/spec-kit/SKILL.md) — phase order and gate questions.
+- [spec-kit skill](../../dot_agents/skills/spec-kit/SKILL.md) — phase order and gate questions.
 
 ## Status legend
 

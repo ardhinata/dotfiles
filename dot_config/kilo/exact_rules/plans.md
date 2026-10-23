@@ -1,6 +1,6 @@
 # Persist Plans During Planning Phases
 
-For any planning phase or multi-step task, **always** persist the plan and context so an unexpected problem (compaction, crash, session restart) does not erase them. Plans live in **shared-context** locations by default — they survive across worktrees and machines via the shared context repo (see `~/.config/kilo/skills/project-layout/SKILL.md` §"Shared context repo"). The user may ask for a plan outside that mechanism (a project `docs/plans/`, a path they name, etc.) — handle both.
+For any planning phase or multi-step task, **always** persist the plan and context so an unexpected problem (compaction, crash, session restart) does not erase them. Plans live in **shared-context** locations by default — they survive across worktrees and machines via the shared context repo (see `~/.agents/skills/project-layout/SKILL.md` §"Shared context repo"). The user may ask for a plan outside that mechanism (a project `docs/plans/`, a path they name, etc.) — handle both.
 
 ## Locations
 

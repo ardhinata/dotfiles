@@ -21,7 +21,7 @@ Short form for the common cases. Load the skill for the full matrix when the typ
 | A multi-step task in progress | plan | `.tmp/docs/plans/<date>-<task-slug>.md` |
 | An architecture / tooling decision with rationale | ADR | `docs/decisions/NNNN-<slug>.md` |
 | Repo-wide convention, agent guidance, behaviour | rule | `dot_config/kilo/exact_rules{,*.personal.d}/<slug>.md` |
-| Project knowledge for agents | AGENTS.md / SKILL.md | `AGENTS.md`, `.agents/kilo/skills/<name>/SKILL.md` |
+| Project knowledge for agents | AGENTS.md / SKILL.md | `AGENTS.md`, `.agents/skills/<name>/SKILL.md` |
 
 ## Boundary with neighbouring skills
 

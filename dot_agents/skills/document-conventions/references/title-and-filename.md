@@ -202,8 +202,8 @@ LICENSE
 .agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md
 
 ~/.config/<vendor>/rules/<slug>.md
-~/.config/<vendor>/skills/<slug>/SKILL.md
-~/.config/<vendor>/skills/<slug>/references/<slug>.md
+~/.agents/skills/<slug>/SKILL.md
+~/.agents/skills/<slug>/references/<slug>.md
 
 docs/adr/NNNN-<slug>.md
 docs/rfcs/NNNN-<slug>.md

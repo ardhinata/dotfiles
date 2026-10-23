@@ -3,5 +3,5 @@
   "indexing": {
     "enabled": true,
   },
-  "instructions": [".agents/kilo/rules/*.md"],
+  "instructions": [".agents/rules/*.md"],
 }

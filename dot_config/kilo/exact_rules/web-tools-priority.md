@@ -4,7 +4,7 @@ Tool names below show short form → actual exposed name.
 
 **Eager lookup policy:** Use web tools proactively whenever the answer depends on current, external, or specialized information. Do not rely on memory because a lookup feels optional, and do not stop at a search snippet when the source can be opened. Use the tools until the question is resolved: discover sources, read the relevant page, verify important claims, and cache reusable findings.
 
-**Startup rule:** Apply `local-first.md` before any external research, then read the project knowledge-cache `README.md` index. The standard cache path is `.agents/docs/cache/`; legacy `.tmp/doc-cache/` and `.help/` are acceptable fallbacks. If the cache directory or index is missing, create the index as described by `~/.config/kilo/skills/project-context/references/knowledge-cache.md` before writing fetched facts, unless project rules prohibit writes. `.tmp/` is for transient scratchpads only — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`.
+**Startup rule:** Apply `local-first.md` before any external research, then read the project knowledge-cache `README.md` index. The standard cache path is `.agents/docs/cache/`; legacy `.tmp/doc-cache/` and `.help/` are acceptable fallbacks. If the cache directory or index is missing, create the index as described by `~/.agents/skills/project-context/references/knowledge-cache.md` before writing fetched facts, unless project rules prohibit writes. `.tmp/` is for transient scratchpads only — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`.
 
 ## Decision rule
 

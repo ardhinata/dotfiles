@@ -49,8 +49,8 @@ project's conventions:
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/kilo/` in Kilo,
-`~/.config/opencode/` in OpenCode. Both load a `rules/` directory and a
-`skills/` directory from there.
+`~/.config/opencode/` in OpenCode. Both load a `rules/` directory from there.
+Skills live in the shared home `~/.agents/skills/`, which every agent reads.
 
 ## Trigger checklist
 
@@ -134,9 +134,20 @@ If `README.md` is missing, suggest the GitHub five-question template (`what / wh
 
 ### Phase 3: Vendor directory unification
 
-When the project root contains a vendor-specific directory (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`, etc.):
+Two different jobs, two different mechanisms.
 
-1. Move its contents to `.agents/<vendor-name>/` (e.g. `.kilo/` → `.agents/<vendor>/`).
+**Shared skills** go in `.agents/skills/`. Every harness finds them there
+natively — no symlink, no copy, no config field. Claude Code is the
+exception: it reads nothing under `.agents/` and needs `.claude/skills/`, so
+give it one symlink to the same tree.
+
+**Harness-specific assets** — rule files, custom commands, hooks — go in
+`.agents/<vendor-name>/` and are reached through the harness's own root
+directory. When the project root contains a vendor-specific directory
+(`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
+`.windsurf/`, `.continue/`, etc.):
+
+1. Move its contents to `.agents/<vendor-name>/` (e.g. `.kilo/` → `.agents/kilo/`).
 2. Create a symlink `<vendor-name>/` → `.agents/<vendor-name>/` at the project root so vendor tools keep finding their config.
 3. Add the symlink pattern to `.gitignore` so it is not committed.
 4. Add a `✅ Always` rule to `AGENTS.md` > Boundaries stating: *recreate the symlink if it is missing on a fresh clone* (i.e. `ln -s .agents/<vendor> <vendor>`).

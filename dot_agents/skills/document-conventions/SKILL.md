@@ -47,8 +47,8 @@ industry practice:
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/kilo/` in Kilo,
-`~/.config/opencode/` in OpenCode. Both load a `rules/` directory and a
-`skills/` directory from there.
+`~/.config/opencode/` in OpenCode. Both load a `rules/` directory from there.
+Skills live in the shared home `~/.agents/skills/`, which every agent reads.
 
 **Shared context.** The `.tmp/docs/` shared-context repo and the
 `kilo-shared save` / `kilo-shared pull` commands belong to Kilo Agent
@@ -106,7 +106,7 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
 | Cache a reusable web-learned fact | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
 | Encode a repo-wide rule the agent must follow every session | **Rule file** — `~/.config/<vendor>/rules/<slug>.md` |
-| Package a workflow the agent loads on demand | **Skill** — `~/.config/<vendor>/skills/<slug>/SKILL.md` (with frontmatter) |
+| Package a workflow the agent loads on demand | **Skill** — `~/.agents/skills/<slug>/SKILL.md` (with frontmatter) |
 | Introduce the project to humans | **README.md` |
 | Encode project conventions for agents | **AGENTS.md** (closest to file wins) |
 | Introduce a doc subtree | **topic README.md** |
@@ -180,8 +180,8 @@ otherwise:
 | `.agents/docs/cache/<topic>/README.md` | Topic README (cache index) |
 | `.agents/docs/cache/README.md` | Cache root index |
 | `~/.config/<vendor>/rules/<slug>.md` | Rule file |
-| `~/.config/<vendor>/skills/<slug>/SKILL.md` | Skill main file |
-| `~/.config/<vendor>/skills/<slug>/references/*.md` | Skill reference file |
+| `~/.agents/skills/<slug>/SKILL.md` | Skill main file |
+| `~/.agents/skills/<slug>/references/*.md` | Skill reference file |
 | `docs/adr/NNNN-<slug>.md` | MADR-style ADR |
 | `docs/rfcs/NNNN-<slug>.md` | RFC |
 | `docs/design/<slug>.md` | Design doc |

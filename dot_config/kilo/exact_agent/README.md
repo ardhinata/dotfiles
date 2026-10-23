@@ -336,7 +336,7 @@ The full permission precedence is in
   tie-break: main agent ≤3 tool calls, then targeted fan-out):
   `.agents/docs/cache/kilo-subagents/2026-09-09-verifier-disagreement-resolution.md`
 - **OpenRouter API skill** (for live model re-verification):
-  `~/.config/kilo/skills/openrouter-api/SKILL.md` (deployed from
-  any project's `.agents/kilo/skills/openrouter-api/SKILL.md` or
+  `~/.agents/skills/openrouter-api/SKILL.md` (deployed from
+  any project's `.agents/skills/openrouter-api/SKILL.md` or
   from the chezmoi source at
-  `dot_config/kilo/exact_skills/` if chezmoi-managed)
+  `dot_agents/skills/` if chezmoi-managed)

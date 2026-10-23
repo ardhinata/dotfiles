@@ -1,6 +1,6 @@
 # SKILL.md Template
 
-Copy to `~/.config/<vendor>/skills/<slug>/SKILL.md`. **Frontmatter
+Copy to `~/.agents/skills/<slug>/SKILL.md`. **Frontmatter
 required** per the [agentskills.io specification](https://agentskills.io/specification).
 Validate with `skills-ref validate ./<skill-dir>` before publishing.
 

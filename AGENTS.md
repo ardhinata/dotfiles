@@ -33,6 +33,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Run `bash .help/fetch_current_docs.sh` if `.help/chezmoi-docs/` is missing
 - After a structural refactor that adds, renames, or deletes files, run `git status --short`, stage, and commit the working tree before ending the session
 - **Recreate the vendor symlink if missing on a fresh clone**, e.g. `ln -s .agents/kilo .kilo` — the root-level `.kilo/`, `.claude/`, etc. are untracked symlinks into `.agents/`. If `ls .kilo/` fails, fix the link before reading vendor config.
+- Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the one location OpenCode, Kilo, Codex, Copilot, Cursor, Gemini CLI, Zed, goose, Amp, and Factory Droid all scan natively. Do not copy them into a per-harness directory.
 
 ### ⚠️ Ask first
 - Adding new encryption keys (triggers `chezmoi re-encrypt` across all files)
@@ -45,16 +46,17 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Encrypt a file without running `chezmoi re-encrypt` afterwards
 - Modify `.encryption_keys/` without understanding the re-encrypt workflow
 - Commit the `.kilo` (or any vendor) symlink — it is gitignored; only `.agents/<vendor>/` content is tracked
+- Put a harness's own config in `.agents/<vendor>/` expecting another harness to read it — only `.agents/skills/` is a shared discovery location
 
 ## Pointers
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
 - **Subagent fleet canonical design** (haru/natsu/aki/fuyu/shiki): `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` (frequently referenced from agent bodies, skill references, the revaluation workflow, and the trigger rule)
-- **Full chezmoi conventions + prefix tables**: `.agents/kilo/skills/chezmoi/SKILL.md`
-- **Project rules**: `.agents/kilo/rules/chezmoi-source-project.md`
-- **Agent-context conventions (AGENTS.md, SKILL.md)**: `.agents/kilo/skills/agent-context/SKILL.md`
-- **Knowledge cache convention + required `README.md` index**: `.agents/docs/cache/README.md` (full spec: `dot_config/kilo/exact_skills/project-context/references/knowledge-cache.md`)
-- **Canonical on-disk project layout** (`.agents/`, `.tmp/` subroles, knowledge cache, vendor unification): `dot_config/kilo/exact_skills/project-layout/SKILL.md` (deployed to `~/.config/kilo/skills/project-layout/`)
+- **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`
+- **Project rules**: `.agents/rules/chezmoi-source-project.md` (loaded by every harness through its own `instructions` glob)
+- **Agent-context conventions (AGENTS.md, SKILL.md)**: `.agents/skills/agent-context/SKILL.md`
+- **Knowledge cache convention + required `README.md` index**: `.agents/docs/cache/README.md` (full spec: `dot_agents/skills/project-context/references/knowledge-cache.md`)
+- **Canonical on-disk project layout** (`.agents/`, `.tmp/` subroles, knowledge cache, vendor unification): `dot_agents/skills/project-layout/SKILL.md` (deployed to `~/.agents/skills/project-layout/`)
 - **Shared-context repo protocol** (`.tmp/docs/` mechanism): `dot_config/kilo/exact_skills/shared-context/SKILL.md` (deployed to `~/.config/kilo/skills/shared-context/`)
-- **Document conventions** (filename, frontmatter, section order): `dot_config/kilo/exact_skills/document-conventions/SKILL.md` (deployed to `~/.config/kilo/skills/document-conventions/`)
+- **Document conventions** (filename, frontmatter, section order): `dot_agents/skills/document-conventions/SKILL.md` (deployed to `~/.agents/skills/document-conventions/`)
 - **Local chezmoi/sprig documentation**: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
 - **Vendor config**: `.agents/kilo/` — root `.kilo/` is a symlink to it

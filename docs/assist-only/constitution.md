@@ -61,6 +61,6 @@ When this file's `**Status:**` flips from `drafting` to `locked`:
 
 ## See also
 
-- [spec-kit skill](../../dot_config/kilo/exact_skills/spec-kit/SKILL.md) — phase order and gate questions.
+- [spec-kit skill](../../dot_agents/skills/spec-kit/SKILL.md) — phase order and gate questions.
 - assist-only mode file — production-boundary rule and anti-assumption protocol.
 - Specs index — `docs/assist-only/specs/README.md`.

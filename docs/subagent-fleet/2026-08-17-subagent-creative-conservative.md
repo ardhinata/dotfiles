@@ -7,8 +7,8 @@ moved_from: .tmp/docs/plans/2026-08-17-subagent-creative-conservative.md
 related:
   - docs/subagent-fleet/README.md
   - .tmp/docs/plans/2026-08-30-subagent-max-turn-limit.md
-  - .agents/kilo/skills/subagent-fleet/SKILL.md
-  - ~/.config/kilo/skills/openrouter-api/SKILL.md
+  - .agents/skills/subagent-fleet/SKILL.md
+  - ~/.agents/skills/openrouter-api/SKILL.md
 ---
 
 # Subagent fleet for research + verification

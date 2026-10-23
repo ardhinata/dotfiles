@@ -41,7 +41,8 @@ describe this tree as "Diátaxis".
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/kilo/` in Kilo,
-`~/.config/opencode/` in OpenCode.
+`~/.config/opencode/` in OpenCode. Skills live in the shared home
+`~/.agents/skills/`, which every agent reads.
 
 ## Canonical layout
 
@@ -49,14 +50,21 @@ harness's user-level config directory: `~/.config/kilo/` in Kilo,
 AGENTS.md                          ← required pointer target (see project-context)
 README.md                          ← required pointer target (see project-context)
 docs/                              ← human-facing, hand-written (Standard Readme / Diátaxis)
-.agents/                           ← unified agent-only root
-  <vendor>/                        ← .kilo/, .claude/, .cursor/, etc. live here
+.agents/                           ← unified agent root
+  skills/                          ← agent skills, shared by every harness
+    <name>/SKILL.md                ← discovered natively by OpenCode, Kilo, Codex, Copilot,
+                                     Cursor, Gemini CLI, Zed, goose, Amp, Factory Droid
+  rules/                           ← shared rule files (house convention — not a discovery
+                                     location; each harness loads them through its own
+                                     instructions glob)
+  agents/                          ← house convention for subagent definitions
   docs/                            ← agent-only docs (fetched references, canonical notes)
     cache/                         ← knowledge cache (date-tagged, gitignored)
       README.md                    ← required index
       <topic>/
         README.md
         YYYY-MM-DD-<slug>.md
+  <vendor>/                        ← harness-specific assets (rules, commands, hooks)
 .tmp/                              ← project-local scratch area (parent dir gitignored)
   docs/                            ← working tree of shared-context repo (per-worktree clone)
     notes/                         ← date-first findings (committed via kilo-shared save)
@@ -165,20 +173,30 @@ See the `shared-context` skill for the canonical reference and the bundled
 
 ## Vendor unification
 
-When the project root contains a vendor-specific directory (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`, etc.), consolidate under `.agents/<vendor>/`:
+Two different jobs, two different mechanisms. Do not confuse them.
+
+**Shared skills** go in `.agents/skills/`. Every harness finds them there
+natively — no symlink, no copy, no config field. This is the only `.agents/`
+subdirectory that a shipped tool scans (OpenCode, Kilo, Codex, Copilot, Cursor,
+Gemini CLI, Zed, goose, Amp, Factory Droid). Claude Code is the exception: it
+reads nothing under `.agents/` and needs `.claude/skills/`, so give it one
+symlink to the same tree.
+
+**Harness-specific assets** — rule files, custom commands, hooks, MCP
+fragments — go in `.agents/<vendor>/` and are reached through the harness's
+own root directory. When the project root has a vendor directory
+(`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
+`.windsurf/`, `.continue/`, etc.):
 
 1. Move the directory's contents to `.agents/<vendor>/`.
 2. Create a root symlink `<vendor>/` → `.agents/<vendor>/` so vendor tools keep finding their config.
 3. Add the symlink pattern to `.gitignore` so the symlink is not committed.
 4. Add a `✅ Always` rule to `AGENTS.md` → Boundaries: *recreate the symlink if it is missing on a fresh clone* (`ln -s .agents/<vendor> <vendor>`).
 
-**Know what this does and does not buy you.** No tool scans `.agents/<vendor>/`.
-The discovery locations that are real are `.agents/skills/` (Codex and OpenCode)
-and `.claude/skills/` (Claude Code) — flat, one level down from `.agents/`.
-So the vendor subdirectory is a *storage* convention that makes one copy
-govern several harnesses; it is not a discovery shortcut. When a harness needs
-to find skills by its own rules, give it its own path (a symlink works, and
-OpenCode follows symlinked skill directories).
+**Know what the vendor subdirectory does and does not buy you.** No tool
+scans `.agents/<vendor>/` for discovery. The root symlink is not a
+cross-harness bridge — it is how *one* harness reaches *its own* files. The
+cross-harness bridge is `.agents/skills/`, which every tool scans directly.
 
 ## Knowledge cache
 
@@ -214,10 +232,10 @@ When the deviation is structural (a path that contradicts the tree), surface it 
 
 ## References
 
-- `~/.config/<vendor>/skills/project-context/SKILL.md` — AGENTS.md lifecycle, README↔AGENTS separation, vendoring trigger.
-- `~/.config/<vendor>/skills/document-conventions/SKILL.md` — per-doc-type filename, frontmatter, section order.
-- `~/.config/<vendor>/skills/project-context/references/knowledge-cache.md` — knowledge-cache authoring rules (date tag, source, freshness note).
-- `~/.config/<vendor>/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
+- `~/.agents/skills/project-context/SKILL.md` — AGENTS.md lifecycle, README↔AGENTS separation, vendoring trigger.
+- `~/.agents/skills/document-conventions/SKILL.md` — per-doc-type filename, frontmatter, section order.
+- `~/.agents/skills/project-context/references/knowledge-cache.md` — knowledge-cache authoring rules (date tag, source, freshness note).
+- `~/.agents/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
 - `~/.config/<vendor>/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
 - `.agents/docs/cache/README.md` — required cache index (per topic as well).
-- `~/.config/<vendor>/skills/asd-ste100/SKILL.md` — prose-clarity pass (active voice, one idea per sentence, plain words). Load when this skill produces or revises long orientation prose (this `SKILL.md` body, the canonical-layout writeups, the deviation-justification summaries). Apply it after the structural changes settle, before the doc is committed.
+- `~/.agents/skills/asd-ste100/SKILL.md` — prose-clarity pass (active voice, one idea per sentence, plain words). Load when this skill produces or revises long orientation prose (this `SKILL.md` body, the canonical-layout writeups, the deviation-justification summaries). Apply it after the structural changes settle, before the doc is committed.
