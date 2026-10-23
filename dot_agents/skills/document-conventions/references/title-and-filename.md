@@ -201,7 +201,7 @@ LICENSE
 .agents/docs/cache/<topic>/README.md
 .agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md
 
-~/.config/<vendor>/rules/<slug>.md
+~/.agents/rules/<slug>.md
 ~/.agents/skills/<slug>/SKILL.md
 ~/.agents/skills/<slug>/references/<slug>.md
 

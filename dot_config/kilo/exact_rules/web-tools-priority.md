@@ -1,10 +1,13 @@
-# Web Tool Priority
+# Web Tool Priority — Kilo tool routing
+
+**Kilo only.** This rule maps the shared policy in
+`~/.agents/rules/web-verification.md` (when to look something up, what to do
+with the result) onto the tools this harness actually exposes. Other harnesses
+load the shared policy file and skip this one.
 
 Tool names below show short form → actual exposed name.
 
-**Eager lookup policy:** Use web tools proactively whenever the answer depends on current, external, or specialized information. Do not rely on memory because a lookup feels optional, and do not stop at a search snippet when the source can be opened. Use the tools until the question is resolved: discover sources, read the relevant page, verify important claims, and cache reusable findings.
-
-**Startup rule:** Apply `local-first.md` before any external research, then read the project knowledge-cache `README.md` index. The standard cache path is `.agents/docs/cache/`; legacy `.tmp/doc-cache/` and `.help/` are acceptable fallbacks. If the cache directory or index is missing, create the index as described by `~/.agents/skills/project-context/references/knowledge-cache.md` before writing fetched facts, unless project rules prohibit writes. `.tmp/` is for transient scratchpads only — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`.
+**Startup rule:** apply `local-first.md` before any external research, then read the project knowledge-cache `README.md` index. The standard cache path is `.agents/docs/cache/`; legacy `.tmp/doc-cache/` and `.help/` are acceptable fallbacks. If the cache directory or index is missing, create the index as described by `~/.agents/skills/project-context/references/knowledge-cache.md` before writing fetched facts, unless project rules prohibit writes. `.tmp/` is for transient scratchpads only — date-tagged web-learned facts go in `.agents/docs/cache/`, not `.tmp/`.
 
 ## Decision rule
 
@@ -38,31 +41,17 @@ Tool names below show short form → actual exposed name.
 | 4 | `context7_resolve-library-id` + `context7_query-docs` | **Indexed library docs with code snippets from the actual repo, version-locked** | Only works for libraries in context7's index (e.g., gpg-agent fails) |
 | 4b | `websearch` (fallback) | When context7 fails to resolve the library | Already covered in tier 1.5 |
 
-## Escalation and verification
+## Escalation
 
 - If the first tool returns nothing useful, escalate per the decision rule steps.
 - Verify consequential claims with a second tool.
-- Prefer official documentation, primary sources, release notes, and source repos over blogs.
 - Have a specific URL? → decision rule step 1.
 - Have only a claim? → `websearch` (or `tavily_search` when you need filters); for multi-source synthesis across many pages, fan out to a **subagent-fleet research** role (default `natsu`) — see tier-2 row. For a specific arXiv paper, the chain is `firecrawl_research_search_papers` → `firecrawl_research_inspect_paper` → `firecrawl_research_read_paper`. For related work, add `firecrawl_research_related_papers` (only when the seed is well-cited).
 - Library/API question? → decision rule step 3.
-- CLI tool or framework API released less than 6 months ago? → always re-verify with a fresh external lookup, even when the cache has an entry.
 
 **Auth-gated firecrawl tools (require `kilo mcp auth firecrawl` or `FIRECRAWL_API_KEY` in env):** `firecrawl_developer_search`, `firecrawl_research_search_papers`, `firecrawl_research_inspect_paper`, `firecrawl_research_read_paper`, `firecrawl_research_related_papers`, `firecrawl_research_search_github`, `firecrawl_monitor_*`. After OAuth, all but `firecrawl_monitor_*` are usable in this env (verified 2026-08-17 in `.agents/docs/cache/kilo-webtools-benchmark/2026-08-17-kilo-webtools-benchmark.md` Round 3). Fall back to `websearch` / `tavily_search` with domain filters, `firecrawl_search` with `categories: ["github"]` / `["research"]`, or a **subagent-fleet research** call (which only needs `websearch` + `webfetch` to function) if auth is unavailable.
 
 ## Knowledge Staleness
 
-Your training has a cutoff. When the gap to now is large relative to the domain's volatility, prefer web tools even when you think you know the answer.
-
-| Domain | Volatility | Verify when |
-|---|---|---|
-| CLI tool / package APIs | High (weeks–months) | Tool released less than 6 months ago |
-| Framework / library APIs | Medium (months) | Cutoff → current is more than 3 months |
-| Language specs / stable protocols | Low (years) | Cached knowledge is likely fine |
-| Config formats / standards | Very low (decades) | Rarely needs verification |
-
-For fast-moving domains, verify with a web tool before relying on cached knowledge. When unsure, fetch rather than guess.
-
-## Knowledge Caching
-
-After any lookup that produces reusable or volatile information, write a date-tagged cache entry and update the index — placement and authoring rules per the referenced skills.
+See `~/.agents/rules/web-verification.md` §"Knowledge Staleness" — that table
+is shared by every harness and is not repeated here.

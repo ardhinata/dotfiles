@@ -48,7 +48,10 @@ industry practice:
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/kilo/` in Kilo,
 `~/.config/opencode/` in OpenCode. Both load a `rules/` directory from there.
-Skills live in the shared home `~/.agents/skills/`, which every agent reads.
+Skills live in the shared home `~/.agents/skills/`, and harness-neutral rules
+live in the shared home `~/.agents/rules/` — both are read by every harness.
+Use `~/.config/<vendor>/rules/` only for rules that name a harness-specific
+tool or feature.
 
 **Shared context.** The `.tmp/docs/` shared-context repo and the
 `kilo-shared save` / `kilo-shared pull` commands belong to Kilo Agent
@@ -105,7 +108,7 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 | Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
 | Cache a reusable web-learned fact | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Encode a repo-wide rule the agent must follow every session | **Rule file** — `~/.config/<vendor>/rules/<slug>.md` |
+| Encode a repo-wide rule the agent must follow every session | **Rule file** — `~/.agents/rules/<slug>.md` |
 | Package a workflow the agent loads on demand | **Skill** — `~/.agents/skills/<slug>/SKILL.md` (with frontmatter) |
 | Introduce the project to humans | **README.md` |
 | Encode project conventions for agents | **AGENTS.md** (closest to file wins) |
@@ -151,7 +154,7 @@ otherwise:
    sentence case. Avoid numbering in H1s (MADR ADR-0002).
 7. **No frontmatter unless the per-type policy says to use it.** Two
    exceptions: `SKILL.md` (mandatory) and ADRs (optional but
-   recommended). The global `~/.config/<vendor>/rules/*.md` files
+   recommended). The global `~/.agents/rules/*.md` files
    explicitly **do not** use frontmatter (see
    [frontmatter § global rule files](references/frontmatter.md)).
 8. **Be conservative with structure.** Pick the lightest convention that
@@ -179,7 +182,7 @@ otherwise:
 | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Knowledge-cache entry |
 | `.agents/docs/cache/<topic>/README.md` | Topic README (cache index) |
 | `.agents/docs/cache/README.md` | Cache root index |
-| `~/.config/<vendor>/rules/<slug>.md` | Rule file |
+| `~/.agents/rules/<slug>.md` | Rule file |
 | `~/.agents/skills/<slug>/SKILL.md` | Skill main file |
 | `~/.agents/skills/<slug>/references/*.md` | Skill reference file |
 | `docs/adr/NNNN-<slug>.md` | MADR-style ADR |
@@ -195,7 +198,7 @@ Full schemas are in [`references/by-doc-type.md`](references/by-doc-type.md).
 
 | Type | Frontmatter? |
 |---|---|
-| Rule file (`~/.config/<vendor>/rules/*.md`) | **Forbidden** (project decision — the loader does not parse it) |
+| Rule file (`~/.agents/rules/*.md`) | **Forbidden** (project decision — the loader does not parse it) |
 | SKILL.md | **Required** — `name` + `description` |
 | ADR (MADR) | Optional but recommended — `status`, `date`, `decision-makers` |
 | Knowledge-cache entry | Optional — `source`, `captured`, `freshness` |
@@ -248,7 +251,7 @@ These rules are synthesised from:
 - [MADR — Markdown Any Decision Records](https://adr.github.io/madr/)
 - [adr.github.io — decision records](https://adr.github.io/)
 - [Andy Matuschak — Evergreen notes](https://notes.andymatuschak.org/Evergreen_notes)
-- Global rules: `~/.config/<vendor>/rules/*.md` (proactive-note-capture,
+- Global rules: `~/.agents/rules/*.md` (proactive-note-capture,
   web-tools-priority, project-context, self-analysis,
   ambiguity-resolution) + per-user rules at
   `~/.config/kilo/rules.personal.d/*.md` (Kilo-only drop-in dir; sudo-ask,

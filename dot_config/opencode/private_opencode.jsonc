@@ -13,6 +13,7 @@
     "@hueyexe/opencode-ensemble@latest"
   ],
   "instructions": [
+    "~/.agents/rules/*.md",
     "~/.config/opencode/rules/*.md"
   ],
   "permissions": [

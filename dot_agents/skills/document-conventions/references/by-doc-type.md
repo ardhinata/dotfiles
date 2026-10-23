@@ -49,14 +49,14 @@ Each row covers one doc type. Columns:
 
 | Field | Value |
 |---|---|
-| Path | `~/.config/<vendor>/rules/<slug>.md` |
+| Path | `~/.agents/rules/<slug>.md` |
 | Frontmatter | **Forbidden.** Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
 | Required sections | One-line description (no heading), `## When` (or similar trigger header), the rule body |
 | Optional sections | `## When to load`, `## Captured …`, `## Anti-patterns`, `## References` |
 | Section order | Loose |
 | Length budget | Target 30–80 lines, hard ceiling 150 |
 | Validation | Manual review against `proactive-note-capture.md` / `rules.personal.d/` style. No frontmatter parser exists. |
-| Source | Global decision; see `~/.config/<vendor>/rules/*.md` for examples |
+| Source | Global decision; see `~/.agents/rules/*.md` for examples |
 
 **Slug rules:** lowercase, hyphens, no trailing punctuation. Match the
 intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
@@ -199,7 +199,7 @@ without it?". Cut otherwise.
 | Section order | Fixed (above) per `proactive-note-capture.md` |
 | Length budget | < 150 lines |
 | Validation | Filename uniqueness; pre-create scan **must** include `kilo-shared pull origin main` (cross-worktree collision check); committed before task end |
-| Source | `~/.config/<vendor>/rules/proactive-note-capture.md` (global rule) |
+| Source | `~/.agents/rules/proactive-note-capture.md` (global rule) |
 
 ---
 
@@ -216,7 +216,7 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | < 300 lines |
 | Validation | Filename uniqueness; pre-planning scan **must** include `kilo-shared pull`; checkpoint commits in place; no new files at checkpoints |
-| Source | `~/.config/<vendor>/rules/plans.md` (global rule) |
+| Source | `~/.agents/rules/plans.md` (global rule) |
 
 ---
 
@@ -248,7 +248,7 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | < 500 lines; longer plans should link out to design docs / ADRs |
 | Validation | User-approved path; same fields as transient plan but durable |
-| Source | `~/.config/<vendor>/rules/plans.md` (global rule); per-user quirks live at `~/.config/kilo/rules.personal.d/*.md` |
+| Source | `~/.agents/rules/plans.md` (global rule); per-user quirks live at `~/.config/kilo/rules.personal.d/*.md` |
 
 ---
 

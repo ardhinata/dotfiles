@@ -1,8 +1,8 @@
 # Local First, Don't Assume
 
-When the user asks something, read the project's readily-available docs **before assuming or searching the web**. Apply this on the **first turn** of any project-scoped question — before web tools (see `web-tools-priority.md`) and before clarifying questions. (Filename is `local-first`, not an ordering guarantee — `instructions: [".../*.md"]` loads as an unordered glob. The name just signals the behavior: prefer local sources first.)
+When the user asks something, read the project's readily-available docs **before assuming or searching the web**. Apply this on the **first turn** of any project-scoped question — before web tools (see `web-verification.md`) and before clarifying questions. (Filename is `local-first`, not an ordering guarantee — `instructions: [".../*.md"]` loads as an unordered glob. The name just signals the behavior: prefer local sources first.)
 
-This rule owns the **priority order of local sources**. The `project-context` skill's Phase 0 applies a similar order specifically to AGENTS.md drafting — that skill cross-references this list. Timing for *when* to leave local sources is in `web-tools-priority.md` §"Startup rule".
+This rule owns the **priority order of local sources**. The `project-context` skill's Phase 0 applies a similar order specifically to AGENTS.md drafting — that skill cross-references this list. Timing for *when* to leave local sources is in `web-verification.md` §"Startup rule".
 
 ## Priority
 

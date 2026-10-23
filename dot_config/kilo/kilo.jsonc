@@ -128,9 +128,8 @@
           "options": {
             "provider": {
               "only": [
-                "reka/fp4",
                 "streamlake/fp8",
-                "baidu/fp8",
+                "inceptron/fp4",
                 "deepinfra/fp8",
                 "relace/fp4",
               ],
@@ -141,13 +140,10 @@
           "options": {
             "provider": {
               "only": [
-                "gmicloud/fp8",
                 "deepinfra/fp4",
-                "z-ai/fp8",
-                "relace/fp4",
-                "wafer",
-                "makora",
-                "novita/fp8",
+                "relace",
+                "streamlake/fp8",
+                "gmicloud/fp8",
               ],
             },
           },
@@ -161,7 +157,7 @@
         },
       },
     },
-    "minimax": {
+    "minimax-coding-plan": {
       "options": {
         "apiKey": "{env:MINIMAX_SUBSCRIPTION_API}",
       },
@@ -180,8 +176,9 @@
     "scannerMaxBatchRetries": 5,
     "dimension": 1536,
   },
-  "subagent_model": "openrouter/~deepseek/deepseek-v4-flash-0731",
+  "subagent_model": "openrouter/deepseek/deepseek-v4-flash-0731",
   "instructions": [
+    "~/.agents/rules/*.md",
     "~/.config/kilo/rules/*.md",
     "~/.config/kilo/rules.personal.d/*.md",
   ],

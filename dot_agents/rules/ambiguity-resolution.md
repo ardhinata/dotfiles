@@ -23,4 +23,4 @@ Examples of dependency:
 - Do not ask about trivia, style, or details that don't affect correctness.
 - Do not ask when there is an obvious default with no meaningful trade-off.
 - Do not ask what the codebase or project conventions already answer — read those first.
-- Do not confuse `question` (asks the user a question) with `suggest` (offers a code review).
+- Do not confuse `question` (asks the user a question) with a review-offering tool.

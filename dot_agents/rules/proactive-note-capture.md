@@ -2,7 +2,7 @@
 
 A finding worth recording is one that is **verified, non-obvious, reusable, and likely to change a future decision or save investigation** — for example, a hidden constraint, a tool quirk, an environment difference, a contradicting assumption, or a piece of recovered context.
 
-This rule governs *task-time note capture*. It does **not** grant permission to edit persistent documentation, knowledge caches, or project-context files. Those destinations still follow their own rules (`web-tools-priority.md`, `project-context.md`, etc.).
+This rule governs *task-time note capture*. It does **not** grant permission to edit persistent documentation, knowledge caches, or project-context files. Those destinations still follow their own rules (`web-verification.md`, `project-context.md`, etc.).
 
 ## When to capture
 
@@ -20,8 +20,8 @@ If only some hold — or capture would derail the active work — defer instead 
 When capture is safe and low-cost, write it **right now** to a shared-context task note.
 
 - **Path**: `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` (or update the file already created for that task). The dir is the working tree of the per-project shared context repo (see `~/.agents/skills/project-layout/SKILL.md` §"Shared context repo").
-- **Before creating**: run `kilo-shared pull origin main` to surface any cross-worktree collisions, then list `.tmp/docs/notes/`, `head -n 10` each file, and reuse / merge into an existing note on the same task. Do not duplicate.
-- **After creating**: run `kilo-shared save "<short-message>"` from the project root to commit the new note. Per the `proactive-note-capture` enforcement rule, **every write to `.tmp/docs/` must end with a commit** — uncommitted notes vanish on worktree destroy and never reach sibling worktrees.
+- **Before creating**: pull the shared-context branch to surface any cross-worktree collisions (`kilo-shared pull origin main` where that wrapper exists, otherwise `git fetch origin main` from `.tmp/docs/`), then list `.tmp/docs/notes/`, `head -n 10` each file, and reuse / merge into an existing note on the same task. Do not duplicate.
+- **After creating**: commit the new note (`kilo-shared save "<short-message>"` where that wrapper exists, otherwise `git add -A && git commit` from `.tmp/docs/`). Per the `proactive-note-capture` enforcement rule, **every write to `.tmp/docs/` must end with a commit** — uncommitted notes vanish on worktree destroy and never reach sibling worktrees.
 - **Sections to fill** — keep tight:
   1. **Finding** — one or two sentences, plain language.
   2. **Evidence** — exact file paths, command outputs, URLs, or code locations that justify it.
@@ -57,7 +57,7 @@ When the user asks to update docs, references, or notes:
 
 | Finding type | Destination | Owning rule / skill |
 |---|---|---|
-| Reusable web fact / volatile API | `.agents/docs/cache/` | `web-tools-priority.md` |
+| Reusable web fact / volatile API | `.agents/docs/cache/` | `web-verification.md` |
 | Repo-wide convention | `AGENTS.md` (proposal only) | `project-context.md` + `project-context` skill |
 | File-specific guidance | Skill `SKILL.md` / references | `agent-context` skill |
 | Personal preference / habit | `rules.personal.d/*.md` | (sibling directory) |
@@ -68,7 +68,7 @@ When two destinations both fit, prefer the **more verified** and the **lower-ove
 
 ## Exclusions — do not capture
 
-- Secrets, credentials, tokens, private keys, key fingerprints, or any value matching the **Sensitive File Handling** list in `.kilo/rules/chezmoi-source-project.md`.
+- Secrets, credentials, tokens, private keys, key fingerprints, or any value matching the **Sensitive File Handling** list in `.agents/rules/chezmoi-source-project.md`.
 - Trivia obvious from filenames, manpages, or first-party docs.
 - Disposable shell output, full-file dumps, or trivial commands.
 - Speculation framed as fact. Mark uncertainty instead.
@@ -81,5 +81,5 @@ When two destinations both fit, prefer the **more verified** and the **lower-ove
 - Promoting a deferral without re-verifying — the world moves; the record may be stale.
 - Writing a memory entry as the canonical store instead of a pointer to a file.
 - Creating `.tmp/docs/notes/` files for things that belong in `.tmp/docs/plans/` (plans) or `.agents/docs/cache/` (reusable facts).
-- **Writing to `.tmp/docs/` and not running `kilo-shared save`** — uncommitted notes vanish on worktree destroy and don't reach sibling worktrees.
+- **Writing to `.tmp/docs/` and not committing the note** — uncommitted notes vanish on worktree destroy and don't reach sibling worktrees.
 - **Writing to `.tmp/notes/`** (legacy path) instead of `.tmp/docs/notes/` — the legacy path is no longer mounted; the file silently lives only in the current worktree and is lost on destroy.

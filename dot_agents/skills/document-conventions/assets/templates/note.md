@@ -66,4 +66,4 @@ collisions with a pre-create scan (the rule mandates this).
 - `## Recommended destination` must be filled — even with "discard"
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md)
-and `~/.config/<vendor>/rules/proactive-note-capture.md`.
+and `~/.agents/rules/proactive-note-capture.md`.

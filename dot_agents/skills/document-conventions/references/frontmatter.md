@@ -10,7 +10,7 @@ allowed.
 | Type | Frontmatter | Notes |
 |---|---|---|
 | `SKILL.md` | **Required** | `name`, `description` — enforced by `skills-ref validate` |
-| Rule file (`~/.config/<vendor>/rules/*.md`) | **Forbidden** | Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
+| Rule file (`~/.agents/rules/*.md`) | **Forbidden** | Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
 | ADR (MADR) | Optional | MADR `0013-use-yaml-front-matter-for-meta-data` |
 | Knowledge-cache entry | Optional | Global rule: prefer consistent fields |
 | Note (`.tmp/docs/notes/`) | Optional | `task`, `status` recommended |
@@ -177,7 +177,7 @@ Frontmatter uses standard YAML 1.2. Common foot-guns:
 
 ## Rule-file frontmatter exception
 
-The global `~/.config/<vendor>/rules/*.md` files deliberately **do not**
+The global `~/.agents/rules/*.md` files deliberately **do not**
 use frontmatter (project decision). Reasons:
 
 - The loader does not parse frontmatter, so adding it is dead weight

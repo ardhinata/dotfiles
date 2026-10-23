@@ -31,7 +31,7 @@ file if the finding is web-sourced and may go stale.
 | Design proposal, needs team review | Repo, durable, reviewable | **RFC** | `docs/rfcs/NNNN-<slug>.md` |
 | Design proposal, internal, lighter than an RFC | Repo, durable | **Design doc** | `docs/design/<slug>.md` |
 | Reusable web-learned fact, may go stale in months | Repo knowledge cache | **Knowledge-cache entry** | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Repo-wide rule, agent follows every session | Repo-wide, hot | **Rule file** | `~/.config/<vendor>/rules/<slug>.md` |
+| Repo-wide rule, agent follows every session | Repo-wide, hot | **Rule file** | `~/.agents/rules/<slug>.md` |
 | Workflow, agent loads on demand | Repo or global, on-demand | **Skill** | `~/.agents/skills/<slug>/SKILL.md` |
 | Project intro, install, getting started | Humans, first touch | **README.md** | root `README.md` |
 | Project conventions, build/test commands, boundaries | Agents, hot | **AGENTS.md** | root `AGENTS.md` (and nested per monorepo package) |

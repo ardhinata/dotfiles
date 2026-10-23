@@ -4,7 +4,7 @@ Router rule. Triggers load the `project-context` skill **and** the `project-layo
 
 ## Load both `project-context` AND `project-layout` eagerly when any of these is true
 
-- **Web discovery without a cache.** About to call `tavily_*`, `firecrawl_*`, or `context7_*` in a project with no knowledge cache.
+- **Web discovery without a cache.** About to call an external web, crawl, or library-docs lookup tool in a project with no knowledge cache.
 - **Stuck exploring.** Spent several turns exploring a project and have no `AGENTS.md` / project conventions to anchor on.
 - **New project session.** Session is starting in a project you've never seen and there is no orientation document.
 - **Agent-context maintenance.** User asks to create, update, restructure, split, or modernize `AGENTS.md` or the project's knowledge cache.
