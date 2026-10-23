@@ -31,7 +31,7 @@ task success. Curate ruthlessly.)
 
 | Type | Target | Hard ceiling | Why |
 |---|---|---|---|
-| Kilo rule file | 30–80 | 150 | Loaded every session; in shared context budget |
+| Rule file | 30–80 | 150 | Loaded every session; in shared context budget |
 | SKILL.md | < 300 | 500 | Per agentskills.io — beyond 500, split into references/ |
 | Skill reference file | as needed | 300 | Each is loaded on demand |
 | AGENTS.md | 40–80 | 150 | Per project-context skill |
@@ -118,7 +118,7 @@ Every doc needs:
 
 | Type | Required sections |
 |---|---|
-| Kilo rule file | Trigger / "When" header; the rule body; (optional) Anti-patterns; References |
+| Rule file | Trigger / "When" header; the rule body; (optional) Anti-patterns; References |
 | SKILL.md | H1; body covering what + when; "When to load" if progressive disclosure |
 | AGENTS.md | Pointers (cross-references to README.md + skills); recommended Boundaries (`✅ Always` / `⚠️ Ask first` / `🚫 Never`) |
 | README.md | Title; Short Description (< 120 chars); Install; Usage; Contributing; License — per Standard Readme |

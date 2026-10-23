@@ -18,7 +18,7 @@ otherwise.
       [`references/frontmatter.md`](../references/frontmatter.md))
 - [ ] No speculation presented as fact (uncertain items are marked)
 
-## Kilo rule file
+## Rule file
 
 - [ ] No frontmatter (global decision)
 - [ ] Trigger / "When" header is unambiguous

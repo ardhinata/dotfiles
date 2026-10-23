@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, Kilo rule, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For shared-context commit protocol, load the `shared-context` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For shared-context commit protocol, load the `shared-context` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions
@@ -10,6 +10,52 @@ type has a known **filename pattern**, a **frontmatter policy**, a **section
 order** (when one is mandated), and a **length budget**. The goal is
 consistent structure across the repo without re-inventing the wheel on
 every new doc.
+
+## Standard vs house style
+
+This skill mixes two things. Know which is which before you cite one.
+
+**Backed by a published standard or convention:**
+
+| Rule | Source |
+|---|---|
+| `SKILL.md` frontmatter (`name` + `description`) | agentskills.io specification |
+| ADR frontmatter, optional | MADR template |
+| One H1 per file | markdownlint MD025, Google style guide |
+| Lowercase hyphenated filenames, known stems exempt | Google filenames guide, agentskills.io `name` field |
+| ISO 8601 dates | ISO 8601, Keep a Changelog |
+| Forward slashes in paths | Claude skill authoring best practices |
+| Relative links between docs in one repo | GitLab style guide |
+| No secrets in docs | OWASP Secrets Management Cheat Sheet |
+| "Pick the lightest convention that fits" | agentskills.io best practices, Diátaxis |
+| Intent → document-type matrix | the Diátaxis compass pattern |
+| `NNNN-<slug>.md` for ADRs and RFCs | MADR, Rust RFC template |
+
+**House style.** No external standard covers these. They are this project's
+conventions — internally consistent, but cite them as house style, not as
+industry practice:
+
+- The five invented doc types: **note**, **persistent plan**,
+  **knowledge-cache entry**, **rule file**, **scratch file**
+- Every per-type length budget (all numbers in
+  [structure-and-length.md](references/structure-and-length.md))
+- The frontmatter matrix — which types require, forbid, or tolerate it
+- The "rule file carries no frontmatter" rule. This is a project decision.
+  Cursor's `.mdc` convention requires frontmatter, but neither the Kilo nor
+  the OpenCode rule loader parses it.
+- The date-prefixed filename convention for notes and plans
+
+**Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
+harness's user-level config directory: `~/.config/kilo/` in Kilo,
+`~/.config/opencode/` in OpenCode. Both load a `rules/` directory and a
+`skills/` directory from there.
+
+**Shared context.** The `.tmp/docs/` shared-context repo and the
+`kilo-shared save` / `kilo-shared pull` commands belong to Kilo Agent
+Manager. They are named literally here so the instruction stays executable
+where they exist. In a harness without Agent Manager, `.tmp/docs/` is a
+plain directory — commit it with `git add -A && git commit` and skip the
+cross-worktree collision scan.
 
 ## When to load
 
@@ -59,8 +105,8 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 | Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
 | Cache a reusable web-learned fact | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Encode a repo-wide rule the agent must follow every session | **Kilo rule file** — `~/.config/kilo/rules/<slug>.md` |
-| Package a workflow the agent loads on demand | **Skill** — `~/.config/kilo/skills/<slug>/SKILL.md` (with frontmatter) |
+| Encode a repo-wide rule the agent must follow every session | **Rule file** — `~/.config/<vendor>/rules/<slug>.md` |
+| Package a workflow the agent loads on demand | **Skill** — `~/.config/<vendor>/skills/<slug>/SKILL.md` (with frontmatter) |
 | Introduce the project to humans | **README.md` |
 | Encode project conventions for agents | **AGENTS.md** (closest to file wins) |
 | Introduce a doc subtree | **topic README.md** |
@@ -84,7 +130,8 @@ otherwise:
 1. **Plain Markdown.** No HTML except where Markdown genuinely cannot
    express something (e.g. `<details>` for collapsible sections).
 2. **Forward slashes** in file paths, even on Windows (`reference/foo.md`,
-   not `reference\foo.md`). Required by the agentskills.io runtime.
+   not `reference\foo.md`). The agentskills.io spec asks for relative paths
+   from the skill root; forward slashes are the cross-platform form of that.
 3. **ISO 8601 dates** (`YYYY-MM-DD`) for any date in filenames or headings.
    `YYYY-MM-DD` sorts lexicographically and is unambiguous across locales
    (Keep a Changelog §"Confusing Dates").
@@ -100,11 +147,11 @@ otherwise:
 5. **Relative links** between docs in the same repo. Relative links keep
    the relationship working on clones and in editors. Use absolute URLs
    only for external sources.
-6. **One H1 per file**, equal to (or near-equal to) the filename slug.
-   Avoid numbering in H1s (MADR ADR-0002).
+6. **One H1 per file.** Derive the title from the filename's words, in
+   sentence case. Avoid numbering in H1s (MADR ADR-0002).
 7. **No frontmatter unless the per-type policy says to use it.** Two
    exceptions: `SKILL.md` (mandatory) and ADRs (optional but
-   recommended). The global `~/.config/kilo/rules/*.md` files
+   recommended). The global `~/.config/<vendor>/rules/*.md` files
    explicitly **do not** use frontmatter (see
    [frontmatter § global rule files](references/frontmatter.md)).
 8. **Be conservative with structure.** Pick the lightest convention that
@@ -132,9 +179,9 @@ otherwise:
 | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Knowledge-cache entry |
 | `.agents/docs/cache/<topic>/README.md` | Topic README (cache index) |
 | `.agents/docs/cache/README.md` | Cache root index |
-| `~/.config/kilo/rules/<slug>.md` | Kilo rule file |
-| `~/.config/kilo/skills/<slug>/SKILL.md` | Skill main file |
-| `~/.config/kilo/skills/<slug>/references/*.md` | Skill reference file |
+| `~/.config/<vendor>/rules/<slug>.md` | Rule file |
+| `~/.config/<vendor>/skills/<slug>/SKILL.md` | Skill main file |
+| `~/.config/<vendor>/skills/<slug>/references/*.md` | Skill reference file |
 | `docs/adr/NNNN-<slug>.md` | MADR-style ADR |
 | `docs/rfcs/NNNN-<slug>.md` | RFC |
 | `docs/design/<slug>.md` | Design doc |
@@ -148,7 +195,7 @@ Full schemas are in [`references/by-doc-type.md`](references/by-doc-type.md).
 
 | Type | Frontmatter? |
 |---|---|
-| Kilo rule file (`~/.config/kilo/rules/*.md`) | **Forbidden** (global decision) |
+| Rule file (`~/.config/<vendor>/rules/*.md`) | **Forbidden** (project decision — the loader does not parse it) |
 | SKILL.md | **Required** — `name` + `description` |
 | ADR (MADR) | Optional but recommended — `status`, `date`, `decision-makers` |
 | Knowledge-cache entry | Optional — `source`, `captured`, `freshness` |
@@ -194,21 +241,19 @@ These rules are synthesised from:
 - [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices)
 - [Anthropic — Equipping agents for the real world](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
 - [Standard Readme spec](https://github.com/RichardLitt/standard-readme/blob/main/spec.md) (community, 6.3k★)
-- [Divio — The Documentation System](https://docs.divio.com/documentation-system/) (canonical four quadrants)
 - [Diátaxis](https://diataxis.fr/) (canonical four quadrants, language rules)
 - [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)
-- [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+- [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) (commit-message format — relevant to CHANGELOG generation, not to document shape)
 - [Semantic Versioning 2.0.0](https://semver.org/)
 - [MADR — Markdown Any Decision Records](https://adr.github.io/madr/)
 - [adr.github.io — decision records](https://adr.github.io/)
 - [Andy Matuschak — Evergreen notes](https://notes.andymatuschak.org/Evergreen_notes)
-- Global rules: `~/.config/kilo/rules/*.md` (proactive-note-capture,
+- Global rules: `~/.config/<vendor>/rules/*.md` (proactive-note-capture,
   web-tools-priority, project-context, self-analysis,
   ambiguity-resolution) + per-user rules at
-  `~/.config/kilo/rules.personal.d/*.md` (sudo-ask,
+  `~/.config/kilo/rules.personal.d/*.md` (Kilo-only drop-in dir; sudo-ask,
   ssh-read-allowlist, ssh-agent-keys-location)
-- Global decision `kilo.rules.no_frontmatter` — rule files have no
-  frontmatter even though skills do
+- Project decision — rule files carry no frontmatter even though skills do
 - Project-local: shared-context-repo design locked 2026-08-10
   (see `.tmp/docs/plans/2026-08-10-kilo-worktree-tmp-structure.md`)
 

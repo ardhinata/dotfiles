@@ -31,8 +31,8 @@ file if the finding is web-sourced and may go stale.
 | Design proposal, needs team review | Repo, durable, reviewable | **RFC** | `docs/rfcs/NNNN-<slug>.md` |
 | Design proposal, internal, lighter than an RFC | Repo, durable | **Design doc** | `docs/design/<slug>.md` |
 | Reusable web-learned fact, may go stale in months | Repo knowledge cache | **Knowledge-cache entry** | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Repo-wide rule, agent follows every session | Repo-wide, hot | **Kilo rule file** | `~/.config/kilo/rules/<slug>.md` |
-| Workflow, agent loads on demand | Repo or global, on-demand | **Skill** | `~/.config/kilo/skills/<slug>/SKILL.md` |
+| Repo-wide rule, agent follows every session | Repo-wide, hot | **Rule file** | `~/.config/<vendor>/rules/<slug>.md` |
+| Workflow, agent loads on demand | Repo or global, on-demand | **Skill** | `~/.config/<vendor>/skills/<slug>/SKILL.md` |
 | Project intro, install, getting started | Humans, first touch | **README.md** | root `README.md` |
 | Project conventions, build/test commands, boundaries | Agents, hot | **AGENTS.md** | root `AGENTS.md` (and nested per monorepo package) |
 | Sub-tree intro, table of contents for a doc folder | Humans | **Topic README** | `<dir>/README.md` |
@@ -92,7 +92,7 @@ These rules resolve ambiguity when the matrix has two plausible rows.
   need to *make* the decision; use an RFC when the decision affects
   many people and they need to weigh in.
 
-### Kilo rule vs. SKILL
+### Rule file vs. SKILL
 
 - A **rule** loads every session, in full, as part of the agent
   instruction set. It is for repo-wide "always / ask first / never"

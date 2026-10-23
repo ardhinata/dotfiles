@@ -46,7 +46,7 @@ integration prerequisites, flaky suites.>
 - [README.md](README.md) — required pointer
 - [CONTRIBUTING.md](CONTRIBUTING.md) — contribution norms
 - [docs/](docs/README.md) — project documentation
-- [.agents/kilo/](.agents/kilo/README.md) — agent rules + skills
+- [.agents/<vendor>/](.agents/<vendor>/README.md) — agent rules + skills
 - [.agents/docs/cache/](.agents/docs/cache/README.md) — knowledge cache
 ```
 
@@ -62,4 +62,4 @@ integration prerequisites, flaky suites.>
 - `Pointers` must include `README.md`.
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md)
-and any project-context skill installed at `kilo/skills/project-context/SKILL.md`.
+and any project-context skill installed at `<vendor>/skills/project-context/SKILL.md`.

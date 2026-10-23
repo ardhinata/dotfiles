@@ -10,7 +10,7 @@ allowed.
 | Type | Frontmatter | Notes |
 |---|---|---|
 | `SKILL.md` | **Required** | `name`, `description` — enforced by `skills-ref validate` |
-| Kilo rule file (`~/.config/kilo/rules/*.md`) | **Forbidden** | Global decision `kilo.rules.no_frontmatter`. Cursor convention that Kilo's loader does not parse. |
+| Rule file (`~/.config/<vendor>/rules/*.md`) | **Forbidden** | Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
 | ADR (MADR) | Optional | MADR `0013-use-yaml-front-matter-for-meta-data` |
 | Knowledge-cache entry | Optional | Global rule: prefer consistent fields |
 | Note (`.tmp/docs/notes/`) | Optional | `task`, `status` recommended |
@@ -55,7 +55,7 @@ pick one and use it consistently across a project.
 ### `description`
 
 ```yaml
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, Kilo rule, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill.
 ```
 
 Rules:
@@ -177,14 +177,14 @@ Frontmatter uses standard YAML 1.2. Common foot-guns:
 
 ## Rule-file frontmatter exception
 
-The global `~/.config/kilo/rules/*.md` files deliberately **do not**
-use frontmatter (decision `kilo.rules.no_frontmatter`). Reasons:
+The global `~/.config/<vendor>/rules/*.md` files deliberately **do not**
+use frontmatter (project decision). Reasons:
 
 - The loader does not parse frontmatter, so adding it is dead weight
   that drifts from the on-disk schema
 - Cursor parses frontmatter as metadata; in mixed-team repos this
   creates a false expectation
-- The Kilo skill loader reads SKILL.md frontmatter but treats rule
+- The skill loader reads SKILL.md frontmatter but treats rule
   files as plain Markdown
 
 When in doubt for a global rule file: **omit frontmatter**. Add a

@@ -12,7 +12,7 @@ Three link forms are valid; each has a place.
 ```markdown
 See [the README](../../README.md) for an overview.
 See [the project-context skill](../../project-context/SKILL.md).
-See [decision matrix](references/decision-matrix.md) for the quick view.
+See [decision matrix](decision-matrix.md) for the quick view.
 ```
 
 **Use when:** linking to another file in the same repository.
@@ -131,7 +131,7 @@ Link text should describe the target, not "click here".
 | Bad | Good |
 |---|---|
 | `click [here](https://keepachangelog.com/)` | `[Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)` |
-| ``see [this](references/by-doc-type.md)`` | `[per-type tables](references/by-doc-type.md)` |
+| ``see [this](by-doc-type.md)`` | `[per-type tables](by-doc-type.md)` |
 | ``[docs](docs/README.md)`` | `[docs README](docs/README.md)` |
 
 Link text should make sense out of context (a screen-reader user
@@ -142,7 +142,7 @@ tabbing through links hears only the link text).
 When a path appears inline (not as a link), wrap it in backticks:
 
 ```markdown
-The rule lives at `~/.config/kilo/rules/proactive-note-capture.md`.
+The rule lives at `~/.config/<vendor>/rules/proactive-note-capture.md`.
 ```
 
 Avoid bare paths in prose. Backticks tell the renderer "this is a
@@ -163,7 +163,7 @@ do), reference the **directory** as the identifier:
 
 ```markdown
 See [the project-context skill](../../project-context/SKILL.md).
-See [the chezmoi skill](../../../../../.agents/kilo/skills/chezmoi/SKILL.md).
+See [the chezmoi skill](../../../../../.agents/<vendor>/skills/chezmoi/SKILL.md).
 ```
 
 Never use a bare `[SKILL.md]()` link.

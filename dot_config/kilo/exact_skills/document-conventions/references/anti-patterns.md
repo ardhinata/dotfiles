@@ -51,7 +51,7 @@ checklist before publishing any doc.
 
 ## Frontmatter anti-patterns
 
-- **Frontmatter on a type that forbids it.** Kilo rule files in this
+- **Frontmatter on a type that forbids it.** Rule files in this
   repo do not use frontmatter (global decision). Do not copy
   `SKILL.md`'s frontmatter onto a rule file.
 - **Required fields missing on a type that requires it.** `SKILL.md`

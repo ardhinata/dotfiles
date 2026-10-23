@@ -23,4 +23,4 @@ If the cache is transient (default), add the cache directory to `.gitignore`. If
 
 ## Reference
 
-Authoritative tool-selection and cache-use guidance: `~/.config/kilo/rules/web-tools-priority.md` (loaded globally on every session). Canonical placement and naming: the `project-layout` skill.
+Authoritative tool-selection and cache-use guidance: `~/.config/<vendor>/rules/web-tools-priority.md` (loaded globally on every session). Canonical placement and naming: the `project-layout` skill.

@@ -21,7 +21,7 @@ Each row covers one doc type. Columns:
 
 ## Table of contents
 
-1. [Kilo rule file](#kilo-rule-file)
+1. [Rule file](#rule-file)
 2. [SKILL.md (skill)](#skillmd)
 3. [Skill reference file](#skill-reference-file)
 4. [AGENTS.md](#agentsmd)
@@ -45,18 +45,18 @@ Each row covers one doc type. Columns:
 
 ---
 
-## Kilo rule file
+## Rule file
 
 | Field | Value |
 |---|---|
-| Path | `~/.config/kilo/rules/<slug>.md` |
-| Frontmatter | **Forbidden.** Global decision `kilo.rules.no_frontmatter`. Frontmatter is a Cursor convention that Kilo's loader does not parse. |
+| Path | `~/.config/<vendor>/rules/<slug>.md` |
+| Frontmatter | **Forbidden.** Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
 | Required sections | One-line description (no heading), `## When` (or similar trigger header), the rule body |
 | Optional sections | `## When to load`, `## Captured …`, `## Anti-patterns`, `## References` |
 | Section order | Loose |
 | Length budget | Target 30–80 lines, hard ceiling 150 |
 | Validation | Manual review against `proactive-note-capture.md` / `rules.personal.d/` style. No frontmatter parser exists. |
-| Source | Global decision; see `~/.config/kilo/rules/*.md` for examples |
+| Source | Global decision; see `~/.config/<vendor>/rules/*.md` for examples |
 
 **Slug rules:** lowercase, hyphens, no trailing punctuation. Match the
 intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
@@ -67,14 +67,14 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 
 | Field | Value |
 |---|---|
-| Path | `~/.config/kilo/skills/<slug>/SKILL.md` (or project-local `.agents/kilo/skills/<slug>/`, `.kilo/skills/<slug>/`) |
+| Path | `~/.config/<vendor>/skills/<slug>/SKILL.md` (or project-local `.agents/<vendor>/skills/<slug>/`, `.<vendor>/skills/<slug>/`) |
 | Frontmatter | **Required.** `name` (≤ 64 chars, lowercase letters/digits/hyphens, no `--`, no leading/trailing hyphen, matches parent dir), `description` (≤ 1024 chars, non-empty, third person, names *what* and *when*). Optional: `license`, `compatibility` (≤ 500 chars), `metadata`, `allowed-tools` (experimental). |
 | Required sections | H1 (the skill's name or one-line summary), body content per the agentskills.io "Recommended sections" — step-by-step instructions, examples, edge cases |
 | Optional sections | `## When to load`, `## Quick start`, `## Workflow`, `## Anti-patterns`, `## References`, `## Captured …` |
 | Section order | Loose but progressive: orient → quick start → details → edge cases → anti-patterns → references |
 | Length budget | Target < 300 lines; hard ceiling 500 lines. Beyond this, split into `references/*.md` |
 | Validation | `skills-ref validate ./<skill-dir>` (if `skills-ref` on PATH). Manual review: frontmatter fields present, name matches dir, description in third person with key terms |
-| Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); the project's `agent-context` skill (`.agents/kilo/skills/agent-context/SKILL.md`, project-vendor only — not installed globally). |
+| Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); the project's `agent-context` skill (`.agents/<vendor>/skills/agent-context/SKILL.md`, project-vendor only — not installed globally). |
 
 ---
 
@@ -82,7 +82,7 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 
 | Field | Value |
 |---|---|
-| Path | `~/.config/kilo/skills/<slug>/references/<file>.md` |
+| Path | `~/.config/<vendor>/skills/<slug>/references/<file>.md` |
 | Frontmatter | None |
 | Required sections | H1 (matching filename slug), body |
 | Optional sections | TOC if file > 100 lines, link back to `SKILL.md` |
@@ -130,7 +130,7 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `<dir>/README.md` (e.g. `docs/README.md`, `.agents/kilo/skills/README.md`) |
+| Path | `<dir>/README.md` (e.g. `docs/README.md`, `.agents/<vendor>/skills/README.md`) |
 | Frontmatter | None |
 | Required sections | Title, brief intro paragraph, table of contents or index of children |
 | Optional sections | "How to use this folder", "Adding to this folder" |
@@ -167,7 +167,7 @@ without it?". Cut otherwise.
 | Section order | Loose; entries list near top |
 | Length budget | < 100 lines |
 | Validation | Every entry file in this directory appears in the table |
-| Source | `web-tools-priority.md` (global rule); `~/.config/kilo/skills/project-context/references/knowledge-cache.md` |
+| Source | `web-tools-priority.md` (global rule); `~/.config/<vendor>/skills/project-context/references/knowledge-cache.md` |
 
 ---
 
@@ -199,7 +199,7 @@ without it?". Cut otherwise.
 | Section order | Fixed (above) per `proactive-note-capture.md` |
 | Length budget | < 150 lines |
 | Validation | Filename uniqueness; pre-create scan **must** include `kilo-shared pull origin main` (cross-worktree collision check); committed before task end |
-| Source | `~/.config/kilo/rules/proactive-note-capture.md` (global rule) |
+| Source | `~/.config/<vendor>/rules/proactive-note-capture.md` (global rule) |
 
 ---
 
@@ -216,7 +216,7 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | < 300 lines |
 | Validation | Filename uniqueness; pre-planning scan **must** include `kilo-shared pull`; checkpoint commits in place; no new files at checkpoints |
-| Source | `~/.config/kilo/rules/plans.md` (global rule) |
+| Source | `~/.config/<vendor>/rules/plans.md` (global rule) |
 
 ---
 
@@ -233,7 +233,7 @@ without it?". Cut otherwise.
 | Section order | Loose; the above is conventional |
 | Length budget | 50–300 lines |
 | Validation | Linked from any active runbook or related doc; action items moved into a durable tracker |
-| Source | `~/.config/kilo/skills/project-layout/SKILL.md` §"Shared context repo"; `shared-context` skill |
+| Source | `~/.config/<vendor>/skills/project-layout/SKILL.md` §"Shared context repo"; `shared-context` skill |
 
 ---
 
@@ -248,7 +248,7 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | < 500 lines; longer plans should link out to design docs / ADRs |
 | Validation | User-approved path; same fields as transient plan but durable |
-| Source | `~/.config/kilo/rules/plans.md` (global rule); per-user quirks live at `~/.config/kilo/rules.personal.d/*.md` |
+| Source | `~/.config/<vendor>/rules/plans.md` (global rule); per-user quirks live at `~/.config/kilo/rules.personal.d/*.md` |
 
 ---
 

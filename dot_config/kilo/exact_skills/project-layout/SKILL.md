@@ -5,7 +5,43 @@ description: Canonical on-disk directory structure for agentic-driven projects. 
 
 # Project Layout
 
-Single source of truth for the **standard on-disk tree** every agentic-driven project should converge on. This skill owns paths and subroles only — the *content* of `AGENTS.md` lives in the `project-context` skill, the *shape* of each doc type lives in `document-conventions`.
+Single source of truth for a **vendor-neutral house layout** for agentic-driven
+projects. This skill owns paths and subroles only — the *content* of
+`AGENTS.md` lives in the `project-context` skill, the *shape* of each doc type
+lives in `document-conventions`.
+
+## Standard vs house style
+
+**Backed by a published standard or convention:**
+
+| Element | Source |
+|---|---|
+| Root `AGENTS.md` plus nested per-package files, closest wins | agents.md (AAIF, Linux Foundation) |
+| `docs/` at the repo root | docs-as-code practice |
+| `docs/adr/` | MADR-style ADR collections (MADR itself prescribes `docs/decisions/`) |
+| `docs/rfcs/` | Rust RFC, Kubernetes enhancement, IETF RFC 2223 |
+| `docs/how-to/` and `docs/reference/` | Diátaxis quadrants |
+| `postmortem` spelled as one word | Merriam-Webster headword, Google SRE Book |
+
+**House style.** No external standard covers these — they are this project's
+layout, and they should be described as such:
+
+- `.agents/<vendor>/` with a root symlink (the *procedure*; note that only
+  `.agents/skills/` is a discovery location any tool actually scans — see
+  "Vendor unification" below)
+- `.agents/docs/cache/` with per-topic directories and README indexes
+- The `.tmp/{docs,scratch,migration}` role split and the shared-context
+  mechanism
+- `docs/design/`, `docs/plans/`, and `docs/reference/` as separate trees
+- The date-prefixed filename convention
+
+Note that `docs/how-to/` + `docs/reference/` are two of Diátaxis's four
+quadrants — tutorials and explanation are not represented here, so do not
+describe this tree as "Diátaxis".
+
+**Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
+harness's user-level config directory: `~/.config/kilo/` in Kilo,
+`~/.config/opencode/` in OpenCode.
 
 ## Canonical layout
 
@@ -62,6 +98,11 @@ uniqueness; the shared-context mechanism requires `git fetch origin main` before
 creating a new note to detect cross-worktree collisions.
 
 ## Shared context repo
+
+> **Kilo Agent Manager only.** The mechanism below depends on the
+> `kilo-shared` wrapper and the `kilo-setup-shared-context` setup script. A
+> harness without that machinery does not get cross-worktree sharing from
+> this layout. Treat `.tmp/docs/` as a plain directory in that case.
 
 The mechanism that makes `.tmp/docs/` cross-worktree and cross-machine is a separate
 bare git repo, **per project**, living outside any project tree at
@@ -131,7 +172,13 @@ When the project root contains a vendor-specific directory (`.kilo/`, `.kiro/`, 
 3. Add the symlink pattern to `.gitignore` so the symlink is not committed.
 4. Add a `✅ Always` rule to `AGENTS.md` → Boundaries: *recreate the symlink if it is missing on a fresh clone* (`ln -s .agents/<vendor> <vendor>`).
 
-The phase-3 *trigger* (a vendor directory at the project root) lives in the `project-context` skill; this skill owns only the **mechanics** above.
+**Know what this does and does not buy you.** No tool scans `.agents/<vendor>/`.
+The discovery locations that are real are `.agents/skills/` (Codex and OpenCode)
+and `.claude/skills/` (Claude Code) — flat, one level down from `.agents/`.
+So the vendor subdirectory is a *storage* convention that makes one copy
+govern several harnesses; it is not a discovery shortcut. When a harness needs
+to find skills by its own rules, give it its own path (a symlink works, and
+OpenCode follows symlinked skill directories).
 
 ## Knowledge cache
 
@@ -167,10 +214,10 @@ When the deviation is structural (a path that contradicts the tree), surface it 
 
 ## References
 
-- `~/.config/kilo/skills/project-context/SKILL.md` — AGENTS.md lifecycle, README↔AGENTS separation, vendoring trigger.
-- `~/.config/kilo/skills/document-conventions/SKILL.md` — per-doc-type filename, frontmatter, section order.
-- `~/.config/kilo/skills/project-context/references/knowledge-cache.md` — knowledge-cache authoring rules (date tag, source, freshness note).
-- `~/.config/kilo/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
-- `~/.config/kilo/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
+- `~/.config/<vendor>/skills/project-context/SKILL.md` — AGENTS.md lifecycle, README↔AGENTS separation, vendoring trigger.
+- `~/.config/<vendor>/skills/document-conventions/SKILL.md` — per-doc-type filename, frontmatter, section order.
+- `~/.config/<vendor>/skills/project-context/references/knowledge-cache.md` — knowledge-cache authoring rules (date tag, source, freshness note).
+- `~/.config/<vendor>/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
+- `~/.config/<vendor>/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
 - `.agents/docs/cache/README.md` — required cache index (per topic as well).
-- `~/.config/kilo/skills/asd-ste100/SKILL.md` — prose-clarity pass (active voice, one idea per sentence, plain words). Load when this skill produces or revises long orientation prose (this `SKILL.md` body, the canonical-layout writeups, the deviation-justification summaries). Apply it after the structural changes settle, before the doc is committed.
+- `~/.config/<vendor>/skills/asd-ste100/SKILL.md` — prose-clarity pass (active voice, one idea per sentence, plain words). Load when this skill produces or revises long orientation prose (this `SKILL.md` body, the canonical-layout writeups, the deviation-justification summaries). Apply it after the structural changes settle, before the doc is committed.

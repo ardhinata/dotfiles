@@ -1,7 +1,7 @@
 # Plan Template
 
 Copy to `.tmp/docs/plans/YYYY-MM-DD-<task-slug>.md`. Per the planning
-rule (`~/.config/kilo/rules/plans.md`). **Pre-planning duplicate scan
+rule (`~/.config/<vendor>/rules/plans.md`). **Pre-planning duplicate scan
 is mandatory** — `kilo-shared pull origin main` plus a local `ls`.
 After each checkpoint, run
 `kilo-shared save "checkpoint: <one-line>"`. See the
@@ -68,10 +68,10 @@ findings here with enough context to act later.>
 if longer.
 
 **Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. No
-collisions — pre-create scan mandated by `~/.config/kilo/rules/plans.md`.
+collisions — pre-create scan mandated by `~/.config/<vendor>/rules/plans.md`.
 
 **Update cadence:** at every checkpoint / milestone. Don't let the file
 drift from reality.
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md)
-and `~/.config/kilo/rules/plans.md`.
+and `~/.config/<vendor>/rules/plans.md`.

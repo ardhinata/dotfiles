@@ -132,7 +132,7 @@ Pattern: `NNNN-<slug>.md`
 
 ### No date — most other types
 
-README.md, CHANGELOG.md, CONTRIBUTING.md, AGENTS.md, Kilo rule files,
+README.md, CHANGELOG.md, CONTRIBUTING.md, AGENTS.md, Rule files,
 skill `SKILL.md`, design docs, how-to guides, topic READMEs — none of
 these carry a date in their filename. The repo or release owns the
 versioning.
@@ -166,7 +166,7 @@ Every file should have **exactly one H1**, written in sentence case.
 | Skill SKILL.md | Title Case, matches `name` field (`# Document Conventions`) |
 | AGENTS.md | Sentence case, project name (`# My Project`) |
 | README.md | Sentence case, project or topic name |
-| Kilo rule file | Sentence case, rule summary (`# Proactive Note Capture`) |
+| Rule file | Sentence case, rule summary (`# Proactive Note Capture`) |
 | Note | Sentence case, finding summary (`# Shellx slug derivation`) |
 | Plan | Sentence case, task summary (`# Document conventions skill — research and draft`) |
 | Postmortem | Sentence case, incident summary (`# 2026-08-10 GH Actions runbook flake`) |
@@ -201,9 +201,9 @@ LICENSE
 .agents/docs/cache/<topic>/README.md
 .agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md
 
-~/.config/kilo/rules/<slug>.md
-~/.config/kilo/skills/<slug>/SKILL.md
-~/.config/kilo/skills/<slug>/references/<slug>.md
+~/.config/<vendor>/rules/<slug>.md
+~/.config/<vendor>/skills/<slug>/SKILL.md
+~/.config/<vendor>/skills/<slug>/references/<slug>.md
 
 docs/adr/NNNN-<slug>.md
 docs/rfcs/NNNN-<slug>.md

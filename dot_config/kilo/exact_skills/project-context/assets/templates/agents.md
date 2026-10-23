@@ -34,7 +34,7 @@
 ### ✅ Always
 - <e.g. run lint + typecheck before commit>
 - <e.g. list only human authors in git commits>
-- **Recreate vendor symlinks if missing on a fresh clone**, e.g. `ln -s .agents/kilo .kilo` — vendor tool directories at the root are symlinks into `.agents/`. If `ls <vendor>/` fails, fix the link before reading vendor config.
+- **Recreate vendor symlinks if missing on a fresh clone**, e.g. `ln -s .agents/<vendor> .<vendor>` — vendor tool directories at the root are symlinks into `.agents/`. If `ls <vendor>/` fails, fix the link before reading vendor config.
 
 ### ⚠️ Ask first
 - <e.g. database schema changes>
@@ -51,5 +51,5 @@
 - Deeper docs: `docs/README.md` index, or `<relative/path/to/ARCHITECTURE.md>`
 - Conventions: `<relative/path/to/CONTRIBUTING.md>`
 - Knowledge cache: see the project's cache index (placement convention in the `project-layout` skill; date-tagged web-learned facts; see `web-tools-priority` rule and `references/knowledge-cache.md`)
-- Vendor config: `.agents/<vendor>/` (e.g. `.agents/kilo/`) — `<vendor-name>/` at the root is a symlink to it (mechanics in the `project-layout` skill)
+- Vendor config: `.agents/<vendor>/` (e.g. `.agents/<vendor>/`) — `<vendor-name>/` at the root is a symlink to it (mechanics in the `project-layout` skill)
 - `.gitignore` workflow: see the project's gitignore reference (template, Toptal API, OS/IDE/framework catalog).

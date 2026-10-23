@@ -1,9 +1,9 @@
-# Kilo Rule Template
+# Rule File Template
 
-Copy to `dot_config/kilo/exact_rules/<slug>.md`. **No frontmatter** — this is
+Copy to `~/.config/<vendor>/rules/<slug>.md`. **No frontmatter** — this is
 a project-wide decision (see [`references/frontmatter.md`](../../references/frontmatter.md)).
-Kilo's loader does not parse YAML, so any frontmatter here is dead
-weight that drifts.
+Neither the Kilo nor the OpenCode rule loader parses YAML, so any
+frontmatter here is dead weight that drifts.
 
 ```markdown
 # <Rule summary in sentence case>
