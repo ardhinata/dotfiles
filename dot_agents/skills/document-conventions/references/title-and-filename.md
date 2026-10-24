@@ -112,10 +112,9 @@ Pattern: `YYYY-MM-DD-<slug>.md`
 - **Where the date goes:** at the start of the filename, separated by
   `-`. The date *is* part of the filename, not the slug.
 - **Same-day collisions:** append a counter, e.g.
-  `2026-07-27-foo-2.md`. Avoid this by scanning `.tmp/docs/notes/`
-  (or the cache) **and** running `kilo-shared pull origin main` (the
-  pre-create scan must surface cross-worktree collisions, not just
-  local ones — see the `shared-context` skill).
+  `2026-07-27-foo-2.md`. Avoid this by scanning the target directory
+  (the cache topic dir, `docs/plans/`, `docs/post-mortem/`) before
+  writing.
 
 ### Numbered prefix — ADRs, RFCs
 
@@ -190,10 +189,8 @@ CHANGELOG.md
 CONTRIBUTING.md
 LICENSE
 
-.tmp/docs/notes/YYYY-MM-DD-<task-slug>.md
-.tmp/docs/plans/YYYY-MM-DD-<task-slug>.md
-.tmp/docs/postmortems/YYYY-MM-DD-<slug>.md
-.tmp/docs/user_cache/<anything>            # git-tracked persistent user scratch
+docs/plans/YYYY-MM-DD-<task-slug>.md
+docs/post-mortem/YYYY-MM-DD-<slug>.md
 .tmp/scratch/<anything>                   # never commit
 .tmp/migration/<anything>                  # never commit
 

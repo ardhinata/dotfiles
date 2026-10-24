@@ -30,18 +30,16 @@ Each row covers one doc type. Columns:
 7. [Knowledge-cache entry](#knowledge-cache-entry)
 8. [Knowledge-cache topic README.md](#knowledge-cache-topic-readmemd)
 9. [Knowledge-cache root README.md](#knowledge-cache-root-readmemd)
-10. [Note (.tmp/docs/notes/)](#note)
-11. [Plan (.tmp/docs/plans/)](#plan)
-12. [Postmortem (.tmp/docs/postmortems/)](#postmortem)
-13. [Persistent plan](#persistent-plan)
-14. [ADR (MADR)](#adr-madr)
-15. [RFC](#rfc)
-16. [Design doc](#design-doc)
-17. [CHANGELOG.md](#changelogmd)
-18. [CONTRIBUTING.md](#contributingmd)
-19. [.tmp/scratch](#tmpscratch)
-20. [.tmp/migration](#tmpmigration)
-21. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
+10. [Postmortem (docs/post-mortem/)](#postmortem)
+11. [Persistent plan](#persistent-plan)
+12. [ADR (MADR)](#adr-madr)
+13. [RFC](#rfc)
+14. [Design doc](#design-doc)
+15. [CHANGELOG.md](#changelogmd)
+16. [CONTRIBUTING.md](#contributingmd)
+17. [.tmp/scratch](#tmpscratch)
+18. [.tmp/migration](#tmpmigration)
+19. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
 
 ---
 
@@ -50,12 +48,12 @@ Each row covers one doc type. Columns:
 | Field | Value |
 |---|---|
 | Path | `~/.agents/rules/<slug>.md` |
-| Frontmatter | **Forbidden.** Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
+| Frontmatter | **Forbidden.** Project decision. Frontmatter is a Cursor `.mdc` convention that no rule loader parses. |
 | Required sections | One-line description (no heading), `## When` (or similar trigger header), the rule body |
 | Optional sections | `## When to load`, `## Captured …`, `## Anti-patterns`, `## References` |
 | Section order | Loose |
 | Length budget | Target 30–80 lines, hard ceiling 150 |
-| Validation | Manual review against `proactive-note-capture.md` / `rules.personal.d/` style. No frontmatter parser exists. |
+| Validation | Manual review against `rules.personal.d/` style. No frontmatter parser exists. |
 | Source | Global decision; see `~/.agents/rules/*.md` for examples |
 
 **Slug rules:** lowercase, hyphens, no trailing punctuation. Match the
@@ -152,7 +150,7 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | 30–150 lines |
 | Validation | Linked from the topic `README.md` (and root `README.md` if topic is new). Filename must match ISO date prefix and a lowercase-hyphen slug |
-| Source | Global rules: `web-tools-priority.md`, `project-context.md` |
+| Source | Global rules: `project-context.md`, `web-verification.md` |
 
 ---
 
@@ -167,7 +165,7 @@ without it?". Cut otherwise.
 | Section order | Loose; entries list near top |
 | Length budget | < 100 lines |
 | Validation | Every entry file in this directory appears in the table |
-| Source | `web-tools-priority.md` (global rule); `~/.agents/skills/project-context/references/knowledge-cache.md` |
+| Source | `~/.agents/skills/project-context/references/knowledge-cache.md`; `web-verification.md` (global rule) |
 
 ---
 
@@ -182,41 +180,7 @@ without it?". Cut otherwise.
 | Section order | Loose; topics list near top |
 | Length budget | < 100 lines |
 | Validation | Every topic directory appears in the table |
-| Source | `project-context.md`; `web-tools-priority.md` |
-
----
-
-## Note
-
-| Field | Value |
-|---|---|
-| Path | `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` |
-| Lifetime | Git-tracked in the per-project shared context repo (`~/.local/share/kilo/shared-context/<project-slug>.git/`), one branch per worktree, persists across worktrees and machines. |
-| Commit protocol | **`kilo-shared save "<short-message>"`** after every write. The pre-commit hook installed in `.tmp/docs/.git/hooks/pre-commit/` rejects empty commits. See the `shared-context` skill. |
-| Frontmatter | Optional. Recommended: `task`, `status` (`open`/`captured`/`promoted`) |
-| Required sections | H1, `## Finding`, `## Evidence`, `## Why it matters`, `## Scope`, `## Uncertainty`, `## Recommended destination`, `## Date captured` |
-| Optional sections | `## Next action`, `## See also` |
-| Section order | Fixed (above) per `proactive-note-capture.md` |
-| Length budget | < 150 lines |
-| Validation | Filename uniqueness; pre-create scan **must** include `kilo-shared pull origin main` (cross-worktree collision check); committed before task end |
-| Source | `~/.agents/rules/proactive-note-capture.md` (global rule) |
-
----
-
-## Plan
-
-| Field | Value |
-|---|---|
-| Path | `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
-| Lifetime | Git-tracked in the shared context repo (same as Note). |
-| Commit protocol | **`kilo-shared save "checkpoint: <one-line>"`** at every checkpoint. |
-| Frontmatter | Optional. Recommended: `status`, `goal`, `owner`, `last-updated` |
-| Required sections | H1, `## Goal`, `## Scope`, `## Steps` (or `## Implementation steps`), `## Current status`, `## Risks` |
-| Optional sections | `## Open questions`, `## Decisions`, `## Deferred notes`, `## Captured …` |
-| Section order | Loose |
-| Length budget | < 300 lines |
-| Validation | Filename uniqueness; pre-planning scan **must** include `kilo-shared pull`; checkpoint commits in place; no new files at checkpoints |
-| Source | `~/.agents/rules/plans.md` (global rule) |
+| Source | `project-context.md`; `web-verification.md` |
 
 ---
 
@@ -224,16 +188,16 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `.tmp/docs/postmortems/<YYYY-MM-DD>-<slug>.md` |
-| Lifetime | Git-tracked in the shared context repo. |
-| Commit protocol | **`kilo-shared save "<message>"`** after each write. |
+| Path | `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` |
+| Lifetime | Git-tracked in the project repo. |
+| Commit policy | Committed with the project repo. |
 | Frontmatter | Optional. Recommended: `severity`, `status`, `date` |
 | Required sections | H1, `## Summary`, `## Timeline`, `## Root cause`, `## Impact`, `## Action items` |
 | Optional sections | `## Detection`, `## Resolution`, `## Lessons learned`, `## See also` |
 | Section order | Loose; the above is conventional |
 | Length budget | 50–300 lines |
 | Validation | Linked from any active runbook or related doc; action items moved into a durable tracker |
-| Source | `~/.agents/skills/project-layout/SKILL.md` §"Shared context repo"; `shared-context` skill |
+| Source | `document-conventions` skill (post-mortem tree under `docs/`) |
 
 ---
 
@@ -241,14 +205,14 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | user-specified (e.g. `docs/plans/<slug>.md`, `plans/<slug>.md`) |
+| Path | `docs/plans/<YYYY-MM-DD>-<task-slug>.md` (user-specified paths allowed) |
 | Frontmatter | Optional. Recommended: `status` (`draft`/`active`/`completed`/`abandoned`), `owner`, `last-updated` |
 | Required sections | H1, `## Goal`, `## Scope`, `## Steps`, `## Status` |
 | Optional sections | `## Decisions`, `## Risks`, `## Open questions`, `## Related` |
 | Section order | Loose |
 | Length budget | < 500 lines; longer plans should link out to design docs / ADRs |
 | Validation | User-approved path; same fields as transient plan but durable |
-| Source | `~/.agents/rules/plans.md` (global rule); per-user quirks live at `~/.config/kilo/rules.personal.d/*.md` |
+| Source | `document-conventions` skill; per-user quirks live at `~/.agents/rules.personal.d/*.md` |
 
 ---
 
@@ -333,14 +297,14 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `.tmp/scratch/<anything>` |
 | Lifetime | Per-working-tree (per `git worktree` isolation). Gitignored. |
-| Commit policy | **Forbidden.** The `.tmp/docs/.git/hooks/pre-commit/` hook rejects paths containing `scratch/`. Do not even stage them. |
+| Commit policy | **Forbidden.** The `.tmp/` tree is gitignored. Do not even stage these paths. |
 | Frontmatter | None |
 | Required sections | None |
 | Optional sections | Anything |
 | Section order | None |
 | Length budget | None |
 | Validation | `.tmp/` is gitignored; deleted on worktree destroy (auto via git worktree lifecycle) |
-| Source | `project-layout` skill (`.tmp/` subroles); `shared-context` skill |
+| Source | `project-layout` skill (`.tmp/` subroles) |
 
 ---
 
@@ -350,7 +314,7 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `.tmp/migration/<anything>` |
 | Lifetime | Per-project. Gitignored. |
-| Commit policy | **Forbidden.** This dir is outside `.tmp/docs/` and never in any repo. |
+| Commit policy | **Forbidden.** This dir is never in any repo. |
 | Frontmatter | None |
 | Required sections | None |
 | Length budget | None |

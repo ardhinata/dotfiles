@@ -4,7 +4,7 @@ Router rule. Triggers load the `document-conventions` skill on demand.
 
 ## Load the `document-conventions` skill eagerly when any of these is true
 
-- **About to author or edit any doc type.** A new note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule, or skill is being drafted.
+- **About to author or edit any doc type.** A new plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule, or skill is being drafted.
 - **Validating a filename or frontmatter.** Confirming a name follows the kebab-case / ISO 8601 / date-first rules; checking whether frontmatter is required, forbidden, or optional for the type.
 - **Choosing between doc types.** The decision matrix is the authoritative picker — load the skill rather than guessing.
 - **Reviewing an existing document.** Confirming section order, length budget, and structure match the per-type policy.
@@ -16,11 +16,10 @@ Short form for the common cases. Load the skill for the full matrix when the typ
 
 | If you need to capture… | Use | Lives at |
 |---|---|---|
-| A verified, reusable fact from a web lookup | knowledge-cache entry | `.agents/docs/cache/<topic>/<date>-<slug>.md` |
-| A task-only finding for the active work | note (immediate) | `.tmp/docs/notes/<date>-<task-slug>.md` |
-| A multi-step task in progress | plan | `.tmp/docs/plans/<date>-<task-slug>.md` |
+| A verified, reusable fact | knowledge-cache entry | `.agents/docs/cache/<topic>/<date>-<slug>.md` |
+| A multi-step task in progress | persistent plan | `docs/plans/<date>-<task-slug>.md` |
 | An architecture / tooling decision with rationale | ADR | `docs/decisions/NNNN-<slug>.md` |
-| Repo-wide convention, agent guidance, behaviour | rule | `dot_agents/rules/<slug>.md` (shared) or `dot_config/<vendor>/exact_rules/<slug>.md` (harness-specific) |
+| Repo-wide convention, agent guidance, behaviour | rule | `dot_agents/rules/<slug>.md` (shared) or `dot_agents/rules.personal.d/<slug>.md` (personal) |
 | Project knowledge for agents | AGENTS.md / SKILL.md | `AGENTS.md`, `.agents/skills/<name>/SKILL.md` |
 
 ## Boundary with neighbouring skills

@@ -8,7 +8,7 @@ checklist before publishing any doc.
 - **Bloat.** "Just one more section". Each addition must answer
   "would the reader miss this without it?". If no, cut.
 - **Archival.** "We might need this someday". Capture in
-  `.tmp/docs/notes/` instead. Promote only when used.
+  `.agents/docs/cache/` instead. Promote only when used.
 - **Restating the rule.** Repeating the doc-type spec inside the
   doc. Cite, don't reproduce.
 - **Massive code blocks.** 200+ lines of inline code should be a
@@ -45,9 +45,8 @@ checklist before publishing any doc.
   the old file or move it to an archive folder; do not version in the
   filename.
 - **Legacy paths.** Writing to `.tmp/notes/`, `.tmp/plans/`, or
-  `.tmp/user_cache/` instead of `.tmp/docs/{notes,plans,user_cache}/`.
-  The legacy dirs are not mounted under the shared context repo;
-  files written there vanish on worktree destroy.
+  `.tmp/user_cache/`. Those dirs are not mounted; files written there
+  vanish on worktree destroy.
 
 ## Frontmatter anti-patterns
 
@@ -86,11 +85,6 @@ checklist before publishing any doc.
   Use `YYYY-MM-DD` or "in v1.2.0".
 - **Vendor-specific language in cross-vendor docs.** Don't write "if
   you're using Claude, do X" in a CHANGELOG or AGENTS.md.
-- **Uncommitted shared-context writes.** Writing to
-  `.tmp/docs/{notes,plans,postmortems}/` and not running
-  `kilo-shared save` before the task ends. The file is uncommitted
-  state; it does not reach sibling worktrees and is lost on
-  destructive operations.
 
 ## Linking anti-patterns
 
@@ -105,22 +99,18 @@ checklist before publishing any doc.
 ## Process anti-patterns
 
 - **Skipping the planning step.** Writing a doc without a plan when
-  the doc is multi-section. Use the planning rule.
-- **Skipping the duplicate check.** Not running
-  `kilo-shared pull origin main` (or `git fetch`) and listing
-  `.tmp/docs/notes/` / `.tmp/docs/plans/` before creating a new
-  file. Causes cross-worktree drift.
-- **Promoting a stale note.** A `.tmp/docs/notes/` entry from a year
-  ago probably no longer reflects current code. Re-verify before
+  the doc is multi-section. Use a persistent plan under `docs/plans/`.
+- **Skipping the duplicate check.** Not listing the target directory
+  before creating a new file. Causes same-day slug collisions.
+- **Promoting a stale cache entry.** A `.agents/docs/cache/` entry from
+  a year ago probably no longer reflects current code. Re-verify before
   promoting to a durable doc.
 - **Editing `AGENTS.md` without user review.** Project-context rule
   forbids unilateral edits; same for any project context file.
-- **Editing the `web-tools-priority` cache without updating the
-  topic README.** Forgetting the index entry makes the cache
-  effectively invisible.
-- **Committing to `.tmp/scratch/`.** The pre-commit hook in
-  `.tmp/docs/.git/hooks/pre-commit/` rejects paths containing
-  `scratch/`. Do not even stage them.
+- **Editing a cache entry without updating the topic README.**
+  Forgetting the index entry makes the cache effectively invisible.
+- **Committing to `.tmp/scratch/`.** The `.tmp/` tree is gitignored.
+  Do not even stage those paths.
 
 ## Diátaxis-specific anti-patterns
 
@@ -169,10 +159,8 @@ This list synthesises findings from:
 - MADR — heading numbering, status field, YAML frontmatter
 - Standard Readme — section order
 - Keep a Changelog — `[Unreleased]`, date format, group ordering
-- Global rules: `proactive-note-capture.md`,
-  `web-tools-priority.md`, `project-context.md`,
-  `self-analysis.md`, `ambiguity-resolution.md`
-- Per-user rules: `rules.personal.d/` (sudo-ask,
+- Global rules: `web-verification.md`, `project-context.md`,
+  `local-first.md`, `ambiguity-resolution.md`, `long-running-tools.md`,
+  `document-conventions.md`
+- Per-user rules: `~/.agents/rules.personal.d/` (sudo-ask,
   ssh-read-allowlist, ssh-agent-keys-location)
-- Project-local: shared-context-repo design locked 2026-08-10
-  (see `.tmp/docs/plans/2026-08-10-kilo-worktree-tmp-structure.md`)

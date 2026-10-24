@@ -14,6 +14,7 @@
   ],
   "instructions": [
     "~/.agents/rules/*.md",
+    "~/.agents/rules.personal.d/*.md",
     "~/.config/opencode/rules/*.md"
   ],
   "permissions": [

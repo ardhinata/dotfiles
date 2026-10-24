@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For shared-context commit protocol, load the `shared-context` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions
@@ -35,7 +35,7 @@ This skill mixes two things. Know which is which before you cite one.
 conventions — internally consistent, but cite them as house style, not as
 industry practice:
 
-- The five invented doc types: **note**, **persistent plan**,
+- The four invented doc types: **persistent plan**,
   **knowledge-cache entry**, **rule file**, **scratch file**
 - Every per-type length budget (all numbers in
   [structure-and-length.md](references/structure-and-length.md))
@@ -46,19 +46,11 @@ industry practice:
 - The date-prefixed filename convention for notes and plans
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
-harness's user-level config directory: `~/.config/kilo/` in Kilo,
-`~/.config/opencode/` in OpenCode. Both load a `rules/` directory from there.
+harness's user-level config directory: `~/.config/opencode/` in OpenCode.
 Skills live in the shared home `~/.agents/skills/`, and harness-neutral rules
 live in the shared home `~/.agents/rules/` — both are read by every harness.
 Use `~/.config/<vendor>/rules/` only for rules that name a harness-specific
 tool or feature.
-
-**Shared context.** The `.tmp/docs/` shared-context repo and the
-`kilo-shared save` / `kilo-shared pull` commands belong to Kilo Agent
-Manager. They are named literally here so the instruction stays executable
-where they exist. In a harness without Agent Manager, `.tmp/docs/` is a
-plain directory — commit it with `git add -A && git commit` and skip the
-cross-worktree collision scan.
 
 ## When to load
 
@@ -102,12 +94,12 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 
 | You want to… | Write |
 |---|---|
-| Capture a verified, non-obvious, reusable finding during a task | **Note** — `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` (git-tracked in shared context; commit via `kilo-shared save` after each write) |
-| Plan a multi-step task that may not survive compaction | **Plan** — `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` (git-tracked in shared context; commit via `kilo-shared save` after each write) |
-| Plan a multi-step task the user wants to keep | **Persistent plan** — user-specified path |
+| Capture a verified, non-obvious, reusable finding during a task | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
+| Plan a multi-step task | **Persistent plan** — `docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
 | Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
 | Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
 | Cache a reusable web-learned fact | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
+| Write an incident write-up | **Postmortem** — `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` |
 | Encode a repo-wide rule the agent must follow every session | **Rule file** — `~/.agents/rules/<slug>.md` |
 | Package a workflow the agent loads on demand | **Skill** — `~/.agents/skills/<slug>/SKILL.md` (with frontmatter) |
 | Introduce the project to humans | **README.md` |
@@ -115,15 +107,11 @@ The full version is in [`references/decision-matrix.md`](references/decision-mat
 | Introduce a doc subtree | **topic README.md** |
 | Record release-by-release changes | **CHANGELOG.md** |
 | Document contribution workflow | **CONTRIBUTING.md** |
-| Park throwaway work | **`.tmp/scratch/<anything>`** — per-worktree ephemeral (gitignored, never commit). Other `.tmp/` subdirs (`docs/`, `migration/`) are scoped differently; see the `project-layout` skill |
+| Park throwaway work | **`.tmp/scratch/<anything>`** — per-worktree ephemeral (gitignored, never commit). The `.tmp/migration/` subdir is one-time bootstrap scratch; see the `project-layout` skill |
 
-> **Cross-worktree uniqueness:** `.tmp/docs/notes/`, `.tmp/docs/plans/`, and
-> `.tmp/docs/postmortems/` are git-tracked and shared across Agent Manager
-> worktrees. Two worktrees writing the same `YYYY-MM-DD-<slug>.md` produce a
-> branch divergence in the shared context repo. Pre-create scan **must**
-> include `git fetch origin main` (or `kilo-shared pull`) to surface
-> cross-worktree collisions, not just a local `ls`. See the `shared-context`
-> skill for the commit protocol and conflict resolution.
+> **Filename collisions:** date-prefixed names sort chronologically but can
+> collide on the same day. Scan the target directory before writing and
+> append a counter (`-2`, `-3`) when needed.
 
 ## Universally applicable rules
 
@@ -173,10 +161,6 @@ otherwise:
 | `CONTRIBUTING.md` | Contribution workflow |
 | `CHANGELOG.md` | Release-by-release change log |
 | `LICENSE` | License file |
-| `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` | Note (shared context, git-tracked) |
-| `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` | Plan (shared context, git-tracked) |
-| `.tmp/docs/postmortems/<YYYY-MM-DD>-<slug>.md` | Postmortem (shared context, git-tracked) |
-| `.tmp/docs/user_cache/<anything>` | Per-project user scratch that should persist across worktrees (git-tracked) |
 | `.tmp/scratch/<anything>` | Per-worktree ephemeral (gitignored, never commit) |
 | `.tmp/migration/<anything>` | One-time bootstrap scratch (gitignored, per-project) |
 | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Knowledge-cache entry |
@@ -186,6 +170,7 @@ otherwise:
 | `~/.agents/skills/<slug>/SKILL.md` | Skill main file |
 | `~/.agents/skills/<slug>/references/*.md` | Skill reference file |
 | `docs/adr/NNNN-<slug>.md` | MADR-style ADR |
+| `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` | Postmortem |
 | `docs/rfcs/NNNN-<slug>.md` | RFC |
 | `docs/design/<slug>.md` | Design doc |
 | `docs/plans/<slug>.md` | Persistent plan (user-specified) |
@@ -203,8 +188,6 @@ Full schemas are in [`references/by-doc-type.md`](references/by-doc-type.md).
 | ADR (MADR) | Optional but recommended — `status`, `date`, `decision-makers` |
 | Knowledge-cache entry | Optional — `source`, `captured`, `freshness` |
 | Persistent plan | Optional — `status`, `owner`, `last-updated` |
-| Note (`.tmp/docs/notes/`) | Optional — `task`, `status` |
-| Plan (`.tmp/docs/plans/`) | Optional — `status`, `goal`, `last-updated` |
 | README.md / CHANGELOG.md / CONTRIBUTING.md | No |
 | AGENTS.md | No |
 | Scratch (`.tmp/scratch/`) | No |
@@ -251,14 +234,11 @@ These rules are synthesised from:
 - [MADR — Markdown Any Decision Records](https://adr.github.io/madr/)
 - [adr.github.io — decision records](https://adr.github.io/)
 - [Andy Matuschak — Evergreen notes](https://notes.andymatuschak.org/Evergreen_notes)
-- Global rules: `~/.agents/rules/*.md` (proactive-note-capture,
-  web-tools-priority, project-context, self-analysis,
-  ambiguity-resolution) + per-user rules at
-  `~/.config/kilo/rules.personal.d/*.md` (Kilo-only drop-in dir; sudo-ask,
+- Global rules: `~/.agents/rules/*.md` (web-verification, project-context,
+  local-first, ambiguity-resolution, long-running-tools, document-conventions)
+  + per-user rules at `~/.agents/rules.personal.d/*.md` (sudo-ask,
   ssh-read-allowlist, ssh-agent-keys-location)
 - Project decision — rule files carry no frontmatter even though skills do
-- Project-local: shared-context-repo design locked 2026-08-10
-  (see `.tmp/docs/plans/2026-08-10-kilo-worktree-tmp-structure.md`)
 
 Re-verify before relying on exact field limits in 2027+. Volatility is high
 for skill/agents.md specs (< 12 months old); low for Keep a Changelog,

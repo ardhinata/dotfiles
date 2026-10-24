@@ -1,7 +1,9 @@
 # Shellx startup regression — post-mortem
 
-**Status:** Resolved. Fix shipped in shellx 1.3.0 (deployed). Plan lives at
-`.tmp/docs/plans/2026-08-23-shellx-startup-perf.md` (committed `75e5809`).
+**Status:** Resolved. Fix shipped in shellx 1.3.0 (deployed). The plan was
+written in the shared-context repo (`.tmp/docs/plans/2026-08-23-shellx-startup-perf.md`,
+commit `75e5809`); that repo was retired on 2026-10-24 and the plan is
+archived at `~/Playground/backup/2026-10-24-kilo-teardown/shared-context-worktree/`.
 
 ## Summary
 
@@ -215,7 +217,9 @@ per-instruction "don't commit without explicit request" rule).
 
 ## Pointer
 
-The plan that this post-mortem was promoted from is at
-`.tmp/docs/plans/2026-08-23-shellx-startup-perf.md` (committed
-`75e5809`). It contains the full measurement table, the alternatives
+The plan that this post-mortem was promoted from was written in the
+shared-context repo (commit `75e5809`); that repo was retired on
+2026-10-24 and the plan is archived at
+`~/Playground/backup/2026-10-24-kilo-teardown/shared-context-worktree/plans/2026-08-23-shellx-startup-perf.md`.
+It contains the full measurement table, the alternatives
 considered (and why each was rejected), and the rollout plan.

@@ -31,7 +31,7 @@ task success. Curate ruthlessly.)
 
 | Type | Target | Hard ceiling | Why |
 |---|---|---|---|
-| Rule file | 30–80 | 150 | Loaded every session; in shared context budget |
+| Rule file | 30–80 | 150 | Loaded every session; keep the shared context budget small |
 | SKILL.md | < 300 | 500 | Per agentskills.io — beyond 500, split into references/ |
 | Skill reference file | as needed | 300 | Each is loaded on demand |
 | AGENTS.md | 40–80 | 150 | Per project-context skill |
@@ -40,8 +40,6 @@ task success. Curate ruthlessly.)
 | Knowledge-cache entry | 30–150 | 300 | One finding per file |
 | Knowledge-cache topic README | < 100 | 200 | Index, not content |
 | Knowledge-cache root README | < 100 | 200 | Index, not content |
-| Note (`.tmp/docs/notes/`) | < 80 | 150 | Brief by design |
-| Plan (`.tmp/docs/plans/`) | < 200 | 300 | Update in place; if larger, split phases |
 | Postmortem | 50–300 | 600 | Tends to grow with timeline detail |
 | Persistent plan | < 300 | 500 | Link out to design docs for depth |
 | ADR (MADR) | 50–200 | 400 | One decision per ADR |
@@ -70,9 +68,8 @@ tooling and reader expectation.
   Options → More Info
 - **Conventional Commits**: `<type>(<scope>)!: <description>` →
   optional body → optional footers (BREAKING CHANGE first)
-- **Note (global rule)**: Finding → Evidence → Why it
-  matters → Scope → Uncertainty → Recommended destination → Date
-  captured
+- **Knowledge-cache entry**: Finding → Evidence → Why it matters →
+  Scope → Uncertainty → See also
 
 ### Loose order (recommended pattern)
 
@@ -125,9 +122,7 @@ Every doc needs:
 | Knowledge-cache entry | H1; Finding body; Source; Captured; |
 | Knowledge-cache topic README | Topic intro; Entries table |
 | Knowledge-cache root README | Cache intro; Topics table |
-| Note (`.tmp/docs/notes/`) | Finding; Evidence; Why it matters; Scope; Uncertainty; Recommended destination; Date captured |
-| Plan (`.tmp/docs/plans/`) | Goal; Scope; Steps; Current status; Risks |
-| Postmortem (`.tmp/docs/postmortems/`) | Summary; Timeline; Root cause; Impact; Action items |
+| Postmortem (`docs/post-mortem/`) | Summary; Timeline; Root cause; Impact; Action items |
 | Persistent plan | Goal; Scope; Steps; Status |
 | ADR (MADR) | Title; Context and Problem Statement; Considered Options; Decision Outcome |
 | RFC | Summary; Motivation; Detailed design; Drawbacks; Alternatives; Open questions |

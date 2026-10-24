@@ -81,43 +81,20 @@ otherwise.
 - [ ] Each row has relative link + date + source
 - [ ] Plain Markdown
 
-## Note (`.tmp/docs/notes/`)
-
-- [ ] Filename matches `proactive-note-capture.md` rule
-- [ ] Sections in the project's mandated order: Finding → Evidence →
-      Why it matters → Scope → Uncertainty → Recommended destination →
-      Date captured
-- [ ] No secrets
-- [ ] Pre-creation duplicate check performed, including
-      `kilo-shared pull origin main` (or `git fetch`) to surface
-      cross-worktree collisions
-- [ ] `## Date captured` is ISO 8601
-- [ ] Note committed via `kilo-shared save "<short-message>"` before
-      the task ends (per `proactive-note-capture.md`)
-
-## Plan (`.tmp/docs/plans/`)
-
-- [ ] Filename matches the planning rule
-- [ ] Pre-planning duplicate scan done, including `kilo-shared pull`
-- [ ] Sections: Goal, Scope, Steps, Current status, Risks
-- [ ] Updated at every checkpoint (in place, not via new file)
-- [ ] Each checkpoint committed via
-      `kilo-shared save "checkpoint: <one-line summary>"`
-- [ ] Length under 300 lines; split into phases if longer
-
 ## Persistent plan
 
-- [ ] User-approved path
-- [ ] Goal, Scope, Steps, Status sections
-- [ ] Either committed (global rule says persistent plans may be
-      committed) or in `.tmp/docs/` per user direction
+- [ ] User-approved path (default `docs/plans/<YYYY-MM-DD>-<task-slug>.md`)
+- [ ] Sections: Goal, Scope, Steps, Status
+- [ ] Committed to the project repo
+- [ ] Updated in place at every checkpoint (not via new file)
+- [ ] Length under 300 lines; split into phases if longer
 
-## Postmortem (`.tmp/docs/postmortems/`)
+## Postmortem (`docs/post-mortem/`)
 
 - [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`)
 - [ ] Sections: Summary, Timeline, Root cause, Impact, Action items
 - [ ] Action items linked or moved into a durable tracker
-- [ ] Committed via `kilo-shared save`
+- [ ] Committed to the project repo
 
 ## ADR (MADR)
 
@@ -165,6 +142,5 @@ otherwise.
 ## `.tmp/scratch`
 
 - [ ] `.tmp/` is gitignored (global rule)
-- [ ] Never committed — pre-commit hook in `.tmp/docs/.git/` rejects
-      any path containing `scratch/`
+- [ ] Never committed
 - [ ] Delete when done — no convention beyond that

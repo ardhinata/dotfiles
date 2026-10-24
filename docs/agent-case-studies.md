@@ -27,8 +27,9 @@ paid for with a model re-evaluation cycle and a revalidation pass. This
 document harvests them so the next agent — for any harness — starts from
 what worked instead of from zero.
 
-It is a **case study**, not a spec. The agents it describes remain live in
-Kilo (`dot_config/kilo/exact_agent/`); the canonical fleet design remains
+It is a **case study**, not a spec. The agents it describes were retired
+with Kilo on 2026-10-24; the canonical fleet design remains a historical
+record in
 [`docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`](subagent-fleet/2026-08-17-subagent-creative-conservative.md).
 
 ## The seven agents at a glance
@@ -279,5 +280,5 @@ often — it is a normal path, not an edge case, and should be budgeted for.
 
 - Canonical fleet design: [`docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`](subagent-fleet/2026-08-17-subagent-creative-conservative.md)
 - Fleet index and pointer maintenance: [`docs/subagent-fleet/README.md`](subagent-fleet/README.md)
-- Agent sources (still live in Kilo): `dot_config/kilo/exact_agent/`
+- Agent sources (retired with Kilo on 2026-10-24; archived under `~/Playground/backup/2026-10-24-kilo-teardown/`)
 - assist-only constitution: [`docs/assist-only/constitution.md`](assist-only/constitution.md)

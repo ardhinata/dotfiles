@@ -28,11 +28,6 @@ path=("${SHELL_TOOL_DIR}/helper" $path)
 # Completion is handled by ~/.shell/zsh/completions/_runpriv,
 # loaded via fpath (set in 00-before-zgenom.zsh before compinit runs).
 
-# --- kilo wrappers (shared-context CLI merged into kilo-shared) ---
-# Deployed by .agents/kilo/setup-script at Agent Manager worktree creation.
-# Adds ~/.local/share/kilo/bin (kilo-shared, kilo-helper-shared-detect,
-# kilo-shared-init.sh) to PATH when the dir exists. Idempotent — no-op on
-# fresh machines before any Agent Manager worktree setup.
-if [ -d "${HOME}/.local/share/kilo/bin" ]; then
-  path=("${HOME}/.local/share/kilo/bin" $path)
+if [[ -n $(which opencode) ]]; then
+	source <(opencode --completions zsh);
 fi

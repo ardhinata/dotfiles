@@ -28,15 +28,5 @@ set -euo pipefail
   if [ -f "${SHELLX_DEPLOY}" ]; then
     python3 -m py_compile "${SHELLX_DEPLOY}" 2>/dev/null || true
   fi
-
-  # Legacy shared-context wrapper cleanup (2026-08-20: merged kilo-shared-save ->
-  # kilo-shared). Idempotent — no-op when legacy deploys are already gone.
-  WRAPPER_BIN_DIR="${HOME}/.local/share/kilo/bin"
-  if [ -e "${WRAPPER_BIN_DIR}/kilo-shared-save" ]; then
-    rm -f "${WRAPPER_BIN_DIR}/kilo-shared-save"
-  fi
-  if [ -e "${WRAPPER_BIN_DIR}/kilo-shared-pull" ]; then
-    rm -f "${WRAPPER_BIN_DIR}/kilo-shared-pull"
-  fi
 } 2>&1
 exit 0

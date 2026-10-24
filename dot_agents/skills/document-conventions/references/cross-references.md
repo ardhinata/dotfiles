@@ -81,7 +81,7 @@ Or, when the path needs to be a clickable link:
 | Web spec / paper / blog | absolute URL |
 | Code citation (chezmoi source) | `path:line` (not a clickable link) |
 | Code citation (rendered target) | `~/.path:line` only when the agent cannot use the source path |
-| Cross-worktree note or plan | `./YYYY-MM-DD-<other>.md` (relative within `.tmp/docs/`) — works because all worktrees share the bare repo via branches |
+| Sibling cache entry | `./YYYY-MM-DD-<other>.md` (relative within the cache topic dir) |
 
 ## Anchors
 
@@ -107,8 +107,8 @@ stable anchor.
 
 ## Stale-link policy
 
-The web rots. Different sources rot at different rates (see
-`web-tools-priority.md` volatility table). When citing a web source:
+The web rots. Different sources rot at different rates (see the
+`web-verification.md` staleness table). When citing a web source:
 
 1. **Capture date** — note when you wrote the link.
 2. **Link text** — include enough identifier that the link text
@@ -168,22 +168,19 @@ See [the chezmoi skill](../../../../.agents/skills/chezmoi/SKILL.md).
 
 Never use a bare `[SKILL.md]()` link.
 
-## Cross-worktree linking
+## Linking within one doc tree
 
-Notes and plans in `.tmp/docs/{notes,plans,postmortems}/` are
-git-tracked and shared across worktrees via branches. A relative
-link from one note to another within the same dir works because the
-dir layout is stable across branches:
+Docs that live in the same tree use relative links, so the link keeps
+working across clones and in editors:
 
 ```markdown
 See [the related plan](../plans/2026-08-10-other-plan.md).
-See [a sibling note](2026-08-10-other-note.md).
+See [a sibling entry](2026-08-10-other-slug.md).
 ```
 
-If the target lives on another branch (a future-shared-context merge),
-prefer phrasing like "see the related note titled …" and link the
-**commit hash** rather than the file path; path stability across
-branches is not guaranteed.
+When the target lives in another tree, prefer phrasing like "see the
+related doc titled …" and link the **commit hash** rather than the file
+path; path stability across trees is not guaranteed.
 
 ## Anti-patterns in linking
 
@@ -198,9 +195,8 @@ branches is not guaranteed.
 4. **Three-deep relative paths.** If you find yourself writing
    `../../../foo.md`, the doc is in the wrong place. Move it.
 5. **Linking from one scratchpad to another ephemeral note.** Scratch
-   is per-worktree; cross-worktree cross-references break on destroy.
-   Reference durable content (`.tmp/docs/...`, project-tracked docs)
-   instead.
+   is per-worktree; cross-references break on destroy. Reference durable
+   content (the knowledge cache, project-tracked docs) instead.
 
 ## Tooling
 

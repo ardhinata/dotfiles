@@ -48,8 +48,7 @@ project's conventions:
 - The "do not add a Project structure section" rule.
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
-harness's user-level config directory: `~/.config/kilo/` in Kilo,
-`~/.config/opencode/` in OpenCode. Both load a `rules/` directory from there.
+harness's user-level config directory: `~/.config/opencode/` in OpenCode.
 Skills live in the shared home `~/.agents/skills/`, which every agent reads.
 
 ## Trigger checklist

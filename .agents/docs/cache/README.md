@@ -22,7 +22,7 @@ Date-tagged, reusable facts learned from web research in this project. Persisten
 
 ### tavily
 
-- [2026-08-17 — Tavily MCP optimized defaults](tavily/2026-08-17-tavily-mcp-optimized-defaults.md) — per-tool cost/latency/quality table for `tavily_search`/`extract`/`crawl`/`map`/`research`; verified live probes (basic=1 credit/2.15s, advanced=2 credits/2.88s, extract basic=0 credits below 5-URL threshold); research cost boundaries (mini 4–110/pro 15–250); `DEFAULT_PARAMETERS` is only honored by `tavily_search` in `tavily-mcp@0.2.22` (`index.js:534-589`). Skill content at `dot_config/kilo/exact_skills/tavily-defaults/SKILL.md`. Sources: docs.tavily.com (API ref + best-practices + credits), live `curl` probes, `tavily-mcp` source.
+- [2026-08-17 — Tavily MCP optimized defaults](tavily/2026-08-17-tavily-mcp-optimized-defaults.md) — per-tool cost/latency/quality table for `tavily_search`/`extract`/`crawl`/`map`/`research`; verified live probes (basic=1 credit/2.15s, advanced=2 credits/2.88s, extract basic=0 credits below 5-URL threshold); research cost boundaries (mini 4–110/pro 15–250); `DEFAULT_PARAMETERS` is only honored by `tavily_search` in `tavily-mcp@0.2.22` (`index.js:534-589`). Skill content at `dot_agents/skills/tavily-defaults/SKILL.md`. Sources: docs.tavily.com (API ref + best-practices + credits), live `curl` probes, `tavily-mcp` source.
 
 ### kilo-webtools-benchmark
 

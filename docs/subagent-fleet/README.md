@@ -1,5 +1,11 @@
 # docs/subagent-fleet/
 
+> **Retired 2026-10-24.** The Kilo subagent fleet was dismantled with Kilo
+> itself. This directory is a historical design record, kept for the
+> transferable lessons it contains. The live source of truth for those
+> lessons is [`../agent-case-studies.md`](../agent-case-studies.md).
+> File paths quoted below refer to the pre-teardown tree and are stale.
+
 Canonical design + workflow for the haru / natsu / aki / fuyu / shiki
 research subagent fleet. Used by the revaluation workflow
 (`.agents/kilo/command/subagent-fleet-reevaluate-models.md`), the

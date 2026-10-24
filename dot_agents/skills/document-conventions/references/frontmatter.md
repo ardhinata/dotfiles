@@ -10,13 +10,11 @@ allowed.
 | Type | Frontmatter | Notes |
 |---|---|---|
 | `SKILL.md` | **Required** | `name`, `description` — enforced by `skills-ref validate` |
-| Rule file (`~/.agents/rules/*.md`) | **Forbidden** | Project decision. Frontmatter is a Cursor `.mdc` convention that neither the Kilo nor the OpenCode rule loader parses. |
+| Rule file (`~/.agents/rules/*.md`) | **Forbidden** | Project decision. Frontmatter is a Cursor `.mdc` convention that no rule loader parses. |
 | ADR (MADR) | Optional | MADR `0013-use-yaml-front-matter-for-meta-data` |
 | Knowledge-cache entry | Optional | Global rule: prefer consistent fields |
-| Note (`.tmp/docs/notes/`) | Optional | `task`, `status` recommended |
-| Plan (`.tmp/docs/plans/`) | Optional | `status`, `goal`, `last-updated` recommended |
-| Postmortem (`.tmp/docs/postmortems/`) | Optional | `severity`, `status`, `date` recommended |
-| Persistent plan | Optional | Same as transient plan |
+| Postmortem (`docs/post-mortem/`) | Optional | `severity`, `status`, `date` recommended |
+| Persistent plan | Optional | `status`, `goal`, `last-updated` recommended |
 | RFC | Optional | `status`, `reviewers`, `deadline` recommended |
 | Design doc | Optional | `status`, `last-updated` recommended |
 | AGENTS.md | Forbidden | Plain Markdown only (agents.md spec) |
@@ -153,9 +151,9 @@ last-updated: 2026-07-27
 ---
 ```
 
-The agent is expected to commit the file with `kilo-shared save` after
+The agent is expected to commit the file with the project repo after
 writing — frontmatter does not exempt the file from the commit
-protocol. See the `shared-context` skill.
+protocol.
 
 ## YAML syntax rules
 

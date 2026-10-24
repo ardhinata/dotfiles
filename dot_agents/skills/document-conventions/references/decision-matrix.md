@@ -10,23 +10,20 @@ first; consult the per-type tables in
    capture finding, plan work, record decision, propose design, cache
    research, encode rule, package workflow, introduce project, document
    release, document contribution.
-2. Find the row that matches intent **and** scope (shared-context vs.
-   persistent, internal vs. external).
+2. Find the row that matches intent **and** scope (task-only vs.
+   repo-durable, internal vs. external).
 3. Use the column links to jump straight to the per-type rule.
 
 If two rows fit, prefer the more-verified, lower-overhead one. A
-shared-context note beats a persistent doc if the finding may not
-survive session restart anyway. A knowledge-cache entry beats a rule
-file if the finding is web-sourced and may go stale.
+knowledge-cache entry beats a rule file if the finding is web-sourced and
+may go stale.
 
 ## Decision matrix
 
 | Intent | Scope / audience | Type | Path |
 |---|---|---|---|
-| Capture a verified, non-obvious, reusable finding | This task, cross-worktree + machine (git-tracked) | **Note** | `.tmp/docs/notes/<YYYY-MM-DD>-<task-slug>.md` |
-| Capture a verified finding but cannot pause safely | This task, deferred | **Deferred note** (block in active plan or scratchpad) | `.tmp/docs/plans/...` (commit the plan) or `.tmp/scratch/...` (do not commit) |
-| Multi-step plan, ephemeral | This session, cross-worktree via git | **Plan** | `.tmp/docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
-| Multi-step plan, kept with the repo | Repo, user-approved | **Persistent plan** | user-specified (e.g. `docs/plans/<slug>.md`) |
+| Capture a verified, non-obvious, reusable finding | Repo knowledge cache, durable | **Knowledge-cache entry** | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
+| Multi-step plan | Repo, user-approved | **Persistent plan** | `docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
 | Decision with options + consequences, needs to be discoverable later | Repo, durable | **ADR** | `docs/adr/NNNN-<slug>.md` |
 | Design proposal, needs team review | Repo, durable, reviewable | **RFC** | `docs/rfcs/NNNN-<slug>.md` |
 | Design proposal, internal, lighter than an RFC | Repo, durable | **Design doc** | `docs/design/<slug>.md` |
@@ -39,7 +36,7 @@ file if the finding is web-sourced and may go stale.
 | Release-by-release changes | Humans, users | **CHANGELOG.md** | root `CHANGELOG.md` |
 | Contribution workflow | Humans, contributors | **CONTRIBUTING.md** | root `CONTRIBUTING.md` |
 | Throwaway work in progress | This worktree, gitignored, never commit | **Scratch** | `.tmp/scratch/...` (no convention beyond "delete when done") |
-| Incident write-up, cross-worktree discoverable | Cross-worktree, durable | **Postmortem** | `.tmp/docs/postmortems/<YYYY-MM-DD>-<slug>.md` |
+| Incident write-up | Repo, durable | **Postmortem** | `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` |
 
 ## Decision heuristics
 
@@ -56,27 +53,22 @@ These rules resolve ambiguity when the matrix has two plausible rows.
 - If the doc will outlive the decision, write an ADR. If it walks
   through *doing* the work, write a plan.
 
-### Plan vs. note
+### Plan vs. knowledge-cache entry
 
 - A **plan** has ordered steps and checkpoints. It describes work.
-- A **note** is a discrete, reusable finding. It describes *a fact*.
-- If the finding is "do these N steps in order", it's a plan. If it's
-  "this tool has a quirk — here's why", it's a note.
+- A **knowledge-cache entry** is a discrete, reusable finding. It describes *a fact*.
+- If the content is "do these N steps in order", it's a plan. If it's
+  "this tool has a quirk — here's why", it's a cache entry.
 
-### Note vs. knowledge-cache entry
+### Knowledge-cache entry vs. rule file
 
-- A **note** (`.tmp/docs/notes/`) is git-tracked via the shared context
-  repo. It persists across worktrees and machines; survives session
-  restart by design.
-- A **knowledge-cache entry** (`.agents/docs/cache/`) is gitignored
-  (per- the project-layout skill — `.agents/docs/cache/` is the
-  knowledge cache, gitignored at the project root) but durable within
-  the working tree. It indexes into a topic `README.md` so future
-  sessions can re-discover it.
-- If the finding is reusable beyond the current session, cache it. If
-  it's only useful for the current task, leave it as a note. If the
-  finding needs to reach other worktrees, prefer the note (shared
-  context) — the cache is local to one worktree at a time.
+- A **knowledge-cache entry** (`.agents/docs/cache/`) is gitignored (per the
+  project-layout skill) but durable within the working tree. It indexes into
+  a topic `README.md` so future sessions can re-discover it.
+- A **rule file** (`~/.agents/rules/`) loads every session and is global, not
+  project-scoped.
+- If the finding is reusable beyond the current session, cache it. Promote
+  it to a rule only when it must hold in every session.
 
 ### ADR vs. design doc vs. RFC
 
@@ -118,12 +110,11 @@ These rules resolve ambiguity when the matrix has two plausible rows.
 - Default to the **lower-overhead, shorter-lived** option. Promote to a
   longer-lived doc only when the user asks, the finding clearly
   outlasts the session, or another doc explicitly references it.
-- When two types fit and you cannot tell which, write a note and link
-  to the plan, knowledge cache, or rule you would have written. The
-  note captures the finding; the user or future session can promote
-  it.
-- Cross-worktree vs. cross-machine: notes/plans/postmortems in
-  `.tmp/docs/` are cross-worktree via git. To survive a machine loss,
-  the project would need to push the shared context bare repo to a
-  remote (out of scope for the locked 2026-08-10 design — see
-  `.tmp/docs/plans/2026-08-10-kilo-worktree-tmp-structure.md`).
+- When two types fit and you cannot tell which, write a cache entry and
+  link to the plan, knowledge cache, or rule you would have written. The
+  cache entry captures the finding; the user or future session can
+  promote it.
+- Cross-worktree vs. cross-machine: nothing in the agent layer is
+  cross-worktree by default any more. A finding that must survive a
+  machine loss belongs in the project repo (`docs/`) or the knowledge
+  cache, not in a per-worktree scratch directory.

@@ -2,7 +2,7 @@ Search and inspection commands must stay within a **bounded path**. An unbounded
 
 ## When
 
-About to run `grep -r`, `rg`, `find`, `fd`, or any tool that walks a directory tree. Prefer Kilo's dedicated tools (`glob`, `grep`, `read`) first — they are token-aware and already scope to the workspace. This rule applies when those tools are insufficient and the agent must shell-side grep, rg, or find.
+About to run `grep -r`, `rg`, `find`, `fd`, or any tool that walks a directory tree. Prefer the harness's dedicated tools (`glob`, `grep`, `read`) first — they are token-aware and already scope to the workspace. This rule applies when those tools are insufficient and the agent must shell-side grep, rg, or find.
 
 ## Default scope — the working directory
 
@@ -19,13 +19,10 @@ When the question is genuinely about a known global location, target that direct
 
 | Looking for | Target dir (do not scan parent) |
 |---|---|
-| Global kilo config / rules / skills / agents | `~/.config/kilo/` |
+| Global agent config / rules / skills | `~/.config/opencode/`, `~/.agents/` |
 | Global chezmoi source (your dotfiles) | `~/.local/share/chezmoi/` |
 | gpg-agent config / state | `~/.gnupg/` |
 | SSH config (allowlisted only) | `~/.ssh/config`, `~/.ssh/config.d/` |
-| Shared agent context (notes/plans) | `~/.local/share/kilo/` |
-| **Subagent-fleet reports** | `~/.local/share/kilo/subagent-runs/` |
-| **Per-project shared-context repo** (notes, plans, postmortems) | `.tmp/docs/` (working tree of the per-project git repo) |
 | Shell history for this project | `~/.local/share/zsh/` or specific file |
 
 If the question might touch multiple of these, run **one bounded call per dir** rather than one giant one.
@@ -35,7 +32,7 @@ Do not recurse into encrypted/sealed trees (`~/.gnupg/private-keys-v1.d/`, `~/.p
 ## Process for a "where is X?" question
 
 1. **First call**: project dir, targeted glob/grep on the obvious filename stem.
-2. **No hit?** Ask yourself: is X global dotfiles, global kilo config, or env-level? If unclear, **ask the user which scope** before widening — most "where is X" questions are local in practice.
+2. **No hit?** Ask yourself: is X global dotfiles, global agent config, or env-level? If unclear, **ask the user which scope** before widening — most "where is X" questions are local in practice.
 3. **Named escalation**: re-run with the specific bounded dir from the table above.
 4. **No `grep -r ... ~` / `rg ... $HOME` / `find ~` without an explicit, exact target dir.** Always pass the deepest meaningful path.
 5. `glob` is workspace-scoped by design — constrain with `path:` when you know the subtree.

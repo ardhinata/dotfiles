@@ -7,7 +7,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **Config**: chezmoi v2.70.4+, `.chezmoi.yaml.tmpl` (age encryption, auto key discovery)
 - **Encryption**: age for files, gpg for age-key backups, Python stdlib scrypt + ChaCha20 + HMAC-BLAKE2b for shellx (no pip/venv)
 - **Shell**: zsh, zgenom (plugin manager), powerlevel10k (prompt)
-- **Agent tooling**: Kilo (rules/skills/managed under `.agents/kilo/`; root `.kilo/` is a local symlink)
+- **Agent tooling**: OpenCode (shared rules and skills under `dot_agents/`, deployed to `~/.agents/`)
 
 ## Commands
 - `chezmoi apply` — apply changes; add `--dry-run` to preview
@@ -32,8 +32,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Validate chezmoi behavior against `.help/chezmoi-docs/` or `.help/QUIRKS.md`
 - Run `bash .help/fetch_current_docs.sh` if `.help/chezmoi-docs/` is missing
 - After a structural refactor that adds, renames, or deletes files, run `git status --short`, stage, and commit the working tree before ending the session
-- **Recreate the vendor symlink if missing on a fresh clone**, e.g. `ln -s .agents/kilo .kilo` — the root-level `.kilo/`, `.claude/`, etc. are untracked symlinks into `.agents/`. If `ls .kilo/` fails, fix the link before reading vendor config.
-- Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the one location OpenCode, Kilo, Codex, Copilot, Cursor, Gemini CLI, Zed, goose, Amp, and Factory Droid all scan natively. Do not copy them into a per-harness directory.
+- Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the one location OpenCode, Codex, Copilot, Cursor, Gemini CLI, Zed, goose, Amp, and Factory Droid all scan natively. Do not copy them into a per-harness directory.
 
 ### ⚠️ Ask first
 - Adding new encryption keys (triggers `chezmoi re-encrypt` across all files)
@@ -45,18 +44,16 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Commit plaintext secrets, keys, tokens, or credentials
 - Encrypt a file without running `chezmoi re-encrypt` afterwards
 - Modify `.encryption_keys/` without understanding the re-encrypt workflow
-- Commit the `.kilo` (or any vendor) symlink — it is gitignored; only `.agents/<vendor>/` content is tracked
 - Put a harness's own config in `.agents/<vendor>/` expecting another harness to read it — only `.agents/skills/` is a shared discovery location
 
 ## Pointers
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
-- **Subagent fleet canonical design** (haru/natsu/aki/fuyu/shiki): `docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md` (frequently referenced from agent bodies, skill references, the revaluation workflow, and the trigger rule)
+- **Subagent fleet case study** (haru/natsu/aki/fuyu/shiki): `docs/agent-case-studies.md` (the fleet itself was retired with Kilo on 2026-10-24; the reusable lessons live here)
 - **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`
 - **Project rules**: `.agents/rules/chezmoi-source-project.md` (loaded by every harness through its own `instructions` glob)
 - **Agent-context conventions (AGENTS.md, SKILL.md)**: `.agents/skills/agent-context/SKILL.md`
 - **Knowledge cache convention + required `README.md` index**: `.agents/docs/cache/README.md` (full spec: `dot_agents/skills/project-context/references/knowledge-cache.md`)
 - **Canonical on-disk project layout** (`.agents/`, `.tmp/` subroles, knowledge cache, vendor unification): `dot_agents/skills/project-layout/SKILL.md` (deployed to `~/.agents/skills/project-layout/`)
-- **Shared-context repo protocol** (`.tmp/docs/` mechanism): `dot_config/kilo/exact_skills/shared-context/SKILL.md` (deployed to `~/.config/kilo/skills/shared-context/`)
 - **Document conventions** (filename, frontmatter, section order): `dot_agents/skills/document-conventions/SKILL.md` (deployed to `~/.agents/skills/document-conventions/`)
 - **Local chezmoi/sprig documentation**: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
-- **Vendor config**: `.agents/kilo/` — root `.kilo/` is a symlink to it
+- **Personal rules** (sudo-ask, ssh-read-allowlist, …): `dot_agents/rules.personal.d/` (deployed to `~/.agents/rules.personal.d/`)

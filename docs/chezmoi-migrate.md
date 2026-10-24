@@ -161,7 +161,7 @@ untouched:
    - `ssh … 'cd && chezmoi apply --dry-run'`
    - `ssh … 'cd && chezmoi apply'`
    - Re-add SSH keys to gpg-agent: `ssh-add` (no flag — gpg-agent ignores
-     `-t`; see `~/.config/kilo/rules.personal.d/ssh-agent-keys-location.md`).
+     `-t`; see `~/.agents/rules.personal.d/ssh-agent-keys-location.md`).
 6. **Restore gpg keyring state** if needed: copy `~/.gnupg/` back from the
    backup if the project source is missing fingerprints or trust entries for
    keys the user wants to keep.
@@ -244,10 +244,9 @@ Post-apply state on the remote:
 | `~/.shell/zsh/` | project `dot_shell/zsh/` prezto/zgenom init stack |
 | `~/.shell/helper/` | project `dot_shell/helper/` shellx + runpriv |
 | `~/.shell/store/` | shellx encrypted store (empty; populated by `shellx import`) |
-| `~/.config/alacritty/`, `~/.config/kilo/`, etc. | project `dot_config/` |
+| `~/.config/alacritty/`, `~/.config/opencode/`, etc. | project `dot_config/` |
 | `~/.tmux.conf`, `~/.tmux/` (tpm plugins) | project `dot_tmux.conf` + cloned tpm |
-| `~/.kilo` | symlink → `.agents/kilo` (after post-fix) |
-| `.chezmoiscripts/` | run on apply; `init-shellx-store.sh` set up `~/.local/share/`, bytecode-compiled shellx, removed legacy `kilo-shared-{save,pull}` wrappers |
+| `.chezmoiscripts/` | run on apply; `init-shellx-store.sh` set up `~/.local/share/`, bytecode-compiled shellx |
 
 ## Risks and open items (post-apply)
 

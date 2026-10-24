@@ -24,6 +24,6 @@ zstyle ':prezto:module:gpg' loaded 'yes'
 # here makes both interactive zsh and the persistent bash-tool session
 # (which runs in this same zsh instance) behave like bash for glob defaults.
 # This does NOT touch syntax (`[[ ]]`, process substitution, arrays) or
-# builtins — see ~/.config/kilo/rules.personal.d/zsh-emulate-fallback.md
+# builtins — see ~/.agents/rules.personal.d/zsh-emulate-fallback.md
 # for the per-command `emulate -LR sh` escape when those diverge.
 unsetopt NOMATCH

@@ -2,16 +2,20 @@
 title: Subagent Fleet — Creative-Conservative Design (canonical)
 date: 2026-08-17
 last-updated: 2026-09-01
-status: canonical
+status: retired
 moved_from: .tmp/docs/plans/2026-08-17-subagent-creative-conservative.md
 related:
   - docs/subagent-fleet/README.md
-  - .tmp/docs/plans/2026-08-30-subagent-max-turn-limit.md
-  - .agents/skills/subagent-fleet/SKILL.md
+  - docs/agent-case-studies.md
   - ~/.agents/skills/openrouter-api/SKILL.md
 ---
 
 # Subagent fleet for research + verification
+
+> **Retired 2026-10-24.** The fleet was dismantled with Kilo. This document
+> is a historical design record. The transferable lessons live in
+> [`../agent-case-studies.md`](../agent-case-studies.md). File paths quoted
+> below refer to the pre-teardown tree and are stale.
 
 > **Status:** draft — §4 model picks LOCKED 2026-08-25 (4 survivors, 4 distinct
 > families). Remaining open: §3.1-3.4 role refinements, §5.1 random selection,

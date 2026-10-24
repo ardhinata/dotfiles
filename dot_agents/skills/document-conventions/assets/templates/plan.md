@@ -1,11 +1,8 @@
-# Plan Template
+# Persistent Plan Template
 
-Copy to `.tmp/docs/plans/YYYY-MM-DD-<task-slug>.md`. Per the planning
-rule (`~/.agents/rules/plans.md`). **Pre-planning duplicate scan
-is mandatory** — `kilo-shared pull origin main` plus a local `ls`.
-After each checkpoint, run
-`kilo-shared save "checkpoint: <one-line>"`. See the
-`shared-context` skill.
+Copy to `docs/plans/YYYY-MM-DD-<task-slug>.md` in the project repo
+(or to a user-specified path). Persistent plans live in the project repo
+and are committed with it. Update the file in place at every checkpoint.
 
 ```markdown
 ---
@@ -56,8 +53,8 @@ last-updated: YYYY-MM-DD
 
 ## Deferred notes
 
-<Per the proactive-note-capture rule: when capture is blocked, list
-findings here with enough context to act later.>
+<Findings that could not be captured yet. One line each, with enough
+context to act later.>
 
 ## Current status
 
@@ -67,11 +64,10 @@ findings here with enough context to act later.>
 **Length:** < 300 lines target; 500 hard ceiling. Split into phases
 if longer.
 
-**Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. No
-collisions — pre-create scan mandated by `~/.agents/rules/plans.md`.
+**Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. Scan the
+target directory before writing to avoid a same-day slug collision.
 
 **Update cadence:** at every checkpoint / milestone. Don't let the file
 drift from reality.
 
-**Verification:** manual review against [`../checklists.md`](../checklists.md)
-and `~/.agents/rules/plans.md`.
+**Verification:** manual review against [`../checklists.md`](../checklists.md).
