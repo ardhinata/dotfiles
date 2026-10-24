@@ -18,8 +18,8 @@ Short form for the common cases. Load the skill for the full matrix when the typ
 |---|---|---|
 | A verified, reusable fact | knowledge-cache entry | `.agents/docs/cache/<topic>/<date>-<slug>.md` |
 | A multi-step task in progress | persistent plan | `docs/plans/<date>-<task-slug>.md` |
-| An architecture / tooling decision with rationale | ADR | `docs/decisions/NNNN-<slug>.md` |
-| Repo-wide convention, agent guidance, behaviour | rule | `dot_agents/rules/<slug>.md` (shared) or `dot_agents/rules.personal.d/<slug>.md` (personal) |
+| An architecture / tooling decision with rationale | ADR | `docs/adr/NNNN-<slug>.md` |
+| Repo-wide convention, agent guidance, behaviour | rule | `~/.agents/rules/<slug>.md` (shared) or `~/.agents/rules.personal.d/<slug>.md` (personal) |
 | Project knowledge for agents | AGENTS.md / SKILL.md | `AGENTS.md`, `.agents/skills/<name>/SKILL.md` |
 
 ## Boundary with neighbouring skills

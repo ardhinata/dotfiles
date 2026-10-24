@@ -48,7 +48,7 @@ Conventions:
 - **Drift class**: pagination (Bug #5). Use `?limit=N`, not `per_page` or
   `page`. See testpoints 18, 21.
 
-→ testpoint: [01-models](../testpoints/01-models/), [18-limit-pagination](../testpoints/18-limit-pagination/), [21-models-page-query](../testpoints/21-models-page-query/)
+→ testpoint: [01-models](testpoints/01-models/), [18-limit-pagination](testpoints/18-limit-pagination/), [21-models-page-query](testpoints/21-models-page-query/)
 
 ---
 
@@ -65,7 +65,7 @@ Conventions:
   ```
 - **Drift class**: none observed.
 
-→ testpoint: [02-models-count](../testpoints/02-models-count/)
+→ testpoint: [02-models-count](testpoints/02-models-count/)
 
 ---
 
@@ -85,7 +85,7 @@ Conventions:
   ```
 - **Drift class**: none observed.
 
-→ testpoint: [03-models-user](../testpoints/03-models-user/)
+→ testpoint: [03-models-user](testpoints/03-models-user/)
 
 ---
 
@@ -105,7 +105,7 @@ Conventions:
   ```
 - **Drift class**: none observed.
 
-→ testpoint: [04-providers](../testpoints/04-providers/)
+→ testpoint: [04-providers](testpoints/04-providers/)
 
 ---
 
@@ -129,7 +129,7 @@ Conventions:
   ```
 - **Drift class**: GET-only (Bug #6). No `/endpoints` sibling (Bug #4).
 
-→ testpoint: [05-endpoints-zdr](../testpoints/05-endpoints-zdr/)
+→ testpoint: [05-endpoints-zdr](testpoints/05-endpoints-zdr/)
 
 ---
 
@@ -149,7 +149,7 @@ Conventions:
 - **Drift class**: encoding (Bug #1). The slash between `{author}` and
   `{slug}` must be **unencoded**. Encoding it as `%2F` returns 404.
 
-→ testpoints: [12-model-encoded](../testpoints/12-model-encoded/), [13-model-unencoded](../testpoints/13-model-unencoded/), [16-models-by-id-enc](../testpoints/16-models-by-id-enc/), [17-models-by-id-unenc](../testpoints/17-models-by-id-unenc/)
+→ testpoints: [12-model-encoded](testpoints/12-model-encoded/), [13-model-unencoded](testpoints/13-model-unencoded/), [16-models-by-id-enc](testpoints/16-models-by-id-enc/), [17-models-by-id-unenc](testpoints/17-models-by-id-unenc/)
 
 ---
 
@@ -173,7 +173,7 @@ Conventions:
   ```
 - **Drift class**: encoding (Bug #2). Same direction as Bug #1.
 
-→ testpoints: [14-endp-encoded](../testpoints/14-endp-encoded/), [15-endp-unencoded](../testpoints/15-endp-unencoded/)
+→ testpoints: [14-endp-encoded](testpoints/14-endp-encoded/), [15-endp-unencoded](testpoints/15-endp-unencoded/)
 
 ---
 
@@ -201,7 +201,7 @@ Conventions:
 - **Drift class**: none on path; field-shape variants noted (see Deferred
   Notes in the plan).
 
-→ testpoints: [06-benchmarks](../testpoints/06-benchmarks/), [19-benchmarks-AA-query](../testpoints/19-benchmarks-AA-query/), [20-benchmarks-coding-query](../testpoints/20-benchmarks-coding-query/)
+→ testpoints: [06-benchmarks](testpoints/06-benchmarks/), [19-benchmarks-AA-query](testpoints/19-benchmarks-AA-query/), [20-benchmarks-coding-query](testpoints/20-benchmarks-coding-query/)
 
 ---
 
@@ -221,7 +221,7 @@ Conventions:
   ```
 - **Drift class**: none observed.
 
-→ testpoint: [07-classifications](../testpoints/07-classifications/)
+→ testpoint: [07-classifications](testpoints/07-classifications/)
 
 ---
 
@@ -241,7 +241,7 @@ Conventions:
   ```
 - **Drift class**: none observed.
 
-→ testpoints: [08-datasets-app](../testpoints/08-datasets-app/), [09-datasets-daily](../testpoints/09-datasets-daily/), [10-datasets-cost](../testpoints/10-datasets-cost/)
+→ testpoints: [08-datasets-app](testpoints/08-datasets-app/), [09-datasets-daily](testpoints/09-datasets-daily/), [10-datasets-cost](testpoints/10-datasets-cost/)
 
 ---
 
@@ -275,8 +275,8 @@ Conventions:
   expected, not a failure — call this out in user-facing answers rather
   than implying the CLI key can list workspaces.
 
-→ testpoints: [11-workspaces](../testpoints/11-workspaces/),
-[27-workspaces-mgmt](../testpoints/27-workspaces-mgmt/)
+→ testpoints: [11-workspaces](testpoints/11-workspaces/),
+[27-workspaces-mgmt](testpoints/27-workspaces-mgmt/)
 
 ---
 
@@ -317,8 +317,8 @@ Conventions:
 - **Drift class**: required-param (Zod 400 without `?id=`). Don't
   treat the 400 as a normal response — pass `?id=<gen-...>`.
 
-→ testpoints: [24-generation-no-id](../testpoints/24-generation-no-id/),
-[25-generation-unknown](../testpoints/25-generation-unknown/)
+→ testpoints: [24-generation-no-id](testpoints/24-generation-no-id/),
+[25-generation-unknown](testpoints/25-generation-unknown/)
 
 ---
 
@@ -340,7 +340,7 @@ Conventions:
   ```
 - **Drift class**: same required-param caveat as `/generation`.
 
-→ testpoint: [26-generation-content-no-id](../testpoints/26-generation-content-no-id/)
+→ testpoint: [26-generation-content-no-id](testpoints/26-generation-content-no-id/)
 
 ---
 
@@ -364,7 +364,7 @@ Conventions:
   error message literally names "management keys" so the agent can
   pivot without guessing.
 
-→ testpoint: [23-activity](../testpoints/23-activity/)
+→ testpoint: [23-activity](testpoints/23-activity/)
 
 ---
 
@@ -389,7 +389,7 @@ Conventions:
 - **Drift class**: auth scope. Same caveat as `/workspaces`. The
   management key cannot be used for inference — it is admin-only.
 
-→ testpoint: [22-keys](../testpoints/22-keys/)
+→ testpoint: [22-keys](testpoints/22-keys/)
 
 ---
 

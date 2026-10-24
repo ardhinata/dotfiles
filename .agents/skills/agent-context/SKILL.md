@@ -20,7 +20,7 @@ Load when creating, reviewing, or improving `AGENTS.md` or `SKILL.md` files. Cov
 
 ### Structure
 
-Use the Kilo template at `~/.agents/skills/project-context/assets/templates/agents.md` as starting material. Fill every section from verified project facts, never imagination:
+Use the template at `~/.agents/skills/project-context/assets/templates/agents.md` as starting material. Fill every section from verified project facts, never imagination:
 
 | Section | Purpose |
 |---|---|
@@ -34,7 +34,7 @@ Use the Kilo template at `~/.agents/skills/project-context/assets/templates/agen
 
 ### Key rules
 
-- **40–60 lines max.** Deeper subsystem docs belong in `.agents/skills/`.
+- **40–80 lines target, 150 hard ceiling.** Deeper subsystem docs belong in `.agents/skills/`.
 - **Every line must pass the question:** "Would an agent get this wrong without this instruction?" If no, cut it.
 - **Executable truth over prose.** Trust `package.json` scripts over README paragraphs.
 - **No architecture overviews or file trees.** Agents navigate the tree themselves.

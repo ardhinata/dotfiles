@@ -144,8 +144,8 @@ GET /models/anthropic%2Fclaude-sonnet-4.5          # also 404 — plural doesn't
 ```
 
 Verified by 6 testpoints
-([12](../references/testpoints/12-model-encoded/)–
-[17](../references/testpoints/17-models-by-id-unenc/)).
+([12](references/testpoints/12-model-encoded/)–
+[17](references/testpoints/17-models-by-id-unenc/)).
 
 ## Pagination
 
@@ -154,8 +154,8 @@ those are silently ignored. `?limit=10` returns ~13 KB; default
 (omitted) returns ~690 KB (419 models).
 
 Verified by
-[18-limit-pagination](../references/testpoints/18-limit-pagination/) and
-[21-models-page-query](../references/testpoints/21-models-page-query/).
+[18-limit-pagination](references/testpoints/18-limit-pagination/) and
+[21-models-page-query](references/testpoints/21-models-page-query/).
 
 ## Picking a model id
 

@@ -163,13 +163,13 @@ for (const key in searchParams) {
 }
 ```
 
-This is the opposite of what most users expect. A key in `DEFAULT_PARAMETERS` is **forced**, not defaulted. If `kilo.jsonc` has `"search_depth": "basic"` in `DEFAULT_PARAMETERS`, **every** `tavily_search` call uses `basic` — even when the agent passes `search_depth: "advanced"` explicitly.
+This is the opposite of what most users expect. A key in `DEFAULT_PARAMETERS` is **forced**, not defaulted. If the client config has `"search_depth": "basic"` in `DEFAULT_PARAMETERS`, **every** `tavily_search` call uses `basic` — even when the agent passes `search_depth: "advanced"` explicitly.
 
 **Verified empirically (2026-08-17):** on the remote MCP (`mcp.tavily.com/mcp` v3.4.5), with `DEFAULT_PARAMETERS: {"search_depth": "advanced"}` and per-call `search_depth: "basic"`, response latency was 1.52s — clearly basic, not advanced (~3.3s). The remote MCP honors the same merge order as the local source.
 
 **Rule of thumb:** if you want a per-call override to work, **don't** put that key in `DEFAULT_PARAMETERS`. The header is a "force" mechanism, not a "default that can be overridden".
 
-**Recommendation for `kilo.jsonc`:** keep `DEFAULT_PARAMETERS` minimal. Only set values that are universally desired (e.g., `topic: "general"`). Avoid `search_depth` and `max_results` here — set them in the skill's per-call rule so the agent can override.
+**Recommendation for the client config:** keep `DEFAULT_PARAMETERS` minimal. Only set values that are universally desired (e.g., `topic: "general"`). Avoid `search_depth` and `max_results` here — set them in the skill's per-call rule so the agent can override.
 
 ## Anti-patterns
 

@@ -65,14 +65,14 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 
 | Field | Value |
 |---|---|
-| Path | `~/.agents/skills/<slug>/SKILL.md` (or project-local `.agents/<vendor>/skills/<slug>/`, `.<vendor>/skills/<slug>/`) |
+| Path | `~/.agents/skills/<slug>/SKILL.md` (or project-local `.agents/skills/<slug>/`, `.<vendor>/skills/<slug>/`) |
 | Frontmatter | **Required.** `name` (≤ 64 chars, lowercase letters/digits/hyphens, no `--`, no leading/trailing hyphen, matches parent dir), `description` (≤ 1024 chars, non-empty, third person, names *what* and *when*). Optional: `license`, `compatibility` (≤ 500 chars), `metadata`, `allowed-tools` (experimental). |
 | Required sections | H1 (the skill's name or one-line summary), body content per the agentskills.io "Recommended sections" — step-by-step instructions, examples, edge cases |
 | Optional sections | `## When to load`, `## Quick start`, `## Workflow`, `## Anti-patterns`, `## References`, `## Captured …` |
 | Section order | Loose but progressive: orient → quick start → details → edge cases → anti-patterns → references |
 | Length budget | Target < 300 lines; hard ceiling 500 lines. Beyond this, split into `references/*.md` |
 | Validation | `skills-ref validate ./<skill-dir>` (if `skills-ref` on PATH). Manual review: frontmatter fields present, name matches dir, description in third person with key terms |
-| Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); the project's `agent-context` skill (`.agents/<vendor>/skills/agent-context/SKILL.md`, project-vendor only — not installed globally). |
+| Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); the project's `agent-context` skill (`.agents/skills/agent-context/SKILL.md`, project-local — not installed globally). |
 
 ---
 

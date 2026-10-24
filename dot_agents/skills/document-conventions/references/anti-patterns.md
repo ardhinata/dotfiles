@@ -45,8 +45,9 @@ checklist before publishing any doc.
   the old file or move it to an archive folder; do not version in the
   filename.
 - **Legacy paths.** Writing to `.tmp/notes/`, `.tmp/plans/`, or
-  `.tmp/user_cache/`. Those dirs are not mounted; files written there
-  vanish on worktree destroy.
+  `.tmp/user_cache/`. Those dirs no longer exist; the only writable
+  transient dir is `.tmp/scratch/`, which is gitignored and never
+  committed.
 
 ## Frontmatter anti-patterns
 
@@ -69,7 +70,7 @@ checklist before publishing any doc.
 
 - **Speculation framed as fact.** "This must be the case because…"
   without evidence is a finding, not a fact. Mark it as uncertain
-  (see `proactive-note-capture.md`).
+  (see the `knowledge-cache` authoring reference).
 - **Duplication.** Two files describing the same thing. Either merge
   or link.
 - **Stale content.** A "current state" doc that hasn't been touched

@@ -67,4 +67,4 @@ Custom primary-agent modes for Kilo CLI and the VS Code extension. Distinct from
 ## Related
 
 - `.help/` — legacy project knowledge cache (chezmoi + sprig docs, quirks, doc index). See `.help/README.md`.
-- `~/.config/kilo/rules/web-tools-priority.md` — global web-tool selection and cache-use policy.
+- `~/.agents/rules/web-verification.md` — global web-tool selection and cache-use policy.

@@ -6,7 +6,7 @@ These rules govern **how to write and use** knowledge-cache entries. For **where
 
 - Every cache directory must contain a `README.md` index.
 - Before external research, read `<cache-dir>/README.md` to locate relevant entries and check their dates.
-- If the cache directory or index is missing, create the directory and `README.md` before writing the first reusable entry, unless project rules prohibit the change.
+- If the cache directory or index is missing, **create** the directory and `README.md` before writing the first reusable entry, unless project rules prohibit the change. This is a precondition, not a question to ask first.
 - List entries with relative links, topic, source, capture date, and a freshness or re-verification note. Keep the index concise; do not duplicate entry contents.
 - Update `README.md` whenever entries are added, changed, renamed, or removed.
 
@@ -23,4 +23,4 @@ If the cache is transient (default), add the cache directory to `.gitignore`. If
 
 ## Reference
 
-Authoritative tool-selection and cache-use guidance: `~/.config/<vendor>/rules/web-tools-priority.md` (loaded globally on every session). Canonical placement and naming: the `project-layout` skill.
+Authoritative tool-selection and cache-use guidance: `~/.agents/rules/web-verification.md` (loaded globally on every session). Canonical placement and naming: the `project-layout` skill.

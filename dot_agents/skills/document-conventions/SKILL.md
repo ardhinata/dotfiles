@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
+description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions
@@ -41,21 +41,21 @@ industry practice:
   [structure-and-length.md](references/structure-and-length.md))
 - The frontmatter matrix — which types require, forbid, or tolerate it
 - The "rule file carries no frontmatter" rule. This is a project decision.
-  Cursor's `.mdc` convention requires frontmatter, but neither the Kilo nor
-  the OpenCode rule loader parses it.
+  Cursor's `.mdc` convention requires frontmatter, but no rule loader
+  parses it.
 - The date-prefixed filename convention for notes and plans
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/opencode/` in OpenCode.
 Skills live in the shared home `~/.agents/skills/`, and harness-neutral rules
 live in the shared home `~/.agents/rules/` — both are read by every harness.
-Use `~/.config/<vendor>/rules/` only for rules that name a harness-specific
+Use `~/.agents/rules/` only for rules that name a harness-specific
 tool or feature.
 
 ## When to load
 
-- Picking the right doc type for a new task ("should this be a note, a plan,
-  an ADR, or a knowledge-cache entry?"). Start with the
+- Picking the right doc type for a new task ("should this be a plan, an ADR,
+  or a knowledge-cache entry?"). Start with the
   [decision matrix](references/decision-matrix.md).
 - Starting a new document. Use the
   [by-doc-type](references/by-doc-type.md) table for the type's required

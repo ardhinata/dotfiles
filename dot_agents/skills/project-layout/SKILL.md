@@ -1,6 +1,6 @@
 ---
 name: project-layout
-description: Canonical on-disk directory structure for agentic-driven projects. Use when laying out a new project, diagnosing a missing or wrong path under `.agents/`, `.agents/docs/cache/`, `docs/`, or `.tmp/scratch/`, when unifying a vendor directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) under `.agents/<vendor>/` with a root symlink, when checking the knowledge-cache layout (date-tag prefix, required README index, one-topic-per-file), or when migrating legacy paths (`.tmp/doc-cache/`, `.help/`, `docs/cache/`). Also load when a project's structure deviates from the canonical tree and the deviation needs justification.
+description: Canonical on-disk directory structure for agentic-driven projects. Use when laying out a new project, diagnosing a missing or wrong path under `.agents/`, `.agents/docs/cache/`, `docs/`, or `.tmp/scratch/`, when unifying a vendor directory (`.cursor/`, `.claude/`, `.opencode/`, etc.) under `.agents/<vendor>/` with a root symlink, when checking the knowledge-cache layout (date-tag prefix, required README index, one-topic-per-file), or when migrating legacy paths (`.tmp/doc-cache/`, `.help/`, `docs/cache/`). Also load when a project's structure deviates from the canonical tree and the deviation needs justification.
 ---
 
 # Project Layout
@@ -50,7 +50,7 @@ README.md                          ← required pointer target (see project-cont
 docs/                              ← human-facing, hand-written (Standard Readme / Diátaxis)
 .agents/                           ← unified agent root
   skills/                          ← agent skills, shared by every harness
-    <name>/SKILL.md                ← discovered natively by OpenCode, Kilo, Codex, Copilot,
+    <name>/SKILL.md                ← discovered natively by OpenCode, Codex, Copilot,
                                      Cursor, Gemini CLI, Zed, goose, Amp, Factory Droid
   rules/                           ← shared rule files (house convention — not a discovery
                                      location; each harness loads them through its own
@@ -93,7 +93,7 @@ Two different jobs, two different mechanisms. Do not confuse them.
 
 **Shared skills** go in `.agents/skills/`. Every harness finds them there
 natively — no symlink, no copy, no config field. This is the only `.agents/`
-subdirectory that a shipped tool scans (OpenCode, Kilo, Codex, Copilot, Cursor,
+subdirectory that a shipped tool scans (OpenCode, Codex, Copilot, Cursor,
 Gemini CLI, Zed, goose, Amp, Factory Droid). Claude Code is the exception: it
 reads nothing under `.agents/` and needs `.claude/skills/`, so give it one
 symlink to the same tree.
@@ -101,7 +101,7 @@ symlink to the same tree.
 **Harness-specific assets** — rule files, custom commands, hooks, MCP
 fragments — go in `.agents/<vendor>/` and are reached through the harness's
 own root directory. When the project root has a vendor directory
-(`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
+(`.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
 `.windsurf/`, `.continue/`, etc.):
 
 1. Move the directory's contents to `.agents/<vendor>/`.
@@ -152,6 +152,6 @@ When the deviation is structural (a path that contradicts the tree), surface it 
 - `~/.agents/skills/document-conventions/SKILL.md` — per-doc-type filename, frontmatter, section order.
 - `~/.agents/skills/project-context/references/knowledge-cache.md` — knowledge-cache authoring rules (date tag, source, freshness note).
 - `~/.agents/skills/project-context/assets/templates/agents.md` — AGENTS.md template.
-- `~/.config/<vendor>/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
+- `~/.agents/rules/project-context.md` — router rule that loads this skill on the trigger surface (cache check, missing `AGENTS.md`, vendor dir at root).
 - `.agents/docs/cache/README.md` — required cache index (per topic as well).
 - `~/.agents/skills/asd-ste100/SKILL.md` — prose-clarity pass (active voice, one idea per sentence, plain words). Load when this skill produces or revises long orientation prose (this `SKILL.md` body, the canonical-layout writeups, the deviation-justification summaries). Apply it after the structural changes settle, before the doc is committed.

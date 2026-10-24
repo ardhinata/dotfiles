@@ -165,8 +165,7 @@ Every file should have **exactly one H1**, written in sentence case.
 | Skill SKILL.md | Title Case, matches `name` field (`# Document Conventions`) |
 | AGENTS.md | Sentence case, project name (`# My Project`) |
 | README.md | Sentence case, project or topic name |
-| Rule file | Sentence case, rule summary (`# Proactive Note Capture`) |
-| Note | Sentence case, finding summary (`# Shellx slug derivation`) |
+| Rule file | Sentence case, rule summary (`# Web verification policy`) |
 | Plan | Sentence case, task summary (`# Document conventions skill — research and draft`) |
 | Postmortem | Sentence case, incident summary (`# 2026-08-10 GH Actions runbook flake`) |
 | ADR | Title Case, the solved problem (`# Use Plain JUnit5 for advanced test assertions`) |

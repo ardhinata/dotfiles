@@ -17,10 +17,11 @@ verify important claims, and cache reusable findings.
 Apply `local-first.md` before any external research, then read the project
 knowledge-cache `README.md` index. The standard cache path is
 `.agents/docs/cache/`; legacy `.tmp/doc-cache/` and `.help/` are acceptable
-fallbacks. If the cache directory or index is missing, create the index as
+fallbacks. **If the cache directory or index is missing, create it** as
 described by `~/.agents/skills/project-context/references/knowledge-cache.md`
-before writing fetched facts, unless project rules prohibit writes. `.tmp/` is
-for transient scratchpads only — date-tagged web-learned facts go in
+— the index is a precondition for writing the first entry, not something to
+ask about first. Do not create it when project rules prohibit writes. `.tmp/`
+is for transient scratchpads only — date-tagged web-learned facts go in
 `.agents/docs/cache/`, not `.tmp/`.
 
 ## Escalation and verification
@@ -35,6 +36,15 @@ for transient scratchpads only — date-tagged web-learned facts go in
   pages, fan out to a subagent research role if the harness provides one.
 - CLI tool or framework API released less than 6 months ago? Always re-verify
   with a fresh external lookup, even when the cache has an entry.
+
+## Per-tool parameters
+
+A search or extract MCP often has per-tool defaults that the remote server
+does **not** apply for you. Before the first call to a given `tavily_*`,
+`firecrawl_*`, or `context7_*` tool, load the matching skill for the
+defaults it carries: `~/.agents/skills/tavily-defaults/SKILL.md` for the
+Tavily tools. Passing the defaults explicitly is cheaper than discovering
+the cost difference after the call.
 
 ## Knowledge Staleness
 

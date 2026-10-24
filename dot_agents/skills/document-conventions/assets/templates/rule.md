@@ -4,8 +4,8 @@ Copy to `~/.agents/rules/<slug>.md` for a rule every harness must follow, or
 `~/.config/<vendor>/rules/<slug>.md` for a rule that names a harness-specific
 tool. **No frontmatter** — this is
 a project-wide decision (see [`references/frontmatter.md`](../../references/frontmatter.md)).
-Neither the Kilo nor the OpenCode rule loader parses YAML, so any
-frontmatter here is dead weight that drifts.
+No rule loader parses YAML, so any frontmatter here is dead weight that
+drifts.
 
 ```markdown
 # <Rule summary in sentence case>

@@ -32,7 +32,7 @@ Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found a mean of 14
 
 ## Do not commit vendor symlinks
 
-After unifying `.kilo/` → `.agents/<vendor>/` (or any vendor), the root-level symlink must be in `.gitignore` so it is recreated locally on each clone — not committed as a checked-in symlink.
+After unifying `.cursor/` → `.agents/<vendor>/` (or any vendor), the root-level symlink must be in `.gitignore` so it is recreated locally on each clone — not committed as a checked-in symlink.
 
 ## Do not skip the `✅ Always` vendor-symlink rule
 

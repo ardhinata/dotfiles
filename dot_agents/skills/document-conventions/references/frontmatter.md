@@ -129,18 +129,10 @@ tags: [changelog, semver]
 - `check-<date>` — re-verify by this date (e.g. `check-2027-01`)
 - `volatile` — re-verify on every use (e.g. a vendor's pricing page)
 
-## Optional: note / plan frontmatter
+## Optional: plan frontmatter
 
-Notes and plans are durable via the shared context repo, so frontmatter
-is optional but useful for title-page scanning:
-
-```yaml
----
-task: shellx-export-bug
-status: open                # open | captured | promoted
-captured: 2026-07-27
----
-```
+Persistent plans live in the project repo, so frontmatter is optional but
+useful for title-page scanning:
 
 ```yaml
 ---

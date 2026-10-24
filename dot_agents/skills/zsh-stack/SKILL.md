@@ -1,6 +1,6 @@
 ---
 name: zsh-stack
-description: zsh configuration stack used in this dotfiles project — zgenom (plugin manager), prezto (zsh config framework + modules), powerlevel10k (prompt). Load before any task that touches dot_zshrc, dot_shell/zsh/, dot_p10k.zsh, the prezto gpg module, zsh startup performance, prompt rendering, completion, or history. Captures the tunables, pitfalls, and project-specific quirks that the agent would otherwise rediscover (or repeat).
+description: zsh configuration stack for this machine — zgenom (plugin manager), prezto (zsh config framework + modules), powerlevel10k (prompt). Load before any task that touches dot_zshrc, dot_shell/zsh/, dot_p10k.zsh, the prezto gpg module, zsh startup performance, prompt rendering, completion, or history. Captures the tunables, pitfalls, and project-specific quirks that the agent would otherwise rediscover (or repeat).
 ---
 
 # zsh-stack Skill
@@ -36,7 +36,14 @@ Three layers, loaded in this order:
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-Authoritative evidence: `.tmp/notes/2026-08-08-zsh-stack-research-{zgenom,prezto,p10k}.md` (cloned source at `/tmp/kilo/zsh-stack-research/`).
+Authoritative evidence: the 2026-08-08 research notes
+`~/Playground/backup/2026-10-24-kilo-teardown/shared-context-worktree/notes/2026-08-08-zsh-stack-research-{zgenom,prezto,p10k}.md`
+(archived when the shared-context repo was retired).
+
+**Scope.** This skill documents the **machine's** zsh stack. The deployed
+artifacts (`~/.zshrc`, `~/.p10k.zsh`, `~/.shell/zgenom`) are machine-global;
+the `dot_*` paths below are where the source lives in this dotfiles repo. A
+task in another repo that touches the user's zsh still needs this skill.
 
 ---
 
@@ -239,7 +246,7 @@ Repo: `romkatv/powerlevel10k` (commit `9253fb1` cloned 2026-08-08).
 - `dot_zshrc:1-7` instant-prompt block is the canonical README verbatim; the `[[ -r ... ]]` guard skips sourcing when the cache is absent (harmless before first run).
 - The instant-prompt preamble **must stay at the top** — anything before it that prints to stdout will be lost; anything after it that needs stdin must be guarded.
 - `~/.p10k.zsh` is `dot_p10k.zsh` (chezmoi); sourced dead-last (`dot_zshrc:80`) **after** everything else, including `12-gpg.zsh`, so `GPG_TTY` exports inside it are seen by the prompt renderer.
-- See `pinentry.vscode_tunnel_no_gui` constraint (project memory) — p10k segments referencing remote/gpg info degrade gracefully but the project's gpg lifecycle is owned by `12-gpg.zsh`, not by p10k.
+- See the `pinentry.vscode_tunnel_no_gui` constraint — inside a VSCode tunnel (or any session with no locally visible GUI window) pinentry-qt and other GUI pinentry frontends are unusable; prefer pinentry-curses or pinentry-tty there. p10k segments referencing remote/gpg info degrade gracefully but the machine's gpg lifecycle is owned by `12-gpg.zsh`, not by p10k.
 
 ---
 
@@ -250,7 +257,7 @@ Repo: `romkatv/powerlevel10k` (commit `9253fb1` cloned 2026-08-08).
 3. **Compinit snapshots `$fpath`** at module load — user completions must be in `$fpath` before `completion` module loads (`00-before-zgenom.zsh:11`).
 4. **`pmodload` order matters.** `environment` first (for `INTERACTIVE_COMMENTS`), then core utilities, then `completion` (so compinit sees all completions), then `syntax-highlighting` (must be sourced before HSS), then `history-substring-search`, then `prompt` last (so all setup is done before the theme installs). The order in `dot_zshrc:49-60` is intentional — do not "tidy" it.
 5. **The `loaded` zstyle gate** is the *only* prezto-blessed way to disable a module. Don't just drop gpg from the module list; the project's `00-before-zgenom.zsh:17` zstyle is what actually disables it.
-6. **Anything that needs `tty`/`$TTY`/`systemctl --user import-environment` must be re-run just-in-time** in a preexec hook, not at `.zshrc` source time — the controlling-tty value at source time is stale on alacritty (see `dot_shell/zsh/12-gpg.zsh` and project memory `gpg_agent.ssh_tty_propagation_fix`).
+6. **Anything that needs `tty`/`$TTY`/`systemctl --user import-environment` must be re-run just-in-time** in a preexec hook, not at `.zshrc` source time — the controlling-tty value at source time is stale on alacritty (see `dot_shell/zsh/12-gpg.zsh`). For SSH/GPG signing from a non-default terminal (e.g. a VSCode tunnel), the canonical fix is `Match host * exec "gpg-connect-agent updatestartuptty /bye"` in `dot_ssh/config`, so the gpg-agent's TTY view is refreshed before each SSH invocation.
 7. **p10k's `~/.p10k.zsh` is chezmoi-managed.** Edit via `chezmoi edit ~/dot_p10k.zsh` (after `chezmoi add`) — never `p10k configure`.
 8. **Tunables are set at three different layers** with three different mechanisms:
    - zgenom: env vars `ZGEN_*` set before sourcing `zgenom.zsh`, or function calls after.
@@ -273,11 +280,23 @@ Repo: `romkatv/powerlevel10k` (commit `9253fb1` cloned 2026-08-08).
 | `dot_p10k.zsh` | p10k | User prompt config (~87 KB). Sourced last (`dot_zshrc:80`). **Never run `p10k configure`** — it overwrites. |
 | `dot_shell/zsh/completions/` | completion | Custom `#compdef` functions (e.g. `_runpriv`). fpath-prepended by `00-before-zgenom.zsh`. |
 
-## Memory pointers
+## Related facts
 
-- `gpg_agent.ssh_tty_propagation_fix` — root cause of the gpg/Tty/alacritty dance.
-- `pinentry.switcher.locked_flags` — pinentry backend is owned by `~/.shell/helper/pinentry-wrapper`, not prezto's gpg module.
-- `pinentry.testing_interactive_only` — TTY-related behavior must be tested in a real interactive terminal; non-interactive bash cannot reproduce it.
+- **gpg-agent TTY propagation.** Root cause of the gpg/Tty/alacritty dance.
+  For SSH/GPG signing from a non-default terminal, use
+  `Match host * exec "gpg-connect-agent updatestartuptty /bye"` in
+  `dot_ssh/config` so the gpg-agent's TTY view refreshes before each SSH
+  invocation.
+- **Pinentry backend ownership.** The pinentry backend is owned by
+  `~/.shell/helper/pinentry-wrapper`, not by prezto's gpg module. Flag
+  design was locked 2026-08-05: the default mode keeps pinentry-qt with a
+  shim fallback to `/usr/bin/pinentry` (warning logged); `--path <abs>`
+  writes a custom binary verbatim into `gpg-agent.conf`; `--strict` opts
+  out of the shim fallback.
+- **Pinentry testing is interactive-only.** Tests or scripts that exercise
+  pinentry or gpg-agent TTY behavior must be handed to the user to run in a
+  real interactive terminal — a non-interactive shell cannot reproduce the
+  TTY/curses rendering context needed to validate them.
 
 ## Validation
 

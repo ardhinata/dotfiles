@@ -1,4 +1,4 @@
-When the agent generates a new SSH key on the user's behalf, place it under `~/.ssh/kilo-keys/` — the only `~/.ssh/` subdirectory the agent is allowed to create and inspect.
+When the agent generates a new SSH key on the user's behalf, place it under `~/.ssh/agent-keys/` — the only `~/.ssh/` subdirectory the agent is allowed to create and inspect.
 
 ## SSH agent is gpg-agent
 
@@ -13,10 +13,10 @@ About to create a new SSH keypair (deploy key, work-specific identity, one-off a
 ## Process
 
 1. Confirm the user wants a new key, and that no existing key fits the purpose.
-2. `mkdir -p ~/.ssh/kilo-keys && chmod 700 ~/.ssh/kilo-keys`.
-3. Generate the keypair: `ssh-keygen -t ed25519 -f ~/.ssh/kilo-keys/<service>-YYYY-MM -C "<comment>"` (descriptive filename, year-month tag).
+2. `mkdir -p ~/.ssh/agent-keys && chmod 700 ~/.ssh/agent-keys`.
+3. Generate the keypair: `ssh-keygen -t ed25519 -f ~/.ssh/agent-keys/<service>-YYYY-MM -C "<comment>"` (descriptive filename, year-month tag).
 4. `chmod 600` on the private key, `chmod 644` on the `.pub` sibling.
-5. `ssh-add ~/.ssh/kilo-keys/<name>`, then tell the user the absolute path and fingerprint (`ssh-keygen -lf <path>`).
+5. `ssh-add ~/.ssh/agent-keys/<name>`, then tell the user the absolute path and fingerprint (`ssh-keygen -lf <path>`).
 
 ## Per-key lifetime — `ssh-add -t` is **NOT** honored by gpg-agent
 

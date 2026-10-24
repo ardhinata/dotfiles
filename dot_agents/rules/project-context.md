@@ -8,7 +8,7 @@ Router rule. Triggers load the `project-context` skill **and** the `project-layo
 - **Stuck exploring.** Spent several turns exploring a project and have no `AGENTS.md` / project conventions to anchor on.
 - **New project session.** Session is starting in a project you've never seen and there is no orientation document.
 - **Agent-context maintenance.** User asks to create, update, restructure, split, or modernize `AGENTS.md` or the project's knowledge cache.
-- **Vendor directory at the project root.** A `.kilo/`, `.claude/`, `.cursor/`, etc. directory is found.
+- **Vendor directory at the project root.** A `.claude/`, `.cursor/`, `.opencode/`, etc. directory is found.
 
 ## Load `project-context` alone (no project-layout trigger)
 

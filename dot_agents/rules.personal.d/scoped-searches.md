@@ -23,7 +23,7 @@ When the question is genuinely about a known global location, target that direct
 | Global chezmoi source (your dotfiles) | `~/.local/share/chezmoi/` |
 | gpg-agent config / state | `~/.gnupg/` |
 | SSH config (allowlisted only) | `~/.ssh/config`, `~/.ssh/config.d/` |
-| Shell history for this project | `~/.local/share/zsh/` or specific file |
+| Shell history | `~/.zsh_history` (or `~/.local/share/fish/fish_history`) |
 
 If the question might touch multiple of these, run **one bounded call per dir** rather than one giant one.
 

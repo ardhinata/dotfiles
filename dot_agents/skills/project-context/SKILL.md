@@ -1,15 +1,15 @@
 ---
 name: project-context
-description: Project-level agent guidance and the AGENTS.md lifecycle. Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an AGENTS.md would eliminate, when a vendor-specific directory (`.kilo/`, `.claude/`, `.cursor/`, etc.) is found at the project root, or when integrating agent rules and skills under `.agents/<vendor>/`. Treats `AGENTS.md` as the canonical agent instruction standard — vendor files (CLAUDE.md, .cursorrules, .windsurfrules, GEMINI.md) stay one-line pointers to it, never a second source of truth. For project directory layout, `.tmp/` subroles, vendor path unification, and knowledge-cache placement, load the `project-layout` skill instead.
+description: Project-level agent guidance and the AGENTS.md lifecycle. Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an AGENTS.md would eliminate, when a vendor-specific directory (`.cursor/`, `.claude/`, `.opencode/`, etc.) is found at the project root, or when integrating agent rules and skills under `.agents/<vendor>/`. Treats `AGENTS.md` as the canonical agent instruction standard — vendor files (CLAUDE.md, .cursorrules, .windsurfrules, GEMINI.md) stay one-line pointers to it, never a second source of truth. For project directory layout, `.tmp/` subroles, vendor path unification, and knowledge-cache placement, load the `project-layout` skill instead.
 ---
 
 # Project Context
 
-When starting work in a project, assess its agent-context and documentation state. When the project lacks agent-context, a standardized documentation layout, or a knowledge cache, **suggest** (do not auto-write) creating, fixing, or optimizing it.
+When starting work in a project, assess its agent-context and documentation state. When the project lacks agent-context, a standardized documentation layout, or a knowledge cache, **create** the missing pieces (the knowledge-cache directory and its `README.md` index are preconditions for writing cache entries, not something to ask about first), and suggest — do not auto-write — an `AGENTS.md`, which needs the user's review.
 
 ## Standard directory layout
 
-For the canonical on-disk layout of an agentic-driven project (`AGENTS.md`, `README.md`, `docs/`, `.agents/`, `.agents/docs/cache/`, `.tmp/{notes,plans}/`, vendor unification), **load the `project-layout` skill**. This skill owns the AGENTS.md lifecycle and README↔AGENTS separation; the layout itself is a single source of truth in `project-layout`.
+For the canonical on-disk layout of an agentic-driven project (`AGENTS.md`, `README.md`, `docs/`, `.agents/`, `.agents/docs/cache/`, `.tmp/{scratch,migration}/`, vendor unification), **load the `project-layout` skill**. This skill owns the AGENTS.md lifecycle and README↔AGENTS separation; the layout itself is a single source of truth in `project-layout`.
 
 ## Proactive caching default
 
@@ -62,9 +62,9 @@ Surface a suggestion when any of the following is true:
 - Turn-1 discovery revealed non-obvious conventions an `AGENTS.md` would eliminate
 - Spent >2 turns explaining project-specific patterns
 - User asks to create, fix, or review a `.gitignore`
-- A vendor-specific directory is found at the project root (`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`)
+- A vendor-specific directory is found at the project root (`.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`, `.windsurf/`, `.continue/`)
 
-`AGENTS.md`, the harness's global rules, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should target ~40–80 lines, hard ceiling 150 lines; deeper subsystem knowledge belongs in the harness's skills (on-demand) or in `docs/`. The global rules in `~/.config/<vendor>/rules/` are per-session overhead managed separately and do not compete with this budget.
+`AGENTS.md`, the harness's global rules, and registered `instructions` files load at session start as a shared token budget. Project-level `AGENTS.md` should target ~40–80 lines, hard ceiling 150 lines; deeper subsystem knowledge belongs in the harness's skills (on-demand) or in `docs/`. The global rules in `~/.agents/rules/` and `~/.agents/rules.personal.d/` are per-session overhead managed separately and do not compete with this budget.
 
 The whole point of these files is **hard-earned context an agent would likely miss without help**. Every line should answer: "Would an agent get this wrong without it?" If not, leave it out. Note the cost: repository context files raise inference cost >20% and do not reliably improve task success versus no context — and the effect holds for human-written and LLM-generated files alike (Gloaguen et al., arXiv:2602.11988). So curation — not volume, and not authorship — is what makes an `AGENTS.md` worth keeping.
 
@@ -82,7 +82,7 @@ $ARGUMENTS
 
 Before drafting or editing anything, gather facts from executable sources of truth. Phase 0 applies the priority from the global `local-first.md` rule (which lists the canonical local-source order — do not duplicate that list here) with a tighter lens: it is the priority used specifically to *build* project context, not to answer a question. Add these Phase-0-only sources on top:
 
-- repo-local Kilo config such as `kilo.json` / `kilo.jsonc`
+- repo-local harness config such as `opencode.json` / `opencode.jsonc`
 - `.agents/docs/` for prior cached research and references
 - CI workflows and pre-commit / task runner config (these are executable truth that the AGENTS.md must capture)
 - existing instruction files (read `AGENTS.md` for content; for vendor files like `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` — treat them as pointers, not sources. If one holds guidance that is not in `AGENTS.md`, ask the user whether to migrate it rather than copying it)
@@ -143,10 +143,10 @@ give it one symlink to the same tree.
 **Harness-specific assets** — rule files, custom commands, hooks — go in
 `.agents/<vendor-name>/` and are reached through the harness's own root
 directory. When the project root contains a vendor-specific directory
-(`.kilo/`, `.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
+(`.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
 `.windsurf/`, `.continue/`, etc.):
 
-1. Move its contents to `.agents/<vendor-name>/` (e.g. `.kilo/` → `.agents/kilo/`).
+1. Move its contents to `.agents/<vendor-name>/` (e.g. `.cursor/` → `.agents/cursor/`).
 2. Create a symlink `<vendor-name>/` → `.agents/<vendor-name>/` at the project root so vendor tools keep finding their config.
 3. Add the symlink pattern to `.gitignore` so it is not committed.
 4. Add a `✅ Always` rule to `AGENTS.md` > Boundaries stating: *recreate the symlink if it is missing on a fresh clone* (i.e. `ln -s .agents/<vendor> <vendor>`).
@@ -155,7 +155,7 @@ If the symlink is missing when you arrive, recreate it before reading the vendor
 
 ### Phase 4: Rules and skills integration
 
-Keep harness-specific content in `.agents/<vendor>/` (or `.<vendor>/` if not yet unified), not in `AGENTS.md`. Add a pointer rule for deep docs; ensure the harness config lists `~/.config/<vendor>/rules/*.md` under `instructions`; create skills for reusable domain patterns (custom build pipelines, proprietary protocols, specialized test setups).
+Keep harness-specific content in `.agents/<vendor>/` (or `.<vendor>/` if not yet unified), not in `AGENTS.md`. Add a pointer rule for deep docs; ensure the harness config lists `~/.agents/rules/*.md` and `~/.agents/rules.personal.d/*.md` under `instructions`; create skills for reusable domain patterns (custom build pipelines, proprietary protocols, specialized test setups).
 
 ## AGENTS.md template
 
@@ -165,7 +165,7 @@ Use the **3-tier Boundaries** (`✅ Always` / `⚠️ Ask first` / `🚫 Never`)
 
 ## Knowledge cache
 
-If the project has no knowledge cache, suggest creating one with a `README.md` index and referencing the cache path from `AGENTS.md` → `Pointers`. For canonical placement, subrole, and naming convention see the `project-layout` skill; for authoring rules (date tag, source, freshness note) see `references/knowledge-cache.md`; for the write-trigger see the global rule `~/.config/<vendor>/rules/web-tools-priority.md`.
+If the project has no knowledge cache, create one with a `README.md` index and reference the cache path from `AGENTS.md` → `Pointers`. For canonical placement, subrole, and naming convention see the `project-layout` skill; for authoring rules (date tag, source, freshness note) see `references/knowledge-cache.md`; for the write-trigger see the global rule `~/.agents/rules/web-verification.md`.
 
 ## Writing rules
 
@@ -211,8 +211,8 @@ See [`references/anti-patterns.md`](references/anti-patterns.md).
 
 ## Worked scenario
 
-User opens a project. You find: no `AGENTS.md`, a `package.json` with `next@15`, no `.agents/`, no knowledge cache, and a `.kilo/` directory at the root. After ~2 turns of Phase 0 investigation:
+User opens a project. You find: no `AGENTS.md`, a `package.json` with `next@15`, no `.agents/`, no knowledge cache, and a `.cursor/` directory at the root. After ~2 turns of Phase 0 investigation:
 
-> "No `AGENTS.md` and no knowledge cache (see the `project-layout` skill for the canonical layout). Want me to draft a 40-line `AGENTS.md` from the template (Stack / Commands / Boundaries) — and unify `.kilo/` under `.agents/<vendor>/` with a symlink back?"
+> "No `AGENTS.md` and no knowledge cache (see the `project-layout` skill for the canonical layout). Want me to draft a 40-line `AGENTS.md` from the template (Stack / Commands / Boundaries) — and unify `.cursor/` under `.agents/<vendor>/` with a symlink back?"
 
 Short, references the template, surfaces the `AGENTS.md`, the cache (second eager trigger), and the vendor-unification opportunity (Phase 3 trigger).

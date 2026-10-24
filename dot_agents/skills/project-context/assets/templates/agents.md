@@ -50,6 +50,6 @@
 - **`README.md`** — required. The project's human-facing narrative (problem, audience, getting started). `AGENTS.md` complements but never duplicates the README.
 - Deeper docs: `docs/README.md` index, or `<relative/path/to/ARCHITECTURE.md>`
 - Conventions: `<relative/path/to/CONTRIBUTING.md>`
-- Knowledge cache: see the project's cache index (placement convention in the `project-layout` skill; date-tagged web-learned facts; see `web-tools-priority` rule and `references/knowledge-cache.md`)
+- Knowledge cache: see the project's cache index (placement convention in the `project-layout` skill; date-tagged web-learned facts; see the `web-verification` rule and `references/knowledge-cache.md`)
 - Vendor config: `.agents/<vendor>/` (e.g. `.agents/<vendor>/`) — `<vendor-name>/` at the root is a symlink to it (mechanics in the `project-layout` skill)
 - `.gitignore` workflow: see the project's gitignore reference (template, Toptal API, OS/IDE/framework catalog).

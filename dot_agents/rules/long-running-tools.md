@@ -14,7 +14,6 @@ leaks.
 
 | Harness | Facility |
 |---|---|
-| Kilo | `background_process` `start` |
 | OpenCode | the shell tool's background mode |
 
 ## Fan-out — parallel sessions, worktrees, subagents
@@ -26,5 +25,4 @@ tool.
 
 | Harness | Facility |
 |---|---|
-| Kilo | `agent_manager` (worktrees) and `task` (subagents) |
 | OpenCode | `opencode.worktree_create` and the `subagent` tool |
