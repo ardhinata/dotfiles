@@ -23,7 +23,32 @@
     // configured. spec-kit describes a tool that was removed on 2026-10-24.
     // The deny hides them from the model without deleting the files.
     { "action": "skill", "resource": "tavily-defaults", "effect": "deny" },
-    { "action": "skill", "resource": "spec-kit", "effect": "deny" }
+    { "action": "skill", "resource": "spec-kit", "effect": "deny" },
+
+    // Destructive shell commands. The action token is `shell`, not `bash`. A
+    // `bash` rule validates against the schema and blocks nothing.
+    //
+    // Only `rm` belongs here. cc-safety-net already blocks `git reset
+    // --hard`, `git clean -fd`, `git push --force`, `git push -f`, `rm -rf /`,
+    // and `rm -rf ~`. One owner per command class.
+    //
+    // The patterns are path-anchored on purpose. The shell scanner pulls
+    // words out of quoted strings, so a looser `*rm -*rf*` also denies any
+    // command whose text merely mentions `rm -rf`, such as a commit message
+    // that documents this rule. An absolute path, `~/`, `./`, or `../` after
+    // the flag is what marks a real deletion.
+    //
+    // A bare relative name (`rm -rf build`) is not caught here. It is not
+    // distinguishable from quoted text, so the `destructive-actions.md` rule
+    // covers it.
+    { "action": "shell", "resource": "rm -*rf /*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*rf ~*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*rf ./*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*rf ../*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*fr /*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*fr ~*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*fr ./*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*fr ../*", "effect": "deny" }
   ],
   "snapshots": true,
   "watcher": {
