@@ -14,6 +14,24 @@
     "two_pass": true,
   },
   "dreamer": {
+    // All daily tasks share the 03:00 slot. A missed slot stays due and the
+    // dreamer catches it up on the next session, so one hour means one
+    // background chain per session instead of one chain per hour.
+    "tasks": {
+      "map-memories":         { "schedule": "0 3 * * *" },
+      // Every 2 days. The gate for verify does not self limit, so a daily slot
+      // runs a tool loop every night while the project holds memories.
+      "verify":               { "schedule": "0 3 */2 * *" },
+      "verify-broad":         { "schedule": "0 3 * * 0" },
+      "curate":               { "schedule": "0 3 * * 0" },
+      "classify-memories":    { "schedule": "0 3 * * *" },
+      "compress-cues":        { "schedule": "0 3 * * *" },
+      "retrospective":         { "schedule": "0 3 * * *" },
+      "evaluate-smart-notes": { "schedule": "0 3 * * *" },
+      "review-user-memories": { "schedule": "0 3 * * *" },
+      "promote-primers":      { "schedule": "0 3 * * *" },
+      "refresh-primers":      { "schedule": "0 3 * * *" }
+    },
     "opencode": {
       "model": {
         "model": "openrouter/minimax/minimax-m3.1-flash",
@@ -41,7 +59,7 @@
     },
     "git_commit_indexing": {
       "enabled": true,
-      "since_days": 365,
+      "since_days": 720,
       "max_commits": 2000,
     },
   },
