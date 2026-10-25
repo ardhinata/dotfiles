@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cortexkit/magic-context/master/assets/magic-context.schema.json",
+  "historian": {
+    "opencode": {
+      "model": {
+        "model": "openrouter/minimax/minimax-m3.1-flash",
+        "variant": "low",
+      },
+      "fallback_models": [
+        { "model": "openrouter/openai/gpt-6-luna", "variant": "low" },
+        { "model": "opencode-go/glm-5.3-flash", "variant": "low" },
+      ],
+    },
+    "two_pass": true,
+  },
+  "dreamer": {
+    "opencode": {
+      "model": {
+        "model": "openrouter/minimax/minimax-m3.1-flash",
+        "variant": "high",
+      },
+      "fallback_models": [
+        { "model": "openrouter/openai/gpt-6-luna", "variant": "high" },
+        { "model": "opencode-go/glm-5.3-flash", "variant": "high" },
+      ],
+    },
+  },
+  "language": "en",
+  "prompt_surface": {
+    "default": "full",
+  },
+  "memory": {
+    "enabled": true,
+    "injection_budget_tokens": 4000,
+    "auto_promote": true,
+    "retrieval_count_promotion_threshold": 3,
+    "auto_search": {
+      "enabled": true,
+      "score_threshold": 0.6,
+      "min_prompt_chars": 20,
+    },
+    "git_commit_indexing": {
+      "enabled": true,
+      "since_days": 365,
+      "max_commits": 2000,
+    },
+  },
+  "sqlite": {
+    "cache_size_mb": 128,
+    "mmap_size_mb": 0,
+  },
+  "embedding": {
+    "provider": "openai-compatible",
+    "model": "qwen/qwen3-embedding-8b",
+    "endpoint": "https://openrouter.ai/api/v1",
+    "api_key": "{env:OPENROUTER_API_OPENCODE_INDEX}",
+    "max_input_tokens": 2048,
+  },
+  "caveman_text_compression": {
+    "enabled": true,
+    "min_chars": 500,
+  },
+}
