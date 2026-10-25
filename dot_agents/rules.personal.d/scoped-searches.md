@@ -21,7 +21,7 @@ When the question is genuinely about a known global location, target that direct
 |---|---|
 | Global agent config / rules / skills | `~/.config/opencode/`, `~/.agents/` |
 | Global chezmoi source (your dotfiles) | `~/.local/share/chezmoi/` |
-| gpg-agent config / state | `~/.gnupg/` |
+| gpg-agent config / state | `~/.gnupg/gpg-agent.conf`, `~/.gnupg/gpg.conf` (files, not the directory) |
 | SSH config (allowlisted only) | `~/.ssh/config`, `~/.ssh/config.d/` |
 | Shell history | `~/.zsh_history` (or `~/.local/share/fish/fish_history`) |
 

@@ -18,11 +18,10 @@ leaks.
 
 ## Fan-out — parallel sessions, worktrees, subagents
 
-Use the harness's fan-out facility only when the user explicitly asks to fan
-out work, create worktrees, or start multiple sessions for independent tasks.
-Do **not** use it for ordinary delegated research — that is the plain subagent
-tool.
+Use the fan-out facility when the user asks for parallel work, worktrees, or
+multiple independent sessions. For ordinary delegated research, use the plain
+subagent tool.
 
-| Harness | Facility |
-|---|---|
-| OpenCode | `opencode.worktree_create` and the `subagent` tool |
+| Harness | Worktree facility | Delegated research |
+|---|---|---|
+| OpenCode | `opencode.worktree_create` | `subagent` tool, always allowed |

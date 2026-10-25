@@ -10,6 +10,8 @@ The agent **may read/inspect** only:
 
 - `~/.ssh/config`
 - `~/.ssh/config.d/` (any file inside)
+- `~/.ssh/agent-keys/` — directory listings and `*.pub` files only, never a
+  private key. This carve-out beats the general denial below.
 
 ## Deny (unless the user explicitly opens them for this task)
 

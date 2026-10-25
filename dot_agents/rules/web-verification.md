@@ -20,7 +20,10 @@ knowledge-cache `README.md` index. The standard cache path is
 fallbacks. **If the cache directory or index is missing, create it** as
 described by `~/.agents/skills/project-context/references/knowledge-cache.md`
 — the index is a precondition for writing the first entry, not something to
-ask about first. Do not create it when project rules prohibit writes. `.tmp/`
+ask about first. Do not create it when project rules prohibit writes.
+Write a cache entry only in a repository that already has
+`.agents/docs/cache/`. Otherwise skip the cache and note the gap in your
+reply. `.tmp/`
 is for transient scratchpads only — date-tagged web-learned facts go in
 `.agents/docs/cache/`, not `.tmp/`.
 

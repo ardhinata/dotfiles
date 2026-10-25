@@ -31,7 +31,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Load the `chezmoi` skill before editing any template file
 - Validate chezmoi behavior against `.help/chezmoi-docs/` or `.help/QUIRKS.md`
 - Run `bash .help/fetch_current_docs.sh` if `.help/chezmoi-docs/` is missing
-- After a structural refactor that adds, renames, or deletes files, run `git status --short`, stage, and commit the working tree before ending the session
+- After a refactor that does not change the source directory layout, run `git status --short`, stage, and commit the working tree before ending the session. If the refactor changes the layout, ask first and do not commit.
 - Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the one location OpenCode, Codex, Copilot, Cursor, Gemini CLI, Zed, goose, Amp, and Factory Droid all scan natively. Do not copy them into a per-harness directory.
 - **Add global rules and skills via `dot_agents/`, never via `chezmoi add ~/.agents/…`.** Both source trees target `~/.agents/`, and chezmoi resolves the collision by shadowing — `chezmoi add ~/.agents/rules/x.md` lands in the non-deploying `.agents/` tree, and the file never reaches `$HOME`. Edit `dot_agents/rules/` or `dot_agents/skills/` instead, then `chezmoi apply`.
 
@@ -41,10 +41,10 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Structural changes to the source directory layout
 
 ### 🚫 Never
-- Read or include content from encrypted files (`.age`, `.asc`, `.decrypted`)
+- Read or include content from encrypted files. The patterns are listed in `.agents/rules/chezmoi-source-project.md`
 - Commit plaintext secrets, keys, tokens, or credentials
 - Encrypt a file without running `chezmoi re-encrypt` afterwards
-- Modify `.encryption_keys/` without understanding the re-encrypt workflow
+- Never modify `.encryption_keys/`. Adding a recipient key rewrites every encrypted file, so run `chezmoi re-encrypt` only after the user approves.
 - Put a harness's own config in `.agents/<vendor>/` expecting another harness to read it — only `.agents/skills/` is a shared discovery location
 
 ## Pointers
