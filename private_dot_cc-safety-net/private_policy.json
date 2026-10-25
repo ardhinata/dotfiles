@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "safety": {
+    "level": "standard",
+    "overrides": {}
+  },
+  "workflow": {
+    "worktree_mode": false
+  },
+  "destructive_command_protection": {
+    "enabled": true,
+    "overrides": {
+      "git.checkout-double-dash": "off",
+      "git.checkout-ref-path": "off",
+      "git.checkout-ambiguous": "off",
+      "git.restore-worktree": "off",
+      "git.restore-unstaged": "off",
+      "git.rebase-abort": "off",
+      "git.merge-abort": "off",
+      "rm.recursive-force-outside-cwd": "off",
+      "find.delete": "off"
+    },
+    "allow_paths": []
+  },
+  "secret_protection": {
+    "enabled": true,
+    "overrides": {
+      "secret.basename.env": "off",
+      "secret.pattern.env-variant": "off",
+      "secret.ext.asc": "off",
+      "secret.ext.ovpn": "off",
+      "secret.ext.pem": "off",
+      "secret.ext-pattern.key": "off"
+    },
+    "deny_paths": [],
+    "allow_paths": [
+      "~/.ssh/config",
+      "~/.ssh/config.d/",
+      "~/.ssh/agent-keys"
+    ]
+  },
+  "audit": {
+    "retention_days": 30
+  }
+}
