@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cortexkit/aft/main/assets/aft.schema.json",
+
+  "disabled_tools": ["aft_delete", "aft_move"],
+
+  "indexes": {
+    "trigram": true,
+    "semantic": true,
+    "callgraph": true,
+  },
+
+  // Correct as-is: top-level `bash` is the current form; `experimental.bash.*`
+  // is the legacy spelling still accepted for back-compat. All three flags
+  // default to false, so these are genuinely on.
+  "bash": {
+    "compress": true,
+    "rewrite": true,
+    "background": true,
+    // long_running_reminder_enabled: true,      // already the default
+    // long_running_reminder_interval_ms: 600000, // already the default
+  },
+
+  "github": {
+    "read": true,
+    "write": false,
+  },
+
+  "semantic": {
+    "backend": "openai_compatible",
+    "model": "qwen/qwen3-embedding-8b",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_env": "OPENROUTER_API_OPENCODE_INDEX",
+
+    // --- changed from 3000 (schema default) ---
+    // Measured OpenRouter round-trip for this model: 1.1-2.0 s for a short
+    // query, 1.1-1.6 s for a 1539-token row. A query embed that blows this
+    // deadline does NOT raise — aft_search quietly falls back to the lexical
+    // lane, which reads as "semantic search is just bad."
+    "query_timeout_ms": 8000,
+
+    // Made explicit. "auto" applies the documented recipe for the model
+    // family. qwen3-embedding-8b is in that family, so queries carry the
+    // model-card retrieval instruction and stored rows stay bare. Same
+    // instruction as the magic-context lane.
+    "query_instruction": "auto",
+
+    // --- both OPTIONAL, and both force a full re-embed of every root ---
+    // qwen3-embedding-8b takes 32768-40960 context; omitting this keeps the
+    // MiniLM-era 512-token chunk caps. Raise for finer-grained indexing; pay
+    // in tokens + rebuild.
+    "max_input_tokens": 2048,
+    //
+    // Default 20000 is a local-fastembed memory guard. Remote backends embed
+    // server-side, so this only bites on roots over 20k files.
+    // "max_files": 50000,
+
+    // "timeout_ms": 25000,      // schema default; fine for background builds
+    // "max_batch_size": undefined, // let the pipeline size its own batches
+  },
+}
