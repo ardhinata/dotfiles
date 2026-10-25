@@ -70,6 +70,7 @@ chezmoi init --apply
 │   └── zgenom.yaml             # External source: zgenom (weekly refresh)
 │
 ├── .encrypted_data/            # Age-encrypted secret snippets
+│   ├── ejson_store/            # One shared ejson store, one section per machine
 │   └── env_store/              # Profile-scoped encrypted env-var exports
 │
 ├── .encryption_keys/           # Age encryption keys
@@ -173,6 +174,38 @@ Per-host profiles control which environment-specific secrets deploy where.
 
 3. Tokens are decrypted and sourced at shell startup.
 
+### Per-machine secret variables
+
+The `shellx` store is process-scoped: it injects a secret only into the
+process that asks for it. Some secrets must be present in every shell
+instead. Those live in an ejson store at
+`.encrypted_data/ejson_store/environment.json`, with one section per
+machine.
+
+```json
+{
+  "_public_key": "<hex>",
+  "_metadata": {},
+  "shiraki-yuki": {
+    "OPENROUTER_API_OPENCODE_INDEX": "EJ[1:...]"
+  }
+}
+```
+
+The section name is the machine name. Field names inside a section are the
+environment variable names, and they stay plaintext, so a reviewer sees
+which variables exist for which machine but never the values. Only the
+values are ciphertext.
+
+`dot_shell/zsh/private_20-ejson-environment-load.zsh.tmpl` decrypts the
+store at apply time and deploys `~/.shell/zsh/20-ejson-environment-load.zsh`
+at mode `0600`. `dot_zshrc` sources it at shell startup. The template uses
+chezmoi's native `ejsonDecryptWithKey`, so no `ejson` binary is needed at
+apply time.
+
+See `.encrypted_data/ejson_store/README.md` for how to add a secret and
+how to rotate the key.
+
 ### Secure environment injection
 
 `shellx` launches processes with secrets injected from an opaque on-disk store. It replaces the older `runpriv` and `encrypt_store.sh` helpers. It uses Python 3 stdlib only — no `pip`, no venv — and avoids common credential-file signatures.
@@ -261,11 +294,18 @@ Plaintext restored at target path (~/.ssh/..., ~/.shell/..., etc.)
 The `.chezmoiignore` template runs `check_decrypt.sh` at evaluation time. The script:
 
 1. Checks which `*.secret.key` files exist in `.encryption_keys/`.
-2. Tries to decrypt each `encrypted_*` file with the available keys.
-3. Prints target paths for files that **cannot** be decrypted.
-4. Those files are skipped during `chezmoi apply`.
+2. Finds every `encrypted_*` file, skipping dot-directories. Chezmoi ignores
+   every dot-directory at the source root except `.chezmoi*`, so a file
+   inside one can never become a target and never needs an ignore pattern.
+3. Tries to decrypt each file with the available keys.
+4. Prints target paths for files that **cannot** be decrypted.
+5. Those files are skipped during `chezmoi apply`.
 
 One repository serves many hosts. Each host applies only the secrets it can decrypt.
+
+The dot-directory prune matters for speed. Without it the walk descends
+into `.tmp`, which holds well over a hundred thousand files, on every
+chezmoi command.
 
 ## Contributing
 

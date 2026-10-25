@@ -26,7 +26,7 @@ A structured index mapping all files under `chezmoi-docs/` to brief descriptions
 
 ### `QUIRKS.md`
 
-Documented behaviors, edge cases, and mitigations for chezmoi template functions that are not covered by the official documentation or Sprig function reference. Covers critical failure modes like the `decrypt` function's hard abort on undecryptable input, with project-specific mitigation patterns. Always consult this file when working with template functions that perform I/O or encryption.
+Documented behaviors, edge cases, and mitigations for chezmoi template functions that are not covered by the official documentation or Sprig function reference. Covers critical failure modes like the `decrypt` and `ejsonDecryptWithKey` functions' hard abort on wrong or undecryptable input, with project-specific mitigation patterns. Always consult this file when working with template functions that perform I/O or encryption.
 
 ### `chezmoi-docs/`
 

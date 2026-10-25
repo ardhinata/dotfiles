@@ -66,24 +66,36 @@ since v2.33.0.
 ## Adding a secret
 
 `ejson encrypt` rewrites a file in place and looks the private key up in
-`$EJSON_KEYDIR` by public-key hex filename. Point that at a scratch directory
-so the repo stays clean. A store is already encrypted, so decrypt it before
-editing:
+`$EJSON_KEYDIR` by public-key hex filename. Point that at a scratch
+directory so the repo stays clean. A store is already encrypted, so decrypt
+it before editing.
+
+Keep the plaintext work file outside the repo, so a stray `git add` cannot
+commit it:
 
 ```bash
 cd ~/.local/share/chezmoi
 STORE=.encrypted_data/ejson_store/environment.json
 KEY=.encrypted_data/ejson_key/environment.key
 
-export EJSON_KEYDIR="$(mktemp -d)"
+WORK="$(mktemp -d)"
+export EJSON_KEYDIR="$WORK/keydir"
+mkdir -p "$EJSON_KEYDIR"
 ln -sf "$PWD/$KEY" "$EJSON_KEYDIR/$(jq -r ._public_key "$STORE")"
 
-ejson decrypt "$STORE" > work.json
-# edit work.json: add the field under the machine section (plaintext, delete it afterwards)
-ejson encrypt work.json
-mv work.json "$STORE"
-rm -rf "$EJSON_KEYDIR"
+ejson decrypt "$STORE" > "$WORK/work.json"
+
+# Edit "$WORK/work.json": add the field under the machine section.
+# The field name is the environment variable name. The value is plaintext
+# at this point, and ejson encrypt encrypts it.
+
+ejson encrypt "$WORK/work.json"
+cp "$WORK/work.json" "$STORE"
+rm -rf "$WORK"
 ```
+
+`ejson encrypt` leaves values that are already encrypted untouched, so
+running it on a decrypted store does not re-encrypt the existing secrets.
 
 Commit the store. If you replaced the key, re-encrypt it and commit that too:
 
@@ -91,6 +103,10 @@ Commit the store. If you replaced the key, re-encrypt it and commit that too:
 chezmoi encrypt --output .encrypted_data/ejson_key/environment.key.age \
 	.encrypted_data/ejson_key/environment.key
 ```
+
+The `ejson` binary is needed to edit a store. chezmoi has no `ejsonEncrypt`
+template function, so the binary stays an authoring-time tool. It is not
+chezmoi-managed; install it separately if it is missing.
 
 ## Failure behavior
 

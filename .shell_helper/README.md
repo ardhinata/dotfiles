@@ -29,6 +29,14 @@ check_decrypt.sh <KEY_DIR> <SEARCH_DIR>
   available identity. Files that fail decryption are output as target paths.
 - Output is one line per file, suitable for use as `.chezmoiignore` patterns.
 
+**Skipped directories:**
+
+The scan prunes dot-directories, except `.chezmoi*`. Chezmoi ignores every
+dot-directory at the source root except `.chezmoi*`, so a file inside one can
+never become a target and never needs an ignore pattern. The prune is what
+keeps the script fast: without it the walk descends into `.tmp`, which holds
+well over a hundred thousand files, on every chezmoi command.
+
 **Target path derivation:**
 
 Source-relative paths are converted to target paths by stripping chezmoi

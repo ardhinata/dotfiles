@@ -69,15 +69,21 @@ Use the guarded pattern when:
 
 Do **not** need this pattern when:
 
-- The encrypted file is referenced directly by name (not via glob) — use `if (stat …).IsEncrypted` to check first
+- The encrypted file is referenced directly by name (not via glob) — use `if stat <path>` to check that it exists
 - The template uses `encrypted_` source-state attributes (chezmoi's core engine handles those, not the template `decrypt` function)
 - A template crash is the desired behavior (fail-closed security stance)
+
+`stat` returns `name`, `size`, `mode`, `perm`, `modTime`, `isDir`, and
+`type`. It has no `IsEncrypted` field, so it cannot tell you whether a
+file is encrypted. Check the file name or the source-state attribute
+instead.
 
 ### Tested against
 
 | chezmoi version | Status |
 |---|---|
 | v2.70.5 | Confirmed — `decrypt` aborts template on undecryptable ciphertext |
+| v2.73.3 | Confirmed — still aborts; `include \| decrypt` on an age key aborts the whole apply |
 
 ## `ejsonDecryptWithKey` — Hard Abort on Wrong Key
 
