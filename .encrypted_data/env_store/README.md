@@ -21,10 +21,18 @@ Created by `shellx export` (see
 These contain the full encrypted secret store in JSONC format, encrypted
 via `chezmoi encrypt` with the recipients in `.encryption_keys/`.
 
-`.chezmoiignore` excludes `.encrypted_data/env_store/shellx*` from
-`chezmoi apply` — restore is **explicit** via
-`shellx import <file>`. A fresh `chezmoi apply` on a new machine will
-not silently recreate your secret store.
+The slug in the filename is the store slug. Since shellx 1.5.0 the slug is
+derived from the static password, so it changes when the profile or the
+chezmoi nonce changes. Only keep the export that matches the current slug:
+an export for an old slug cannot be imported into the current store.
+
+The whole `.encrypted_data/` tree is source-only. It is a dot-directory at
+the source root, and chezmoi ignores every dot-directory there except
+`.chezmoi*`, so nothing in it is ever deployed.
+
+Restore is therefore **explicit** via `shellx import <file>`. A fresh
+`chezmoi apply` on a new machine will not silently recreate your secret
+store.
 
 ## Workflow
 
@@ -32,9 +40,10 @@ not silently recreate your secret store.
 # Export from the live store.
 shellx export
 
-# Stage the new file.
+# Stage the new file and remove the stale one.
 cd ~/.local/share/chezmoi
 git add .encrypted_data/env_store/encrypted_*.jsonc.age
+git rm --cached .encrypted_data/env_store/encrypted_<old-slug>_<old-ts>.jsonc.age
 
 # On another machine, after pulling:
 shellx import .encrypted_data/env_store/encrypted_*.jsonc.age

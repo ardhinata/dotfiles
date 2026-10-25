@@ -1,29 +1,56 @@
 # `.encrypted_data/ejson_store/`
 
-**ejson-encrypted JSON stores** checked into the chezmoi source tree, one per
-machine. `.encrypted_data/` is source-only — chezmoi never deploys it — so
-these files are read only during `chezmoi apply`.
+**ejson-encrypted JSON stores** checked into the chezmoi source tree.
+`.encrypted_data/` is source-only — chezmoi never deploys it — so these
+files are read only during `chezmoi apply`.
 
 ## Files
 
-Naming: `<machine_name>.json`, for example `shiraki-yuki.json`. The name
-comes from the `system_environment.machine_name` chezmoi data value.
+| File                | State                                  |
+| ------------------- | -------------------------------------- |
+| `environment.json`  | ejson-encrypted store, committed       |
 
-Each store holds a `_public_key` field, an empty `_metadata` object, and one
-field per secret, for example `opencode_index_key`. Secret values hold ejson
-ciphertext. Field names stay plaintext.
+One store holds every machine. Each machine gets one section, named after
+`system_environment.machine_name` from the chezmoi data values.
+
+## Structure
+
+Field names stay plaintext, so a reviewer sees which variables exist for
+which machine, but never the values. Only the values are ciphertext.
+
+```json
+{
+  "_public_key": "<hex>",
+  "_metadata": {},
+  "shiraki-yuki": {
+    "OPENROUTER_API_OPENCODE_INDEX": "EJ[1:...]"
+  }
+}
+```
+
+Field names inside a section are environment variable names. The template
+exports every field in the machine's own section and skips fields whose name
+starts with `_`.
+
+ejson encrypts string values only. Numbers, booleans, and nulls stay in
+plaintext, so store every secret as a string.
 
 ## Keys
 
-Its private key lives in [`../ejson_key/`](../ejson_key/):
+The private key lives in [`../ejson_key/`](../ejson_key/):
 
-| File                     | State                                  |
-| ------------------------ | -------------------------------------- |
-| `<machine_name>.key`     | plaintext, gitignored, never committed |
-| `<machine_name>.key.age` | age-encrypted, committed               |
+| File                    | State                                  |
+| ----------------------- | -------------------------------------- |
+| `environment.key`       | plaintext, gitignored, never committed |
+| `environment.key.age`   | age-encrypted, committed               |
 
 A fresh machine needs both files. Pull the repo for the `.key.age`, then
 decrypt it with one of the identities in `.encryption_keys/`.
+
+One key pair protects the whole store. Every `*.key.age` in this repo is
+encrypted to the same age recipients, so a machine that holds one age
+identity can decrypt every other machine's ejson key as well. Separate keys
+per machine would not add isolation.
 
 ## Consumers
 
@@ -31,6 +58,10 @@ decrypt it with one of the identities in `.encryption_keys/`.
 decrypts the store at apply time and deploys
 `~/.shell/zsh/20-ejson-environment-load.zsh` at mode `0600`, since it holds the
 secret in plaintext. `dot_zshrc` sources it at shell startup.
+
+The template uses chezmoi's native `ejsonDecryptWithKey` template function,
+so no `ejson` binary is needed at apply time. chezmoi has supported it
+since v2.33.0.
 
 ## Adding a secret
 
@@ -41,14 +72,14 @@ editing:
 
 ```bash
 cd ~/.local/share/chezmoi
-STORE=.encrypted_data/ejson_store/shiraki-yuki.json
-KEY=.encrypted_data/ejson_key/shiraki-yuki.key
+STORE=.encrypted_data/ejson_store/environment.json
+KEY=.encrypted_data/ejson_key/environment.key
 
 export EJSON_KEYDIR="$(mktemp -d)"
 ln -sf "$PWD/$KEY" "$EJSON_KEYDIR/$(jq -r ._public_key "$STORE")"
 
 ejson decrypt "$STORE" > work.json
-# edit work.json: add "new_secret": "value"  (plaintext, delete it afterwards)
+# edit work.json: add the field under the machine section (plaintext, delete it afterwards)
 ejson encrypt work.json
 mv work.json "$STORE"
 rm -rf "$EJSON_KEYDIR"
@@ -57,14 +88,19 @@ rm -rf "$EJSON_KEYDIR"
 Commit the store. If you replaced the key, re-encrypt it and commit that too:
 
 ```bash
-chezmoi encrypt --output .encrypted_data/ejson_key/shiraki-yuki.key.age \
-	.encrypted_data/ejson_key/shiraki-yuki.key
+chezmoi encrypt --output .encrypted_data/ejson_key/environment.key.age \
+	.encrypted_data/ejson_key/environment.key
 ```
 
 ## Failure behavior
 
 The template degrades to a warning and exits `0` when the store or key is
-unavailable. The same holds when the age identity is absent or when the key
-does not match the store. It never aborts the rest of `chezmoi apply`.
+unavailable, when no age identity can decrypt the key, or when a value in
+the machine section is not a string. It never aborts the rest of
+`chezmoi apply`.
+
+One case does abort: a key that decrypts but does not match the store. That
+is a real mismatch, and a silent warning would look like a configuration
+problem instead.
 
 For the age-only store, see [`../env_store/README.md`](../env_store/README.md).

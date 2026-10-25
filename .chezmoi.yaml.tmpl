@@ -1,4 +1,5 @@
 {{- $profile := promptStringOnce . "system_environment.profile" "Which profile should be used?" -}}
+{{- $machineName := promptStringOnce . "system_environment.machine_name" "What is the machine name?" -}}
 {{- $nonce := dig "system_environment" "nonce" "" . | toString -}}
 {{- if ne (len (nospace $nonce)) 64 -}}
 {{-   $nonce = randAlphaNum 64 -}}
@@ -13,3 +14,4 @@ data:
   system_environment:
     profile: {{ $profile | quote }}
     nonce: {{ $nonce | quote }}
+    machine_name: {{ $machineName | quote }}

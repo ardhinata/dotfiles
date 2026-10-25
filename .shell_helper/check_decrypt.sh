@@ -33,8 +33,19 @@ fi
 
 shopt -s nullglob
 secret_keys=("$KEY_DIR"/*.secret.key)
+
+# Prune dot-directories. chezmoi itself ignores every dot-dir at the source
+# root except .chezmoi*, so files inside them can never become targets and
+# never need an ignore pattern. Without the prune the walk descends into
+# .tmp (146k files) and .git on every chezmoi command.
+# -mindepth 1 keeps the start point itself from being pruned.
+find_encrypted() {
+	find "$SEARCH_DIR" -mindepth 1 -type d -name '.*' ! -name '.chezmoi*' -prune \
+		-o -name 'encrypted_*' -type f -print0 2>/dev/null
+}
+
 if [ ${#secret_keys[@]} -eq 0 ]; then
-	find "$SEARCH_DIR" -name 'encrypted_*' -type f -print0 2>/dev/null | while IFS= read -r -d '' encrypted_file; do
+	find_encrypted | while IFS= read -r -d '' encrypted_file; do
 		source_to_target "$encrypted_file" "$SEARCH_DIR"
 	done
 	exit 0
@@ -46,7 +57,7 @@ for key in "${secret_keys[@]}"; do
 	identity_args+=(-i "$key")
 done
 
-find "$SEARCH_DIR" -name 'encrypted_*' -type f -print0 2>/dev/null | while IFS= read -r -d '' encrypted_file; do
+find_encrypted | while IFS= read -r -d '' encrypted_file; do
 	if ! age --decrypt "${identity_args[@]}" "$encrypted_file" >/dev/null 2>&1; then
 		source_to_target "$encrypted_file" "$SEARCH_DIR"
 	fi

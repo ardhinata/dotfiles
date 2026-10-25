@@ -1,36 +1,58 @@
 {{- /*
-  Exports the OpenRouter opencode index key from the per-machine ejson store.
+  Exports the sensitive environment variables configured for this machine.
 
-  Store : .encrypted_data/ejson_store/<machine_name>.json   (ejson-encrypted)
-  Key   : .encrypted_data/ejson_key/<machine_name>.key.age  (age-encrypted)
-  The ejson private key never sits in this repo in plaintext: the tracked
-  .key.age is unwrapped with chezmoi's age identities at apply time.
+  Store : .encrypted_data/ejson_store/environment.json   (ejson-encrypted)
+  Key   : .encrypted_data/ejson_key/environment.key.age  (age-encrypted)
 
-  Decryption runs through one guarded pipeline so that every failure mode
-  (missing file, no age identity, key/store mismatch) degrades to a warning
-  instead of aborting the whole `chezmoi apply`.
+  The store holds one section per machine. Field names stay plaintext, so a
+  reviewer sees which variables exist for which machine, but never the values.
+  Each machine exports only the variables in its own section.
+
+  Decryption uses chezmoi's native ejsonDecryptWithKey, so no ejson binary
+  is needed at apply time.
+
+  The ejson key is decrypted through the guarded pattern from QUIRKS.md: a
+  missing or wrong age identity must not abort the whole chezmoi apply.
+  A key that decrypts but does not match the store is a real mismatch and
+  does abort, because exporting nothing would look like a config problem.
 
   To rotate the ejson key: edit the plaintext .key, then re-encrypt with
-  `chezmoi encrypt --output <file>.key.age <file>` and commit the .key.age.
+  chezmoi encrypt --output <file>.key.age <file> and commit the .key.age.
 */ -}}
-{{- $machine := .system_environment.machine_name -}}
+{{- $machine := dig "machine_name" "" (dig "system_environment" (dict) .) -}}
 {{- $root := joinPath .chezmoi.sourceDir .source_structure.encrypted_data -}}
-{{- $store := joinPath $root "ejson_store" (printf "%s.json" $machine) -}}
-{{- $keyFile := joinPath $root "ejson_key" (printf "%s.key.age" $machine) -}}
-{{- $secret := "" -}}
-{{- if and (stat $store) (stat $keyFile) -}}
-{{-   $cmd := printf "set -o pipefail; if chezmoi decrypt %s 2>/dev/null | ejson decrypt --key-from-stdin %s 2>/dev/null; then :; else echo __EJSON_FAILED__; fi" $keyFile $store -}}
-{{-   $out := trim (output "bash" "-c" $cmd) -}}
-{{-   if ne $out "__EJSON_FAILED__" -}}
-{{-     $secret = dig "opencode_index_key" "" (fromJson $out) -}}
+{{- $store := joinPath $root "ejson_store" "environment.json" -}}
+{{- $keyFile := joinPath $root "ejson_key" "environment.key.age" -}}
+{{- $identities := glob (joinPath .chezmoi.sourceDir .source_structure.encryption_keys "*.secret.key") -}}
+{{- if not $machine -}}
+{{ warnf "ejson: system_environment.machine_name is not set - no variables exported" -}}
+# Sensitive environment variables unavailable on this machine
+{{- else if and (stat $store) (stat $keyFile) $identities -}}
+{{-   $cmd := "age --decrypt" -}}
+{{-   range $identity := $identities -}}
+{{-     $cmd = printf "%s -i %s" $cmd ($identity | shellQuote) -}}
 {{-   end -}}
-{{- end -}}
-{{- if $secret -}}
-# Export OpenRouter opencode index key if opencode is installed
-if [[ -n $(which opencode) ]]; then
-	export OPENROUTER_API_OPENCODE_INDEX="{{ $secret }}"
-fi
+{{-   $cmd = printf "%s %s 2>/dev/null || echo __EJSON_KEY_FAILED__" $cmd ($keyFile | shellQuote) -}}
+{{-   $key := trim (output "bash" "-c" $cmd) -}}
+{{-   if eq $key "__EJSON_KEY_FAILED__" -}}
+{{ warnf "ejson: no age identity can decrypt the key for %s - no variables exported" $machine -}}
+# Sensitive environment variables unavailable on this machine
+{{-   else -}}
+{{-     $out := ejsonDecryptWithKey $store $key -}}
+{{-     $exports := list -}}
+{{-     range $name, $value := dig $machine (dict) $out -}}
+{{-       if hasPrefix "_" $name -}}
+{{-       else if kindIs "string" $value -}}
+{{-         $exports = append $exports (printf "export %s=%s" $name ($value | shellQuote)) -}}
+{{-       else -}}
+{{ warnf "ejson: %s.%s is not a string (%s) - skipped" $machine $name (kindOf $value) -}}
+{{-       end -}}
+{{-     end -}}
+{{-     if $exports -}}
+{{ join "\n" $exports }}
+{{-     end -}}
+{{-   end -}}
 {{- else -}}
-{{ warnf "ejson: opencode index key unavailable for %s (store or key.age missing/undecryptable)" $machine -}}
-# OpenRouter opencode index key unavailable on this machine
+{{ warnf "ejson: store or key.age missing for %s - no variables exported" $machine -}}
+# Sensitive environment variables unavailable on this machine
 {{- end -}}

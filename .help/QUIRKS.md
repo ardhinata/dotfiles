@@ -78,3 +78,63 @@ Do **not** need this pattern when:
 | chezmoi version | Status |
 |---|---|
 | v2.70.5 | Confirmed — `decrypt` aborts template on undecryptable ciphertext |
+
+## `ejsonDecryptWithKey` — Hard Abort on Wrong Key
+
+**Official docs:** `docs/reference/templates/ejson-functions/ejsonDecryptWithKey.md`
+states only:
+
+> `ejsonDecryptWithKey` returns the decrypted content of an ejson-encrypted file.
+
+No failure mode is documented.
+
+### Observed behavior
+
+When the key does not match the store, the template **aborts with a fatal error**:
+
+```
+chezmoi: template: arg1:1:3: executing "arg1" at <ejsonDecryptWithKey "store.json" "0000...">: error calling ejsonDecryptWithKey: couldn't decrypt message
+```
+
+A malformed key fails the same way, with a different message:
+
+```
+error calling ejsonDecryptWithKey: invalid private key
+```
+
+Both errors stop template execution immediately, exactly like `decrypt`.
+
+### Impact
+
+The same failure classes as `decrypt` apply: a missing age identity, a
+rotated key, or a store and key that do not belong together.
+
+### Project mitigation
+
+The template guards the call in two stages, so a missing or wrong age
+identity never aborts the whole `chezmoi apply`:
+
+1. Check that the store file and the key file exist, using `stat`
+2. Check that at least one age identity exists, using `glob`
+3. Decrypt the key with the guarded `output "bash" "-c"` pattern from the
+   section above, which prints a failure marker instead of aborting
+4. Only then decrypt the store with `ejsonDecryptWithKey`
+
+Step 3 matters. `include | decrypt` on the key file looks equivalent, but
+`decrypt` aborts the template when the identity does not match. That
+aborts the entire apply, not just this file. The guarded pattern keeps the
+failure inside one file.
+
+A key that decrypts but does not match the store still aborts, because
+`ejsonDecryptWithKey` has no guarded form. This is deliberate: a silent
+warning would leave the variable missing and look like a configuration
+problem.
+
+Reference implementation:
+`dot_shell/zsh/private_20-ejson-environment-load.zsh.tmpl`.
+
+### Tested against
+
+| chezmoi version | Status |
+|---|---|
+| v2.73.3 | Confirmed — `ejsonDecryptWithKey` aborts template on a mismatched key |
