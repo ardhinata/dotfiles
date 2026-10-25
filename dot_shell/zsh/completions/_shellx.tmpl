@@ -11,9 +11,6 @@
 # Bare `shellx <TAB>` (exec-mode fallback path) no longer triggers
 # process-name completion — it intentionally only lists subcommands so
 # `init`/`store`/`list`/`rm`/`export`/`import`/`run` stay unambiguous.
-# Backward compatibility: `shellx --tag=... -- proc args...` and
-# `shellx proc args...` still work exactly as before; `shellx run ...
-# behaves identically.
 
 local curcontext="$curcontext" state line ret=1
 typeset -A opt_args
@@ -32,90 +29,106 @@ subcommands=(
 
 local helper="${SHELL_TOOL_DIR:-{{ .chezmoi.homeDir }}/.shell}/helper/shellx_completion_helper"
 
+# Top-level dispatch: match the subcommand, then route to its per-subcommand
+# handler. Each branch shifts `shellx <subcmd>` off $words/$CURRENT itself
+# and completes the post-subcommand context directly with `compadd`,
+# `_command_names`, `_files`, or `_vars` — bypassing `_arguments`, which
+# interacts badly with the `--` end-of-options marker and with `*:`/`*::`
+# state-action transitions in nested contexts.
 _arguments -C -s \
   '1: :->cmd' \
-  '*::arg:->args' \
-  && ret=0
+  '*:arg:->args'
 
-case "$state" in
+case $state in
   cmd)
     _describe 'subcommand' subcommands
-    ret=0
     ;;
   args)
-    case $words[1] in
+    local subcmd=$words[2]
+    case $subcmd in
       init)
         ret=0
         ;;
       store)
-        _arguments \
-          '1:var:_vars' \
-          '--tag[Tag (repeatable)]' \
-          '--process[Process name to match (repeatable)]'
+        shift 2 words
+        (( CURRENT -= 2 ))
+        # PREFIX starts with `-` → cursor sits on an option prefix;
+        # offer the option names. Otherwise complete stored var names.
+        if [[ $PREFIX == -* ]]; then
+          compadd -Q -- '--tag' '--process'
+        else
+          _vars
+        fi
         ret=0
         ;;
       rm)
-        _arguments '1:var:_vars'
+        shift 2 words
+        (( CURRENT -= 2 ))
+        _vars
         ret=0
         ;;
       export)
-        _arguments \
-          '--to[Destination directory]' \
-          '--label[Filename label override]' \
-          '--no-encrypt[Write plaintext JSONC (unsafe)]'
+        shift 2 words
+        (( CURRENT -= 2 ))
+        compadd -Q -- '--to' '--label' '--no-encrypt'
         ret=0
         ;;
       import)
-        _arguments \
-          '1:file:_files -g "*.jsonc *.json *.age"' \
-          '--to[Target store directory]' \
-          '--slug[Target slug]' \
-          '--force[Overwrite existing entries]' \
-          '--dry-run[Show what would be imported]'
+        shift 2 words
+        (( CURRENT -= 2 ))
+        if [[ $PREFIX == -* ]]; then
+          compadd -Q -- '--to' '--slug' '--force' '--dry-run'
+        else
+          _files -g '*.jsonc *.json *.age'
+        fi
         ret=0
         ;;
       run)
-        # Exec mode via explicit `shellx run` subcommand: enables
-        # process-name + tag + per-process arg completion without
-        # polluting the parent `shellx` completion.
         local -a tags
         if [[ -x "$helper" ]]; then
           tags=(${(f)"$($helper tags 2>/dev/null)"})
         fi
-        _arguments \
-          '--tag[Filter by tag]:tag:->tags' \
-          '--process[Process name to match]:process:->processes' \
-          '*::args:->rest'
-        case "$state" in
-          tags)
-            (( $#tags )) && _wanted tags expl 'tag' compadd -a tags
-            ret=0
-            ;;
-          processes)
+        shift 2 words
+        (( CURRENT -= 2 ))
+        # Three cursor shapes after `shellx run`:
+        #   PREFIX=`--*`  → completing an option; offer --tag / --process.
+        #                  (The `--tag=<TAB>` / `--process=<TAB>` value path
+        #                   is not implemented here; tags/processes still
+        #                   complete via the option name itself.)
+        #   PREFIX=`-`    → no short options for `run`; fall through.
+        #   otherwise     → the cursor sits on the first non-option word;
+        #                  strip --tag*/--process* and any other - flags from
+        #                  $words, count the remainder. <=1 word → user is
+        #                  typing the process name (partial or full) → offer
+        #                  command names. >1 word → user is past the process
+        #                  name → delegate to `_normal` so the process's own
+        #                  completion finishes the line.
+        if [[ $PREFIX == --* ]]; then
+          compadd -Q -- '--tag' '--process'
+          ret=0
+        elif [[ $PREFIX == -* ]]; then
+          ret=0
+        else
+          local -a after_opts
+          after_opts=()
+          local w
+          for w in "${words[@]}"; do
+            [[ "$w" == --tag=* || "$w" == --tag || "$w" == --process=* || "$w" == --process ]] && continue
+            [[ "$w" == -* ]] && continue
+            after_opts+=("$w")
+          done
+          if (( ${#after_opts} <= 1 )); then
             _command_names -e
-            ret=0
-            ;;
-          rest)
-            local process_name
-            # words[1] is the literal `run`; scan from index 2 for the first
-            # non-option, non-flag value.
-            for w in "${words[@]:2}"; do
-              [[ "$w" == --tag* ]] && continue
-              [[ "$w" == --process* ]] && continue
-              [[ "$w" == -* ]] && continue
-              process_name="$w"
-              break
-            done
-            if [[ -n "$process_name" ]] && (( $+commands[$process_name] )); then
-              shift words
-              (( CURRENT-- ))
-              _normal -p "$service"
-              ret=$?
-            else
-              _default && ret=0
-            fi
-            ;;
-        esac
+          else
+            # Rebuild words/CURRENT so `_normal` sees the process name as
+            # $words[1] and the rest of its args.
+            local proc=${after_opts[1]}
+            words=("$proc" "${after_opts[@]:2}" "")
+            CURRENT=2
+            _normal
+          fi
+          ret=0
+        fi
         ;;
       help|--help|-h)
         ret=0
