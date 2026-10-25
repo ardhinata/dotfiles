@@ -5,10 +5,10 @@ against the daily coding model `minimax/minimax-m3.1-flash`. The review covers
 the 16 global rule files, the two project files, the skill catalog, and the
 OpenCode configuration.
 
-**Status: reworked after cross-check. Not approved.** Four independent
-reviewers checked the first draft. All four found material errors. Two
-findings removed the plan's central premise. One showed that the permission
-block validated against the schema and blocked nothing.
+**Status: tranche 1 applied. Tranche 2 open.** Four independent reviewers
+checked the first draft. All four found material errors. Two findings
+removed the plan's central premise. One showed that the permission block
+validated against the schema and blocked nothing.
 
 No file in `dot_agents/`, `AGENTS.md`, or the OpenCode config changed during
 the review.
@@ -28,24 +28,26 @@ the review.
 
 ## Executive summary
 
-The instruction set is well written and well organised. It is also roughly
-twice the size it needs to be, and it does not address the model's two
-measured failure modes.
+The instruction set is well written and well organised. It is also larger
+than it needs to be, and it does not address the model's two measured failure
+modes.
 
 **The payload.** About 16,500 tokens load on every session and never shed,
-because `compaction.auto` is `false`. That is 38,929 bytes of global rule
+because OpenCode re-injects the instruction files into every request.
+Compaction replaces message history, not the system prompt, so turning
+compaction on would not reduce this. That is 38,929 bytes of global rule
 files, 5,801 bytes of project files, and a catalog of eleven skill
-descriptions. All 16 global rule files break the house standard of 150 words.
-The shortest is 170 words.
+descriptions. All 16 global rule files broke the house standard of 150 words.
+The shortest was 170 words.
 
-**The gap.** No rule tells the model to re-read a file it edited, to run a
-named check, or to cite a path and line. No rule covers a destructive
-command. Three always-on rules contradict each other with no precedence.
+**The gap.** No rule told the model to re-read a file it edited, to run a
+named check, or to cite a path and line. No rule covered a destructive
+command. Three always-on rules contradicted each other with no precedence.
 
 **The model.** MiniMax M3.1 Flash scores 56.2% on factual recall, the best in
 its tier. It also has the worst calibration in its tier: 92.8% of its misses
 are inventions rather than abstentions, which is about 41% of all answers.
-Its reasoning effort defaults to `max`, where it costs 7 to 48 times what
+Its reasoning effort defaulted to `max`, where it costs 7 to 48 times what
 `low` costs depending on the task.
 
 **What the cross-check changed.** The first draft's central premise was that
@@ -55,16 +57,31 @@ withdrawn. The first draft also claimed the model family is weak at
 instruction following. The predecessor M3 scores 82.9% on IFBench, rank 2 of
 423. The claim is withdrawn too.
 
-**What the cross-check found in the configuration.** The permission block used
-the v1 action token `bash`. In OpenCode v2 the token is `shell`. A `bash`
-deny passes schema validation and blocks nothing. The reviewer proved it with
-a live test.
+**What the cross-check found in the configuration.** The permission block
+would have used the v1 action token `bash`. In OpenCode v2 the token is
+`shell`. A `bash` deny passes schema validation and blocks nothing. The
+reviewer proved it with a live test.
 
-**The verdict.** Do not apply the first draft. Apply this one in two
-tranches. Tranche 1 is the contradiction fixes, the destructive-command gate,
-and a loop stop-condition. All three are safe today and independent of every
-contested inference. Tranche 2 is the byte cut, the two new rules, and the
-reasoning-effort change. Those rest on weak evidence, and the plan says so.
+**The verdict.** Tranche 1 is applied. Tranche 2 is not. The contradiction
+fixes, the destructive-command gate, the three new rules, the skill catalog
+trim, and the effort pin are in. The byte cut and the wider restructuring are
+still open.
+
+## What changed while the plan was applied
+
+Three findings came out of testing the permission layer on the live host.
+
+1. **The scanner reads quoted strings.** A `*rm -*rf*` pattern denies any
+   command whose text mentions the flag, including a commit message that
+   documents the rule. The applied patterns are path-anchored.
+2. **cc-safety-net already owns the git commands.** A live test with all
+   OpenCode shell rules removed showed `git reset --hard`, `git clean -fd`,
+   `git push --force`, and `git push -f` are already blocked by the plugin.
+   The OpenCode layer now carries `rm` only.
+3. **A stray test commit.** One permission probe ran `git commit` in this
+   repository and swept up the new rule file. The file content was correct
+   and deployed, but the commit message was wrong. The history was rewritten
+   so the file sits in the commit that describes it.
 
 ## Open questions
 

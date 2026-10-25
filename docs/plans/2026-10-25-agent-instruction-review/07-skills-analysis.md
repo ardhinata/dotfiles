@@ -4,6 +4,34 @@ An analysis of the 11 skills under `dot_agents/skills/`, deployed to
 `~/.agents/skills/`. Part of the agent instruction review. See
 [README.md](README.md) for the index.
 
+## Status
+
+**The catalog changes are applied** in commits `70d16db` and `5f84870`.
+
+| Change | Applied |
+|---|---|
+| Correct the four broken `gh` commands | Yes |
+| Correct the six stale `zsh-stack` line anchors | Yes |
+| Delete `tavily-defaults` and `spec-kit` | Yes, plus `skill` permission denies |
+| Merge `fnm` into the `runtime-tools` rule | Yes |
+| Trim the four long skill descriptions | Yes |
+| Remove the three re-inlined tables from `document-conventions` | Yes |
+| Remove the duplicate AGENTS.md template | Yes |
+| Move the vendor-unification procedure to `project-layout` | Yes |
+| Move the `zsh-stack` reference tables to `references/` | Yes |
+| Fix the `ste_check.py` relative path | Yes |
+| Fix the stale description quote and the `$ARGUMENTS` residue | Yes |
+| Merge `container-tools` into the rule | **No.** See below |
+
+**`container-tools` was kept as a skill.** The analysis recommended merging
+it into the `runtime-tools` rule, on the grounds that the host has already
+resolved the runtime question. That is true of the *detection* half. The
+compose-variant table, the OCI image reference rules, the SELinux relabel
+notes, and the rootless port limits are not derivable and are not covered by
+the rule. The rule points at the skill instead. The cost is 69 always-paid
+tokens; the alternative was to move roughly 40 lines of reference material
+into an always-on rule.
+
 ## Summary
 
 The catalog is well built but has three structural problems. One skill documents
@@ -17,11 +45,10 @@ skill ever fires. Deleting two dead skills and merging two small ones removes
 
 | Measure | Value |
 |---|---|
-| Skills | 11 |
+| Skills | 11, now 9 |
 | Total directory bytes | 304,451 |
-| Catalog cost, always paid | 4,995 bytes, about 1,240 tokens |
-| Largest single activation | `zsh-stack`, about 4,450 tokens |
-| Total first-activation cost | 32,134 tokens |
+| Catalog cost, always paid | 4,995 bytes, about 1,240 tokens, now 4,143 bytes |
+| Largest single activation | `zsh-stack`, about 4,450 tokens, now about 3,700 |
 | Avoidable duplication | about 14 KB of body text |
 | Dead skills | 2 (`tavily-defaults`, `spec-kit`) |
 

@@ -47,6 +47,8 @@ ceiling. Say so in the commit message.
 
 ### Phase 2. Fix the contradictions
 
+**APPLIED in commit `d00aed8`.**
+
 1. `AGENTS.md:34`. Replace with: "After a refactor that does not change the
    source directory layout, run `git status --short`, stage, and commit before
    you end the session. If the refactor changes the layout, ask first and do
@@ -69,6 +71,8 @@ ceiling. Say so in the commit message.
 8. `document-conventions/SKILL.md:176`. Match line 98.
 
 ### Phase 3. Add three rules
+
+**APPLIED in commit `25724dd`.**
 
 **`dot_agents/rules.personal.d/destructive-actions.md`.** One line per
 command. Each ends: "Ask first. Print the exact command in the reply so the
@@ -105,48 +109,46 @@ structural counter for the loop failure:
 
 ### Phase 4. Move the guard to the harness layer
 
+**APPLIED. The shape below changed during implementation. Three corrections
+were verified live on the host; each is in the commit message.**
+
 **The action token is `shell`, not `bash`.** A block written with `bash`
 validates against the schema and blocks nothing. This was proven live. A
 `bash` deny let `echo` run. The same deny with `shell` blocked it.
 
-**Ordering is last-match-wins.** Global rules load first, then project rules,
-then agent rules. Put the broad rule first and the specific exceptions after
-it.
+**Ordering is last-match-wins.** Load order is project, then global, then
+agent. A global rule therefore beats a project rule on conflict.
 
-**Use default-ask plus an allowlist, not a deny-list.** The OpenCode docs warn
-against patterns that try to recognise every dangerous command. A deny-list
-misses `rm -fr`, `rm -r -f`, `sudo rm -rf x`, and `cd /tmp && rm -rf x`,
-because matching is whole-value anchored.
+**The patterns must be path-anchored.** The shell scanner pulls words out of
+quoted strings, so a command whose text mentions the flag is treated as a
+compound command. A `*rm -*rf*` pattern denies any command whose text
+mentions the flag, including a commit message that documents the rule. The
+applied patterns require an absolute path, `~/`, `./`, or `../` after the
+flag.
 
 ```jsonc
 "permissions": [
-  // broad default: ask before any shell command
-  { "action": "shell", "resource": "*",                        "effect": "ask" },
-
-  // routine, read-only, no prompt
-  { "action": "shell", "resource": "git status*",              "effect": "allow" },
-  { "action": "shell", "resource": "git diff*",                "effect": "allow" },
-  { "action": "shell", "resource": "git log*",                 "effect": "allow" },
-  { "action": "shell", "resource": "chezmoi diff*",            "effect": "allow" },
-  { "action": "shell", "resource": "chezmoi apply --dry-run*", "effect": "allow" },
-
-  // destructive: deny last so it beats the broad ask
-  { "action": "shell", "resource": "*rm -*rf*",                "effect": "deny" },
-  { "action": "shell", "resource": "*rm -*fr*",                "effect": "deny" },
-  { "action": "shell", "resource": "*git reset --hard*",       "effect": "deny" },
-  { "action": "shell", "resource": "*git clean -*",            "effect": "deny" },
-  { "action": "shell", "resource": "*git push --force*",       "effect": "deny" },
-  { "action": "shell", "resource": "*git push -f*",            "effect": "deny" }
+  { "action": "shell", "resource": "rm -*rf /*",  "effect": "deny" },
+  { "action": "shell", "resource": "rm -*rf ~*",  "effect": "deny" },
+  { "action": "shell", "resource": "rm -*rf ./*", "effect": "deny" },
+  { "action": "shell", "resource": "rm -*rf ../*","effect": "deny" },
+  { "action": "shell", "resource": "rm -*fr /*",  "effect": "deny" },
+  { "action": "shell", "resource": "rm -*fr ~*",  "effect": "deny" },
+  { "action": "shell", "resource": "rm -*fr ./*", "effect": "deny" },
+  { "action": "shell", "resource": "rm -*fr ../*","effect": "deny" }
 ]
 ```
 
-The leading `*` is load-bearing. Without it, `sudo rm -rf x` is not caught.
-The `chezmoi apply --dry-run` allow must sit after the broad ask, or it is
-dead.
+**Only `rm` belongs here.** A live test with all OpenCode shell rules
+removed showed that cc-safety-net already blocks `git reset --hard`,
+`git clean -fd`, `git push --force`, and `git push -f`. The git rules were
+dropped as redundant. The plugin also blocks `rm -rf /` and `rm -rf ~`.
+
+**A bare relative name is not caught.** `rm -rf build` is not distinguishable
+from quoted text, so the `destructive-actions.md` rule covers it.
 
 **Do not add `git commit*` here.** It contradicts Phase 2 item 1, and in a
-subagent run there is nobody to answer the prompt. Fix `AGENTS.md:34` first,
-then let the broad `ask` cover commits.
+subagent run there is nobody to answer the prompt.
 
 **For a gate that cannot be overridden, use `policies`.** Only policies turn
 an allow into a deny, and they survive saved approvals and project config:
@@ -159,11 +161,17 @@ an allow into a deny, and they survive saved approvals and project config:
 `{ "action": "shell", "resource": "*", "effect": "deny" }` stalled
 `opencode run` for over five minutes. Narrow denies fail in under a second.
 
-**Known limit:** global permissions are appended before project rules, so a
-project with its own shell rule overrides this block. State that in the commit
+**Known limit:** global permissions load after project rules, so a project
+with its own shell rule overrides this block. State that in the commit
 message rather than calling the guard absolute.
 
 ### Phase 5. Reasoning effort
+
+**APPLIED in commit `70d16db`.** The root model is pinned to
+`openrouter/minimax/minimax-m3.1-flash#high`. The `title` agent is pinned to
+`openrouter/qwen/qwen3.7-flash#none`, because that model exposes a toggle
+rather than an effort ladder. Both forms were verified against the live
+config loader.
 
 **The variant goes inside `model`, not beside it.** `agents.<name>.variant` is
 rejected by the schema; `agents` uses `Config.AgentEncoded`, which does not

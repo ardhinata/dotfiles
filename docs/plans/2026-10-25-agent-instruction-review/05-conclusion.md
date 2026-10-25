@@ -4,6 +4,38 @@ The verdict, the two-tranche split, the corrected arithmetic, the model
 question, and a confidence grade per recommendation.
 
 Part of the agent instruction review. See [README.md](README.md) for the index.
+
+## Status
+
+**Tranche 1 is applied.** Tranche 2 is not. The work landed in five commits
+between `d00aed8` and `5f84870`.
+
+| Change | Commit |
+|---|---|
+| Contradiction and path fixes, six always-on rules | `d00aed8` |
+| Three new rules: destructive-action, verification, no-progress | `25724dd` |
+| Destructive-command gate in the OpenCode permission layer | `d00a2b2` |
+| Skill catalog trim, dead skills removed, duplication removed | `5f84870` |
+| Skill catalog corrections and the reasoning-effort pin | `70d16db` |
+
+Two findings changed the plan while it was being applied. Both came from
+testing the permission layer on the live host, and both are recorded in the
+commit messages.
+
+1. **The action token is `shell`, not `bash`.** A `bash` rule validates
+   against the schema and blocks nothing. This was already in the plan. It
+   was re-confirmed live before the change went in.
+2. **The permission patterns must be path-anchored.** The shell scanner pulls
+   words out of quoted strings, so a `*rm -*rf*` pattern also denies any
+   command whose text merely mentions the flag. That blocked a commit
+   message documenting the rule itself. The applied patterns require an
+   absolute path, `~/`, `./`, or `../` after the flag.
+3. **cc-safety-net already owns the git commands.** A live test with all
+   OpenCode shell rules removed showed that `git reset --hard`,
+   `git clean -fd`, `git push --force`, and `git push -f` are already blocked
+   by the plugin. The OpenCode layer now carries `rm` only, so one guard
+   owns each command class.
+
 ## Conclusion
 
 **Verdict.** Do not apply as written. Apply in two tranches.
