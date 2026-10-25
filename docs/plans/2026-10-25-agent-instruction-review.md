@@ -7,54 +7,64 @@ last-updated: 2026-10-25
 
 # Agent instruction set review for MiniMax M3.1 Flash
 
+> **Status: reworked after cross-check. Not approved.** Four independent
+> reviewers checked the first draft. All four found material errors. Two
+> findings removed the plan's central premise, and one showed that the
+> permission block would have validated and done nothing. This version carries
+> the corrected numbers and the two-tranche split. Read "Cross-check results"
+> before "Implementation steps".
+
 ## Goal
 
-Reduce the always-on instruction payload. Remove the rules that the daily model
-cannot follow or does not need. Add the rules that counter the model's two
-measured failure modes: confident invention and no-progress loops. The target
-model is `openrouter/minimax/minimax-m3.1-flash`, set in
-`dot_config/opencode/private_opencode.jsonc`.
+Cut the always-on instruction payload and fix the defects in it. Add a gate for
+destructive commands. Do not claim an effectiveness gain that the evidence
+cannot support. The target model is `openrouter/minimax/minimax-m3.1-flash`, set
+in `dot_config/opencode/private_opencode.jsonc`.
+
+The earlier goal said "make the instruction set effective on coding tasks".
+The cross-check showed that no evidence supports that claim. The goal now
+matches what the plan can prove.
 
 ## Problem background
-
-Three facts together make the present arrangement a problem.
 
 **The instruction set was written for a different class of model.** It grew
 across two harness migrations. It carries 16 global rule files, four of which
 are routers, plus two project files. Each file was justified on its own. No
-step in the history asked whether the set as a whole fits a fast model with a
-small reasoning budget.
+step in the history asked whether the set as a whole fits a fast model.
 
-**The daily model changed underneath it.** MiniMax M3.1 Flash arrived on
-2026-10-19. It is the second most used model on OpenCode by token volume, and
-it is now the default here. It scores 43 on the Artificial Analysis Index at
-`max` effort. Its measured weaknesses are specific and unusual. It has the
-best factual recall in its tier at 56.2% and the worst calibration at 92.8%.
-It reasons for a long time at the default effort and sometimes stops making
-progress. A rule set that suits a frontier model does not automatically suit
-this one.
+**Every rule file breaks the house length standard.** The
+document-conventions skill sets 30 to 80 words as the target and 150 words as
+the ceiling for a rule file. All 16 global files exceed 150. The shortest is
+`long-running-tools.md` at 170 words. The longest is
+`zsh-emulate-fallback.md` at 630.
 
-**Nothing in the set addresses either weakness.** No rule tells the model to
-re-read a file it edited, to run a named check, or to cite a path and line.
-No rule covers a destructive command. AGENTS.md line 34 actively tells the
-model to commit the working tree after a refactor, with no gate.
+**The daily model changed on 2026-10-19.** MiniMax M3.1 Flash is now the
+default here and the second most used model on OpenCode by token volume. Its
+calibration is the worst in its comparison set: 92.8% of its misses are
+inventions rather than abstentions. That is about 41% of all answers, not 93%.
 
-The result is predictable. The model carries about 16,000 to 17,000 tokens of
-instruction that never sheds, because `compaction.auto` is `false`. It spends
-that budget on reference text and duplicates. It receives no instruction for
-the two behaviours it gets wrong most often.
+**Nothing in the set addresses a destructive command.** No rule mentions
+`rm -rf`, `git reset --hard`, `git clean -fd`, `git push --force`, or a bare
+`chezmoi apply`. AGENTS.md line 34 tells the model to commit the working tree
+after a refactor, with no gate.
+
+**What the cross-check removed.** The first draft claimed that prose guards
+backfire on this model, based on one test. That test is underpowered and
+confounded. The draft also claimed the family is weak at instruction
+following. The predecessor model scores 82.9% on IFBench, rank 2 of 423. Both
+claims are withdrawn. See "Cross-check results".
 
 ## Scope
 
 - In: the 16 always-on rule files under `dot_agents/rules/` and
   `dot_agents/rules.personal.d/`, the repo `AGENTS.md`, the repo rule
-  `.agents/rules/chezmoi-source-project.md`, the skill catalog under
-  `dot_agents/skills/`, the `instructions` and `permissions` fields in
-  `dot_config/opencode/private_opencode.jsonc`, and the reasoning effort for
-  the default model.
-- Out: the plugins (`cc-safety-net`, `aft-opencode`,
-  `opencode-magic-context`, `ponytail`, `opencode-ensemble`), the chezmoi
-  source layout, the encryption workflow, and the choice of model.
+  `.agents/rules/chezmoi-source-project.md`, the `permissions` and `policies`
+  fields in `dot_config/opencode/private_opencode.jsonc`, and the reasoning
+  effort for the default model.
+- Out: the plugins, the chezmoi source layout, the encryption workflow, and
+  the choice of model. The model choice is out of scope for action. It stays
+  in scope for one comparison paragraph, because the cross-check found that
+  the first draft dismissed it without an argument.
 
 ## Existing constraints
 
@@ -67,275 +77,313 @@ the two behaviours it gets wrong most often.
 4. `.chezmoiignore` and `.chezmoidata.yaml` need explicit approval.
 5. The global rules carry no frontmatter. Skills require `name` and
    `description` frontmatter.
-6. MiniMax M3.1 Flash has no published instruction-following score. There is
-   no IFBench, BFCL, or multi-turn retention number for this model. Every
-   claim about its instruction adherence is an inference.
-7. OpenCode reports version v2.1.4. The config schema in that version marks
-   the `permission` field as deprecated and exposes `permissions` instead.
+6. OpenCode is v2.1.4. In v2 the permission action tokens are `shell` and
+   `subagent`. The v1 tokens `bash` and `task` are inert.
+7. Global `permissions` are appended before project config. A project
+   `.opencode/opencode.jsonc` can override this block. The guard is therefore
+   not absolute.
 
 ## Research steps
 
-The review ran five steps. Each step names the method, so a reader can repeat
-it.
-
 ### Step 1. Measure the payload
 
-Counted words and bytes for every deployed file, and for every layer that adds
-tokens before the first user message.
+Commands used:
 
-- `wc -w` and `wc -c` over `~/.agents/rules/*.md` and
-  `~/.agents/rules.personal.d/*.md`.
-- `wc -w` and `wc -c` over `AGENTS.md` and
+- `wc -c -w` over `~/.agents/rules/*.md` and
+  `~/.agents/rules.personal.d/*.md`. The deployed tree is the correct one to
+  measure. The `.tmpl` sources are pre-render inputs, and
+  `rtk-rules.md.tmpl` is 197 bytes against 1,780 bytes deployed.
+- `wc -c -w -l` over `AGENTS.md` and
   `.agents/rules/chezmoi-source-project.md`.
-- Byte count of each skill `description` block under `~/.agents/skills/*/`,
-  summed to get the catalog cost.
-- Byte count of the `ponytail-instructions.js` hook, which injects a fixed
-  block into every session.
-- `opencode debug config` to read the effective config, and to confirm the
-  plugin list, the `instructions` globs, and `compaction.auto`.
-- `opencode --version` and `opencode models` to confirm the version and the
-  model variant ladder.
+- YAML parse of each `~/.agents/skills/*/SKILL.md` `description`.
+- `node -e "require(...).getPonytailInstructions('full')"` to get the byte
+  length of the block that is actually injected, not the size of the hook
+  script.
+- `opencode debug config`, `opencode --version`, `opencode models`.
+- `chezmoi managed` to confirm which rule files deploy.
 
 ### Step 2. Model profile research
 
-One research pass over public sources for MiniMax M3.1 Flash, released
-2026-10-19. The pass answered seven questions: hard specs, instruction
-adherence, tool-calling reliability, coding-agent failure modes, reasoning
-effort trade-offs, speed against peers, and comparison against DeepSeek V4.1
-Flash 1017 and GLM 5.3 Flash.
+One research pass over public sources for MiniMax M3.1 Flash. It answered
+seven questions: specs, instruction adherence, tool-calling reliability,
+coding failure modes, effort trade-offs, speed, and comparison against
+DeepSeek V4.1 Flash 1017 and GLM 5.3 Flash.
 
-Sources were graded. Primary vendor documentation and Artificial Analysis
-counted as high confidence. A measured blog test counted as medium. Reddit
-reports counted as low. Every row in the model table carries a grade is not
-shown, but this section lists the grading rule. The claims that could not be
-verified are named in their own list below.
+### Step 3. Prompt-design research
 
-### Step 3. Prompt-design evidence research
-
-One research pass over published guidance for writing instructions for
-small and fast coding models. The pass covered seven questions: length budget,
-routers against always-on text, instruction format, tool routing, verification
-loops, context hygiene, and anti-patterns. The primary sources were the
-IFScale study, Anthropic's context-engineering and Agent Skills writeups, the
-OpenAI Codex and GPT-5.2 prompting guides, the agentskills.io specification,
-the agents.md format, the Cursor rules documentation, and Chroma's context-rot
-research.
+One research pass over published guidance: IFScale, Anthropic's
+context-engineering and Agent Skills writeups, the OpenAI Codex and GPT-5.2
+guides, the agentskills.io specification, the agents.md format, the Cursor
+rules documentation, and Chroma's context-rot research.
 
 ### Step 4. Internal audit
 
-A full read of all 18 always-on files, plus the six skills that the router
-rules point at. The audit reported six things:
+A full read of all 18 always-on files plus the six skills the routers point
+at. Output: an inventory, contradictions, redundancy, over-specification,
+missing triggers, a safety inventory, and a ranked defect list.
 
-1. An inventory with word counts and load scope per file.
-2. Contradictions, each quoted from both sides.
-3. Redundancy between a router rule and the skill it points at.
-4. Over-specification: text that a fast model would derive correctly anyway.
-5. Missing triggers, and triggers that fire on almost every task.
-6. A safety-critical inventory, with a dilution test per rule.
+### Step 5. Four independent cross-checks
 
-The audit closed with a ranked defect list of 31 items. This plan carries the
-18 that change model behaviour.
-
-### Step 5. Verify the technical claims
-
-Two claims in the first draft were wrong. Both came from documentation pages
-rather than the schema. Both were corrected by reading the live schema.
-
-- Fetched `https://opencode.ai/config.json` and inspected the
-  `Permission.Ruleset`, `Permission.Rule`, and `AgentConfig` definitions. The
-  `permission` field is marked `"deprecated": true`. The live field is
-  `permissions`, an ordered array of `{action, resource, effect}`.
-- Inspected the root `model` definition. It accepts `{providerID, model,
-  variant}`, so a global default effort works. An earlier claim that the root
-  model cannot carry a variant was wrong for v2.1.4.
+Four reviewers with non-overlapping scope: external facts, internal
+measurements, the live OpenCode technical surface, and an adversarial review
+of the reasoning. Their findings are in "Cross-check results".
 
 ### What this review did not do
 
-- No empirical test of rule adherence on this model. No such test exists in
-  public, and none was run here. Phase 6 exists to close that gap.
+- No empirical test of rule adherence on this model.
 - No read of the `cc-safety-net` policy source. Its block list was inferred
-  from its bundled output by pattern search.
-- No measurement of how often each rule fires in practice. The
-  `asd-ste100-trigger` cost estimate is arithmetic, not observation.
+  from bundled output by pattern search.
+- No tokenizer. The token figures use a uniform 3.6 to 3.7 bytes per token
+  ratio and are approximations.
+- No live test of the `policies` layer.
 
 ## Findings
 
 ### Measured always-on payload
 
-| Layer | Bytes | Approx. tokens |
+| Layer | Bytes | Note |
 |---|---|---|
-| `dot_agents/rules/*.md` (8 files) | 17,376 | 4,700 |
-| `dot_agents/rules.personal.d/*.md` (8 files) | 21,553 | 5,800 |
-| `AGENTS.md` + `.agents/rules/chezmoi-source-project.md` | 5,801 | 1,600 |
-| Skill catalog (11 descriptions) | 5,630 | 1,600 |
-| `ponytail` plugin injection | 5,565 | 1,400 |
-| AFT tool notice and tool descriptions | not measured | ~2,000 |
-| **Total** | **~56,000** | **~16,000 to 17,000** |
+| `~/.agents/rules/*.md` (8 files) | 17,376 | deployed; source `.md` glob is only 6 files |
+| `~/.agents/rules.personal.d/*.md` (8 files) | 21,553 | deployed equals source |
+| Global rule subtotal | **38,929** | |
+| `AGENTS.md` + project rule | 5,801 | 704 words, 84 lines |
+| Skill catalog (11 descriptions) | 4,995 | YAML-parsed values |
+| `ponytail` injected block | 2,861 | 493 words. The 5,565 figure was the hook script |
+| AFT tool notice | not measured | ~2,000 by estimate |
+| **Total** | **~52,600** | **~16,500 tokens** |
 
-The file-based part is 44,730 bytes across 18 files, or about 12,000 tokens.
-The document-conventions skill gives rule files a target of 30 to 80 words and
-a hard ceiling of 150. Nine of the 16 global rule files sit above that
-ceiling.
+The file-based part is 44,730 bytes across 18 files. The token total is an
+estimate because the AFT row is unmeasured.
 
 ### Model profile
 
 | Property | Value | Note |
 |---|---|---|
-| Context window | 1,000,000 tokens | 512,000 on some providers |
-| Reasoning effort | `low` to `max`, default `max` | Thinking cannot be disabled |
+| Context window | 1,000,000 tokens | 512K is MiniMax's recommended client window for coding, not a provider limit. 512K is also the max output |
+| Reasoning effort | `low` to `max`, default `max` | Thinking cannot be disabled. `none` returns HTTP 400 |
 | Price per 1M | $0.15 in, $0.60 out, $0.015 cached | Flat, no long-context surcharge |
-| AA Intelligence Index | 43 | At `max` effort only |
-| AA-Omniscience accuracy | 56.2% | Best in its tier |
-| AA-Omniscience hallucination rate | 92.8% | Worst in its tier. Predecessor M3 was 18.4% |
+| AA Intelligence Index | 43 | 42 at launch. AA revised it. Date any citation |
+| AA-Omniscience accuracy | 56.2% | |
+| AA-Omniscience hallucination rate | 92.8% | Of misses, not of all answers. About 41% of all answers are wrong |
+| Predecessor M3 hallucination rate | 18.4% | |
 | Terminal-Bench 4.0 | 25.8% | DeepSeek V4.1 Flash 33.8%, GLM 5.3 Flash 32.8% |
 | LiveBench Long Agentic | 34.7% | DeepSeek V4.1 Flash 50.9% |
 | LiveBench 2.0 Coding | 83.9% | DeepSeek V4.1 Flash 96.0% |
+| IFBench (predecessor M3) | 82.9%, rank 2 of 423 | The family is strong at instruction following. This model has no score |
 
-### The five findings that drive the plan
+### The findings that survive
 
-**F-1. Prose guards make this model worse, not better.** One controlled test
-added this line to the system prompt:
+**F-1. Instruction adherence is unmeasured for this model, and the family is
+strong at it.** The first draft's opposite claim is withdrawn. MiniMax M3
+scores 82.9% on IFBench, rank 2 of 423 configurations. M3.1 Flash has no
+IFBench, BFCL, or multi-turn retention score. Treat any assumption about how
+it handles 18 rule files as untested, in both directions.
 
-> If you are not sure that something exists or is true, say you don't know instead of guessing.
+**F-2. The default reasoning effort is expensive, and the multiplier is
+disputed.** One measurement on one small task found 48 times the reasoning
+tokens and 12 times the wall clock of `low`. It found 7 times the cost. The
+result was identical at 96 of 96.
+A separate measurement across 8 coding tasks found
+7.7 times the reasoning tokens and 3.7 times the wall clock. Cite a range. The
+48 times figure is the outlier.
 
-For M3.1 Flash, invented answers rose from 10 of 20 runs to 14 of 20. The
-same line took DeepSeek from 6 of 20 down to 1 of 20. The model also failed a
-plainly stated positive requirement (case insensitive units). It varied its
-invented facts across runs, giving four different populations for one
-invented town. Counters must be structural: re-read the file, run the
-command, cite the path and line. A request for honesty is not a counter.
+**F-3. The loop finding is not specific to this model.** A no-progress loop
+fired in 3 of 3 `max` runs and 0 of 3 `low` runs. The same detector fired in
+2 of 3 runs for MiniMax M3 and GLM 5.3 Flash. It is a long-reasoning
+signature, not a defect of this model. It still deserves a counter, because
+the harness can supply one cheaply.
 
-**F-2. The default reasoning effort is the worst setting.** At `max` the model
-uses 48 times the reasoning tokens of `low`. It uses 12 times the wall clock.
-It costs 7 times as much. Both levels passed 96 of 96 hidden tests. A
-no-progress loop appeared in 3 of 3 `max` runs and in 0 of 3 `low` runs.
-MiniMax's own Automation-Bench shows `max` beats `low` by 10 points on long
-agentic runs. The setting must follow the task, and it must be explicit.
+**F-4. Long context is survivable. Constraint count is untested.** AA-LCR puts
+the model at 79.7% on 10k to 100k token documents. A 6,500-word rule set is
+therefore not the problem. What no study measures is instruction adherence at
+18 rule files, and IFScale shows the flash cohort dropping from 66-96% at 50
+constraints to 42-82% at 100. Constraint count, not byte count, is the axis
+the evidence points at.
 
-**F-3. Long context does not break comprehension, but rule count is
-untested.** AA-LCR puts the model at 79.7% on 10k to 100k token documents.
-LOCA-Bench 256K puts it at 60.3, the best in its tier. A 6,500-word rule set
-is therefore survivable. What no study measures is instruction adherence at 16
-rule files. The flash tier in the IFScale study holds 66% to 96% at 50
-constraints and drops to 42% to 82% at 100. The safe direction is fewer
-constraints, not shorter prose.
+**F-5. No rule gates a destructive command.** This is the largest certain gap.
+The `cc-safety-net` plugin blocks several, but it is a tool-layer backstop and
+it does not gate `sudo`. `sudo-ask.md` does gate `sudo`, so the gap is the
+destructive shell command, not privilege escalation.
 
-**F-4. The current set has no rule for the model's main failure.** Nothing in
-the 18 always-on files tells the model to re-read a file it edited. Nothing
-tells it to run a named check. Nothing tells it to cite the path and line
-behind a claim about the repository. AGENTS.md covers `chezmoi diff` and
-`chezmoi apply --dry-run` only. This is the gap that matters most for a model
-with a 92.8% confident-wrong rate.
+### The withdrawn finding
 
-**F-5. The current set has no destructive-action rule.** Nothing covers
-`rm -rf`, `git reset --hard`, `git clean -fd`, `git push --force`,
-`chezmoi apply`, or `chezmoi re-encrypt`. The `cc-safety-net` plugin blocks
-several of these. The plugin is a tool-layer backstop, not an instruction, and
-it does not gate `sudo`. AGENTS.md line 34 also instructs the model to commit
-the working tree after a refactor, with no gate.
+The first draft claimed, as its central premise, that "prose guards make this
+model worse". Basis: one test where adding an instruction to admit uncertainty
+raised invented answers from 10 of 20 to 14 of 20. Three problems:
 
-### The audit defect list, ranked
+1. **Power.** A four-run swing on twenty runs gives Fisher exact p about 0.33.
+   The DeepSeek control arm is p about 0.09. Neither is significant.
+2. **Confound.** Six of 40 runs hit the 8,192-token output cap and returned a
+   guess. Declines stayed at 5 of 20. The prompt converted truncated runs
+   into answers. It did not change a willingness to abstain.
+3. **Source.** One blog post. No independent reproduction.
+
+The premise is withdrawn. Structural counters are still recommended, because
+they are cheap and testable, not because prose is disproven.
+
+### The audit defect list
 
 | ID | File | Defect |
 |---|---|---|
-| D-1 | `AGENTS.md:34` | "Always commit after a structural refactor" collides with "Ask first: structural changes to the source directory layout". No precedence. The always-on instruction wins, so the ask-first gate is dead. |
-| D-2 | `dot_agents/rules/document-conventions.md:17-23` | Copies 5 rows of the skill's decision matrix into an always-on file, one line after saying the skill's matrix is authoritative. The model answers from 5 rows and never loads the skill. |
-| D-3 | `dot_agents/rules/document-conventions.md:23` | Points at `.agents/skills/<name>/SKILL.md`. The global path is `~/.agents/skills/<name>/SKILL.md`. The repo `.agents/skills/` holds 3 unrelated skills. |
-| D-4 | `dot_agents/rules.personal.d/zsh-emulate-fallback.md` | 630 words, 8.5% of the global budget, for a trigger the file itself calls unreachable on this host. |
-| D-5 | `dot_agents/rules.personal.d/ssh-agent-keys-location.md:21-47` | About 300 of 540 words are GnuPG internals, not rules. |
-| D-6 | `dot_agents/rules.personal.d/asd-ste100-trigger.md:12` | Triggers on any reply over roughly 6 sentences. Each trigger loads a 3,301-word skill, which is 2.9 times the whole always-on set. |
-| D-7 | `dot_agents/rules.personal.d/asd-ste100-trigger.md:20,22` | One clause appears twice in the same file. |
-| D-8 | missing file | No destructive-action rule. |
-| D-9 | `dot_agents/rules/long-running-tools.md:19-28` | The fan-out table lists the `subagent` tool. The prose above bans the fan-out facility for delegated research. No precedence. |
-| D-10 | `dot_agents/rules.personal.d/scoped-searches.md:5` and `.template-resources/rtk_installed.md` | The dedicated-tool list names `glob`, `grep`, and `read`. It omits `aft_search`, `aft_outline`, and `aft_zoom`, which the harness tool notice names as the primary code path. |
-| D-11 | `dot_agents/rules/rtk-rules.md` | 248 always-on words. Five of the 31 lines carry information the model does not already have. |
-| D-12 | `dot_agents/rules.personal.d/scoped-searches.md:24` | The escalation table names `~/.gnupg/`, which contains the sealed tree banned 6 lines later. |
-| D-13 | `dot_agents/rules.personal.d/scoped-searches.md:32-41` | Three answers to "no hit", with no stated order. |
-| D-14 | `dot_agents/rules/web-verification.md:20-25,64-68` | Tells the model to create a cache directory and write files in any project. The escape clause "when project rules prohibit writes" names a rule that does not exist. |
-| D-15 | `dot_agents/rules.personal.d/ssh-read-allowlist.md` and `ssh-agent-keys-location.md` | Two always-on rules grant and deny `~/.ssh/agent-keys/`. The repo rule bans any path containing "key", which is a third denial. |
-| D-16 | `AGENTS.md:47` | "Never modify `.encryption_keys/` without understanding the re-encrypt workflow" is not checkable. A model can assert that it understood. |
-| D-17 | `AGENTS.md:44` | The repo Never list names 3 extensions. The project rule names 12 patterns. A model that reads AGENTS.md alone under-protects. |
-| D-18 | `dot_agents/skills/document-conventions/SKILL.md:176` vs `:98` | The skill names two different plan paths. |
+| D-1 | `AGENTS.md:34` | "Commit the working tree after a refactor" collides with "Ask first: structural changes to the source directory layout" at lines 38-41. No precedence. |
+| D-2 | `document-conventions.md:19-23` | Copies 5 rows of the skill's decision matrix. The "authoritative picker" sentence is at line 9. |
+| D-3 | `document-conventions.md:23` | Points at `.agents/skills/<name>/SKILL.md`. Line 22 of the same table uses `~/.agents/`. The repo `.agents/skills/` holds 3 unrelated skills. |
+| D-4 | `zsh-emulate-fallback.md` | 630 words, 10.2% of the rule budget. The file records that the host pins bash, which makes its own trigger near-unreachable. |
+| D-5 | `ssh-agent-keys-location.md:21-46` | 220 words of GnuPG reference, 41% of the file, not rules. |
+| D-6 | `asd-ste100-trigger.md:12` | Fires on any reply over roughly 6 sentences. Each firing loads a 3,301-word skill, which is 0.57 times the entire rule set. |
+| D-7 | `asd-ste100-trigger.md:20,22` | One clause appears twice in the same file. |
+| D-8 | missing file | No destructive-action rule. Confirmed by grep. |
+| D-9 | `long-running-tools.md:19-28` | Line 28 lists `subagent` in the fan-out table. Lines 23-24 ban fan-out for delegated research. |
+| D-10 | `scoped-searches.md:5`, `rtk_installed.md` | Names only `glob`, `grep`, `read`. Omits `aft_search`, `aft_outline`, `aft_zoom`. |
+| D-11 | `rtk-rules.md` | 248 words, 31 lines. Five lines carry information the model does not already have. |
+| D-12 | `scoped-searches.md:24,30` | Line 24 names `~/.gnupg/`. Line 30 bans recursing into `~/.gnupg/private-keys-v1.d/`. Six lines apart. |
+| D-13 | `scoped-searches.md:32-41` | The three miss responses sit inside a numbered list, so the order is stated. Low severity. |
+| D-14 | `web-verification.md:20-23,64-68` | Tells the model to create a cache directory in any project. The escape clause "when project rules prohibit writes" is the only hit for `prohibit` in all 18 files. |
+| D-15 | `ssh-read-allowlist.md`, `ssh-agent-keys-location.md` | Two rules grant and deny `~/.ssh/agent-keys/`. The project rule's `key` substring ban is a third denial. |
+| D-16 | `AGENTS.md:47` | "Without understanding the re-encrypt workflow" is not checkable. |
+| D-17 | `AGENTS.md:44` | Names 3 extensions. The project rule line 11 names 15 patterns. |
+| D-18 | `document-conventions/SKILL.md:98,176` | Two different plan paths. |
+
+## Cross-check results
+
+Four reviewers, non-overlapping scope, all four found material errors.
+
+| Reviewer | Scope | Verdict | Material errors |
+|---|---|---|---|
+| Adversarial logic | Does each recommendation follow from its evidence | Rework | F-1 is p about 0.33 and confounded. The plan optimises bytes while its own F-3 names constraints. `git commit` ask deadlocks the Phase 2 commit rule. `git push --force*` blocks the safe `--force-with-lease` form. Loops get no rule. Phase 6 is underpowered. |
+| External facts | 26 claims against primary sources | Major corrections | The 92.8% figure is misused by a factor of 2.3. The pivotal test is underpowered and confounded. 48 times is an outlier. "512,000 on some providers" is wrong. NeQA is overstated. The family scores 82.9% on IFBench, which undercuts the premise. |
+| Internal measurement | 8 payload figures, 9 word counts, 18 defect claims | Minor corrections | "9 of 16 above the ceiling" is really 16 of 16. The ponytail injection is 2,861 bytes, not 5,565. 3,301 words is 0.57 times the rule set, not 2.9 times. All 18 defect line references were confirmed. |
+| OpenCode technical | Live v2.1.4 binary and schema | **The block is inert** | `action: "bash"` does nothing; v2 uses `"shell"`. Ordering is documented: last match wins. Patterns are whole-value anchored. A deny-list is the wrong shape. `agents.variant` is invalid. |
+
+### What each reviewer changed
+
+| Correction | Effect on the plan |
+|---|---|
+| `bash` to `shell` | Phase 4 rewritten. Proven by a live A/B test: a `bash` deny let the command run, a `shell` deny blocked it |
+| Deny-list to default-ask plus allowlist | Phase 4 rewritten. The docs warn against recognising every dangerous command by pattern |
+| "9 of 16" to "16 of 16" | Recommendation 1 downgraded from HIGH to MEDIUM. The byte target no longer follows from the ceiling |
+| 49% to 33% | The 20,000-byte target is withdrawn. Recomputed below |
+| ponytail 5,565 to 2,861 | The payload total drops to ~52,600 bytes |
+| 2.9 times to 0.57 times | The `asd-ste100` argument weakens. It is still the largest single on-demand load |
+| F-1 withdrawn | "Structural, not prose" is no longer a design law. The two new rules lose their justification as a class |
+| IFBench 82.9% for the family | The premise that a fast model needs a smaller set is unsupported |
+| `git commit` ask dropped | Conflicts with Phase 2. Phase 2 gets fixed first |
+| `agents.variant` moved inside `model` | Phase 5 snippet corrected |
+
+### What survived all four reviews
+
+D-1, D-2, D-3, D-7, D-12, and D-18. These are quote-level defects with no
+theory attached. They ship in tranche 1 regardless of what happens to the
+rest. The choice of the four worst-value files to cut also survived:
+`zsh-emulate-fallback`, the GnuPG block, the `stdbuf` caveats, and the
+`rtk-rules` command categories.
 
 ## Conclusion
 
-**Verdict.** The set is not optimal for this model. It is about twice the size
-it needs to be. It omits the one rule that matters most for a model with a
-92.8% confident-wrong rate. It carries three contradictions that the model
-resolves by guessing.
+**Verdict.** Do not apply as written. Apply in two tranches.
 
-**What the plan delivers.**
+### Tranche 1: safe today
 
-| Measure | Today | After |
-|---|---|---|
-| Global rule bytes | 38,929 | ~20,000 |
-| Always-on rule files | 16 | 18 |
-| Rules that gate a destructive command | 0 | 1 rule and 9 permission entries |
-| Rules that require a check after an edit | 0 | 1 |
-| Default reasoning effort | `max` | set per task type |
+Independent of every contested inference. Ship this.
 
-**What the plan does not do.** It does not make the model better. M3.1 Flash
-remains the weakest in-tier model on code execution, at 25.8% on Terminal-Bench
-against 33.8% for DeepSeek. The plan makes the harness fit the model. If
-output quality on hard coding work matters more than speed and cost, the
-decision belongs at the model choice, not at the instruction set.
+1. Phase 2, items 1 to 8. The contradiction and path fixes.
+2. A destructive-action gate with repaired patterns.
+3. A loop stop-condition rule of one sentence.
+4. The `git commit` question left alone until Phase 2 item 1 lands.
+
+### Tranche 2: contested
+
+Gate this behind a decision.
+
+1. The byte cut. The target is no longer 20,000 bytes. See below.
+2. The two new rules, which no longer rest on a design law.
+3. The effort change, which is the weakest evidence in the document.
+
+### The corrected arithmetic
+
+The Phase 1 table's word targets sum to 3,715 words down to 1,510. Those nine
+files hold about 24,700 bytes. Applying the same bytes-per-word ratio to the
+survivor counts saves about 14,700 bytes, leaving about 24,300. The two new
+rules add about 1,700 bytes. **Landed total is about 26,000 bytes, a 33% cut.**
+
+That is a real cut. It is not 49%. Reaching 20,000 would need another ~950
+words from files Phase 1 never lists: `local-first` 388, `sudo-ask` 413,
+`project-context` 316, `ambiguity-resolution` 262, `ssh-read-allowlist` 264,
+`zsh-stack` 257, `long-running-tools` 170.
+
+After a 9-file cut, **seven files still breach the 150-word ceiling**, and two
+of those are safety files this plan deliberately protects. State that
+trade-off rather than calling the cut complete.
+
+### The model question
+
+The plan's own numbers say DeepSeek V4.1 Flash 1017 is better on every
+code-execution metric: Terminal-Bench 33.8 against 25.8, LiveBench Coding 96.0
+against 83.9, Long Agentic 50.9 against 34.7. The first draft put the model
+choice out of scope without comparing anything.
+
+The honest position is a trigger, not silence. If code-execution quality on
+hard tasks matters more than the latency and price difference, the swap beats
+this plan's instruction work. Holding the model fixed is defensible for a
+single-variable test. It is not defensible as a permanent default.
+
+### What the plan does not deliver
+
+It does not make the model better, and it does not deliver a measured
+effectiveness gain. It delivers a smaller rule set, a real destructive-command
+gate, and a loop stop-condition.
 
 ### Confidence per recommendation
 
 | # | Recommendation | Confidence | Basis |
 |---|---|---|---|
-| 1 | Cut 9 rule files to ~20,000 bytes | HIGH | Measured byte counts against the house budget of 150 words per rule |
-| 2 | Fix the 8 contradictions | HIGH | Each is a quote pair in one or two adjacent files |
-| 3 | Move reference text into skills | HIGH | Three of the four existing routers already use this pattern |
-| 4 | Add a verify-before-claiming rule | MEDIUM | Follows from a 92.8% hallucination rate plus one causal test. The exact wording is untested on this model |
-| 5 | Add a destructive-action rule | MEDIUM | The gap is certain. Whether the model obeys the rule is untested. The permission layer is the real guard |
-| 6 | Use the v2 `permissions` array | HIGH | Read from the live schema at v2.1.4. `permission` is marked deprecated |
-| 7 | Set effort globally to `high` | LOW | Two blog curves, each on one small task. The 10 point spread comes from the vendor |
-| 8 | Measure before shipping | HIGH | No published adherence score exists for this model |
+| 1 | Fix the contradictions and path defects | HIGH | Quote-level. All confirmed by measurement |
+| 2 | Add a destructive-action gate | HIGH | The gap is certain. The permission mechanism was proven live |
+| 3 | Add a loop stop-condition | MEDIUM | The base rate is shared with two other models. The counter is cheap |
+| 4 | Cut the nine worst-value files | MEDIUM | Per-file word counts confirmed. The 33% total is arithmetic, not measurement |
+| 5 | Add a verify-before-claiming rule | LOW | The motivating experiment is withdrawn. Keep only the unlaunderable parts |
+| 6 | Change the default effort | LOW | Two blog curves on different tasks. The plan's own Phase 6 cannot test it |
 
 ## Refined approach
 
-Four rules drive every change.
+Three rules drive the changes.
 
-1. **Structural counters, not prose counters.** F-1 shows that a request for
-   honesty backfires on this model. Every counter must be a runnable command,
-   a file re-read, or a path and line citation.
-2. **Positive rules with a trigger.** A rule states what to do and when. A
-   prohibition stays only where the model must not take an action at all, and
-   it moves to the harness `permissions` layer.
-3. **Routers point, they do not copy.** Three of the four existing routers
-   already do this well. The two that copy skill content get cut to a pointer.
-4. **Budget the always-on set.** Target 20,000 bytes of global rule text, down
-   from 38,929. Keep every safety rule. Cut reference text, procedural text,
-   and duplicates.
+1. **Ship what is provable.** A defect confirmed by reading the file ships now.
+   A behaviour change that depends on one underpowered test waits.
+2. **Structural where possible, honest where not.** A re-read and a named
+   command are testable. A closing self-report is not. Keep the first, label
+   the second.
+3. **One owner per guard.** If the harness can enforce a command, the harness
+   owns it. The rule file covers only what the harness cannot express. Three
+   drifting lists is worse than one.
 
-**Where the changes land.** Phases 1, 3, and 5 are global by construction. The
-files they touch exist only in the global layer. Phase 2 is split. Three of
-its eight fixes are in `AGENTS.md`, which is repo-scoped, so those three never
-leave this repo. Phase 4 is a choice: the global OpenCode config applies to
-every project, and the repo `.opencode/opencode.jsonc` applies to this one.
-Note that a guard written as OpenCode config does not reach Codex or Claude
-Code. The prose rules are the only portable layer, and prose is the weakest
-layer for this model.
+**Where the changes land.** Phases 1, 3, and 5 are global by construction.
+Phase 2 is split: three of its eight fixes are in `AGENTS.md`, which is
+repo-scoped. Phase 4 is a choice between the global config and
+`.opencode/opencode.jsonc`. A guard written as OpenCode config does not reach
+Codex or Claude Code.
 
 ## Implementation steps
 
 ### Phase 1. Cut the payload
 
+Target: **about 26,000 bytes, a 33% cut.** Not 20,000. Count constraints, not
+just words.
+
 | File | Words now | Words after | Action |
 |---|---|---|---|
-| `rules.personal.d/zsh-emulate-fallback.md` | 630 | ~60 | Keep the host fact and the `bash -c` fallback. Delete the `emulate` semantics, the `man zshmisc` citation, and the option-leak detail. Git keeps the old text. |
-| `rules.personal.d/ssh-agent-keys-location.md` | 540 | ~140 | Keep the placement rule and the 6-step process. Move the GnuPG internals to a new skill reference. |
-| `rules.personal.d/ssh-stdbuf-disable-buffering.md` | 358 | ~80 | Keep the `stdbuf -oL -eL` rule and the static-linking fallback. Move the LD_PRELOAD and `-tt` caveats to the same new skill. |
-| `rules.personal.d/asd-ste100-trigger.md` | 298 | ~200 | Replace the length threshold with an artifact list. Drop the repeated clause. |
-| `rules/rtk-rules.md` | 248 | ~90 | Keep "never wrap the dedicated tools", "wrap each sub-command", and the diagnostic modes. Drop the 5 command categories. |
-| `rules/document-conventions.md` | 258 | ~130 | Delete the inline matrix. Point at the skill. Fix the skill path to `~/.agents/skills/<name>/SKILL.md`. |
-| `rules/web-verification.md` | 512 | ~330 | Drop the volatility taxonomy table. Keep the 6-month and 3-month thresholds. Scope the cache write. |
-| `rules.personal.d/scoped-searches.md` | 482 | ~250 | Replace the 8-step process with 3 lines. Keep the escalation table with the `~/.gnupg/` row fixed. State the order for "no hit". |
-| `rules/runtime-tools.md` | 389 | ~230 | Reduce the host section to one line per tool. Stop copying skill text. |
+| `zsh-emulate-fallback.md` | 630 | ~60 | Keep the host fact and the `bash -c` fallback. Delete the `emulate` semantics and the option-leak detail. |
+| `ssh-agent-keys-location.md` | 540 | ~140 | Keep the placement rule and the 6-step process. Move the GnuPG internals to a skill reference. |
+| `ssh-stdbuf-disable-buffering.md` | 358 | ~80 | Keep the `stdbuf -oL -eL` rule and the static-linking fallback. Move the caveats to the same skill. |
+| `asd-ste100-trigger.md` | 298 | ~200 | Replace the length threshold with an artifact list. Drop the repeated clause. |
+| `rtk-rules.md` | 248 | ~90 | Keep "never wrap the dedicated tools", "wrap each sub-command", and the diagnostic modes. |
+| `document-conventions.md` | 258 | ~130 | Delete the inline matrix. Point at the skill. Fix the skill path. |
+| `web-verification.md` | 512 | ~330 | Drop the volatility table. Keep the two thresholds. Scope the cache write. |
+| `scoped-searches.md` | 482 | ~250 | Replace the 8-step process with 3 lines. Fix the `~/.gnupg/` row. |
+| `runtime-tools.md` | 389 | ~230 | One line per tool. Stop copying skill text. |
 
-Expected result: 38,929 bytes down to about 20,000 bytes, a 49% cut. The
-skill catalog gains one entry, about 100 tokens.
+New files add about 1,700 bytes. Seven untouched files still breach the
+ceiling. Say so in the commit message.
 
 ### Phase 2. Fix the contradictions
 
@@ -347,230 +395,276 @@ skill catalog gains one entry, about 100 tokens.
    recipient key rewrites every encrypted file, so run `chezmoi re-encrypt`
    only after the user approves."
 3. `AGENTS.md:44`. Replace the 3-extension list with a pointer to
-   `.agents/rules/chezmoi-source-project.md`.
-4. `long-running-tools.md`. Split the table into two rows. One row for
-   parallel sessions and worktrees, on explicit user request. One row for
-   delegated research through the `subagent` tool, always allowed.
-5. `scoped-searches.md`. Replace the `~/.gnupg/` row with
+   `.agents/rules/chezmoi-source-project.md`, which names 15 patterns.
+4. `long-running-tools.md`. Split the table. One row for worktrees on explicit
+   request. One row for delegated research through `subagent`, always allowed.
+5. `scoped-searches.md:24`. Replace `~/.gnupg/` with
    `~/.gnupg/gpg-agent.conf` and `~/.gnupg/gpg.conf`, and add "files, not the
    directory".
-6. `ssh-read-allowlist.md`. Add `~/.ssh/agent-keys/` to the allowlist for
-   directory listings and `*.pub` files only. State that this carve-out wins
-   over the general `~/.ssh/` denial.
+6. `ssh-read-allowlist.md`. Add `~/.ssh/agent-keys/` for directory listings
+   and `*.pub` files only. State that this carve-out beats the general denial.
 7. `web-verification.md`. Add: "Write a cache entry only in a repository that
    already has `.agents/docs/cache/`. Otherwise skip the cache and note the
    gap in your reply."
-8. `document-conventions/SKILL.md:176`. Make the quick-reference path match
-   line 98.
+8. `document-conventions/SKILL.md:176`. Match line 98.
 
-### Phase 3. Add the missing rules
+### Phase 3. Add three rules
 
-**New file `dot_agents/rules.personal.d/destructive-actions.md`.** Short list,
-ask first, each item one line.
+**`dot_agents/rules.personal.d/destructive-actions.md`.** One line per
+command. Each ends: "Ask first. Print the exact command in the reply so the
+user can run it."
 
-- `rm -rf`, or `rm -r` on a path outside the working directory
-- `git reset --hard`, `git clean -fd`, `git push --force`
-- `git commit` when the user did not ask for a commit
+- `rm -rf`, `rm -fr`, `rm -r -f`, or `rm -r` on a path outside the working directory
+- `git reset --hard`, `git clean -fd`, `git push --force`, `git push -f`
 - `chezmoi apply`, `chezmoi re-encrypt`, `chezmoi update`
-- `sudo`, `doas`, `pkexec`
 - `chmod`, `chown`, or `mv` on a path outside the working directory
 
-Each line names the exact command and ends with: "Ask first. Print the exact
-command in the reply so the user can run it."
+Do not list `sudo` here. `sudo-ask.md` already owns it, and this plan should
+not duplicate a guard that already works.
 
-**New file `dot_agents/rules/verify-before-claiming.md`.** The counter for
-F-4. Wording is positive and structural, per F-1. It does not ask the model to
-be careful or to admit doubt.
+**`dot_agents/rules/verify-before-claiming.md`.** Keep only the unlaunderable
+parts. A model that invents a path can invent a line number for it, so a
+citation is not proof on its own.
 
-- After you edit a file, read the file back and check the change is there.
+- After you edit a file, read it back and check the change is there.
 - After you change code, run the project test or check command. Do not report
   the change as done until the command exits 0.
-- For each claim about this repository, give the file path and the line
-  number.
-- When a command fails, show the command and its output. Do not paraphrase an
-  error you did not see.
-- When a check cannot run, say so and name the reason. Do not report it as
-  passed.
-- End each task with one line that lists each promised check as done, blocked,
-  or skipped.
+- Cite only paths and line numbers that a tool returned in this session. If
+  you have not opened the file, open it first.
+- When you run a command, show the command and its exit code.
+- When a check cannot run, say so and name the reason.
 
-**Update `dot_agents/rules.personal.d/scoped-searches.md` and
-`dot_agents/rules/.template-resources/rtk_installed.md`.** Name the full tool
-set. Use a harness-neutral phrase with the OpenCode names in parentheses, so
-the rule still reads correctly in another harness:
+Do not add a closing self-report line. The cross-check showed it is the class
+of evidence a model can fabricate without detection.
 
-> Use the harness symbol-search and outline tools before shell search. In
-> OpenCode these are `aft_search`, `aft_outline`, and `aft_zoom`. Use `shell`
-> for commands, tests, and git. Use shell `grep` only when the search tools
-> return nothing.
+**`dot_agents/rules/no-progress-stop.md`.** One sentence, and the only
+structural counter for the loop failure:
+
+> If two consecutive attempts at the same step produce no new tool evidence,
+> stop and report what is blocked.
 
 ### Phase 4. Move the guard to the harness layer
 
-Prose is a probabilistic guard. The OpenCode `permissions` field is
-deterministic. In v2.1.4 the deprecated `permission` object is replaced by
-`permissions`, an ordered array of `{action, resource, effect}`. Add these
-entries to `dot_config/opencode/private_opencode.jsonc`, after the existing
-`external_directory` entry:
+**The action token is `shell`, not `bash`.** A block written with `bash`
+validates against the schema and blocks nothing. This was proven live. A
+`bash` deny let `echo` run. The same deny with `shell` blocked it.
+
+**Ordering is last-match-wins.** Global rules load first, then project rules,
+then agent rules. Put the broad rule first and the specific exceptions after
+it.
+
+**Use default-ask plus an allowlist, not a deny-list.** The OpenCode docs warn
+against patterns that try to recognise every dangerous command. A deny-list
+misses `rm -fr`, `rm -r -f`, `sudo rm -rf x`, and `cd /tmp && rm -rf x`,
+because matching is whole-value anchored.
 
 ```jsonc
 "permissions": [
-  { "action": "external_directory", "resource": "~/.local/share/opencode/worktree/**", "effect": "allow" },
-  { "action": "bash", "resource": "rm -rf *",            "effect": "deny" },
-  { "action": "bash", "resource": "git reset --hard*",   "effect": "deny" },
-  { "action": "bash", "resource": "git clean -fd*",      "effect": "deny" },
-  { "action": "bash", "resource": "git push --force*",   "effect": "deny" },
-  { "action": "bash", "resource": "git commit*",         "effect": "ask"  },
-  { "action": "bash", "resource": "chezmoi apply*",      "effect": "ask"  },
-  { "action": "bash", "resource": "chezmoi re-encrypt*", "effect": "ask"  },
-  { "action": "bash", "resource": "sudo *",              "effect": "ask"  }
+  // broad default: ask before any shell command
+  { "action": "shell", "resource": "*",                        "effect": "ask" },
+
+  // routine, read-only, no prompt
+  { "action": "shell", "resource": "git status*",              "effect": "allow" },
+  { "action": "shell", "resource": "git diff*",                "effect": "allow" },
+  { "action": "shell", "resource": "git log*",                 "effect": "allow" },
+  { "action": "shell", "resource": "chezmoi diff*",            "effect": "allow" },
+  { "action": "shell", "resource": "chezmoi apply --dry-run*", "effect": "allow" },
+
+  // destructive: deny last so it beats the broad ask
+  { "action": "shell", "resource": "*rm -*rf*",                "effect": "deny" },
+  { "action": "shell", "resource": "*rm -*fr*",                "effect": "deny" },
+  { "action": "shell", "resource": "*git reset --hard*",       "effect": "deny" },
+  { "action": "shell", "resource": "*git clean -*",            "effect": "deny" },
+  { "action": "shell", "resource": "*git push --force*",       "effect": "deny" },
+  { "action": "shell", "resource": "*git push -f*",            "effect": "deny" }
 ]
 ```
 
-This is the fix for D-8 and for the missing `sudo` gate. The rule file becomes
-the backstop. The permission array and the plugin become the guard.
+The leading `*` is load-bearing. Without it, `sudo rm -rf x` is not caught.
+The `chezmoi apply --dry-run` allow must sit after the broad ask, or it is
+dead.
 
-The schema does not state whether the first or the last matching rule wins.
-Test one `deny` entry with a throwaway command before trusting the array.
+**Do not add `git commit*` here.** It contradicts Phase 2 item 1, and in a
+subagent run there is nobody to answer the prompt. Fix `AGENTS.md:34` first,
+then let the broad `ask` cover commits.
 
-### Phase 5. Set the reasoning effort
+**For a gate that cannot be overridden, use `policies`.** Only policies turn
+an allow into a deny, and they survive saved approvals and project config:
 
-The model defaults to `max`, and `max` is where the no-progress loops
-appear. In v2.1.4 the root `model` accepts `{providerID, model, variant}`, and
-the string form accepts `provider/model#variant`. A global default effort is
-therefore possible. `AgentConfig.variant` also exists for a per-agent
-override.
+```jsonc
+"policies": [ { "action": "tool.use", "resource": "shell:sudo *", "effect": "deny" } ]
+```
+
+**Do not ship a catch-all `deny`.** A blanket
+`{ "action": "shell", "resource": "*", "effect": "deny" }` stalled
+`opencode run` for over five minutes. Narrow denies fail in under a second.
+
+**Known limit:** global permissions are appended before project rules, so a
+project with its own shell rule overrides this block. State that in the commit
+message rather than calling the guard absolute.
+
+### Phase 5. Reasoning effort
+
+**The variant goes inside `model`, not beside it.** `agents.<name>.variant` is
+rejected by the schema; `agents` uses `Config.AgentEncoded`, which does not
+allow it.
+
+```jsonc
+// global default, either form is valid
+"model": "openrouter/minimax/minimax-m3.1-flash#high"
+"model": { "providerID": "openrouter", "model": "minimax/minimax-m3.1-flash", "variant": "high" }
+
+// per-agent override
+"agents": {
+  "title": {
+    "model": { "providerID": "openrouter", "model": "qwen/qwen3.7-flash", "variant": "low" }
+  }
+}
+```
+
+A subagent that pins its own model loses the parent variant. That is
+documented behaviour.
 
 | Task type | Effort | Evidence |
 |---|---|---|
-| Read, search, single-file edit | `low` | 48 s and 1.3K reasoning tokens at `low` against 9.5 min and 60.6K at `max`, same result |
-| Multi-file edit, bug hunt | `medium` or `high` | 10-point Automation-Bench spread from `low` to `max` |
-| Long-horizon agent run | `max` | `max` scores 62.8% on Automation-Bench against 52.8% at `low` |
+| Read, search, single-file edit | `low` | 48 s and 1.3K reasoning tokens at `low`, against 9.5 min and 60.6K at `max`, same result |
+| Multi-file edit, bug hunt | `medium` or `high` | Vendor Automation-Bench spread of 10 points from `low` to `max` |
+| Long-horizon agent run | `max` | Vendor data puts `max` 10 points above `low` here |
 
-The `subagent` tool drops the parent variant when the subagent pins its own
-model. Set the variant on each subagent definition, not only on the parent.
+This table cannot be expressed as one global default. OpenCode has one root
+model. A global `high` overrides the `max` row. Choose: either accept `high`
+everywhere and drop the third row, or set the root to `max` and override per
+agent.
 
-### Phase 6. Measure the result
+Grade this LOW. Do not ship it in tranche 1.
 
-This phase is optional. It answers the question that no published study
-answers for this model: does the instruction set work here.
+### Phase 6. Pilot, not measurement
 
-1. Pick 8 to 12 tasks from this repository that use the rules:
-   - a chezmoi template edit
-   - a shell script fix
-   - a rule file edit
-   - a read next to a secret file
-   - a task that includes a destructive command
-   - a doc write
-   - a bug hunt
-   - a multi-file refactor
-2. Run each task 3 times with the current rules and 3 times with the new
-   rules. Hold the effort, the model, and the temperature fixed.
-3. Score each run on these points:
-   - did the model follow the targeted rule
-   - did the model run the named check
-   - did the model invent a path or a flag
-   - did the model stop in a loop
-   - how long the task took
-4. Store the results as a table. Decide on the numbers, not on the theory.
+Relabel this phase. It cannot detect the effects the plan claims.
+
+At 8 to 12 tasks and 3 runs per arm, two proportions near 50% give a minimum
+detectable effect of about 31 percentage points. Near the 92.8% ceiling it
+detects nothing at all. Three runs per task are also correlated by task
+difficulty, so the effective sample is closer to 12 than 36.
+
+What the phase can do:
+
+- Surface qualitative failures and build a harness for later work.
+- Test the destructive gate, where 0 of 3 against 3 of 3 is weak but visible.
+
+What it cannot do:
+
+- Test the effort change, because the design holds effort fixed.
+- Detect an adherence improvement.
+
+If this becomes evidence rather than instrumentation, it needs three things.
+Pre-register a single primary metric. Analyse paired by task. Budget at least
+100 runs per arm for the invention metric.
+
+### Phases that are now out of scope
+
+The first draft's "structural counters, not prose counters" premise is
+withdrawn. Do not rewrite the existing rules to remove prose. That work has no
+evidence behind it.
 
 ## Risks and mitigations
 
-- **Risk:** a cut rule turns out to carry something the model needed.
-  **Mitigation:** git keeps every removed paragraph. The change lands in one
-  commit, so one revert restores the old text.
-- **Risk:** the `permissions` entry blocks a workflow the user wants.
-  **Mitigation:** use `ask` for the commands that have a legitimate case, and
-  `deny` only for the four that destroy data.
-- **Risk:** the verify rule adds a tool round to every task, so tasks take
-  longer. **Mitigation:** the model is already slow at `max`. Phase 5 cuts the
-  reasoning depth, which pays for the extra round.
-- **Risk:** the effort change alters the feel of the model.
-  **Mitigation:** Phase 5 maps effort to task type, so the change is a
-  gradient, not a switch.
-- **Risk:** a global rule change changes behavior in every project, not only
-  this one. **Mitigation:** the user approves each global change, and this
-  plan lists every file by path before any edit.
-- **Risk:** a bare `chezmoi apply` deploys unrelated in-flight changes in the
-  source tree, not only the instruction files. **Mitigation:** apply by target
-  path. `chezmoi apply ~/.agents/rules ~/.agents/rules.personal.d` and
+- **Risk:** a cut rule carries something the model needed. **Mitigation:** one
+  commit. One revert restores the old text.
+- **Risk:** the `permissions` block prompts on every command and makes the
+  session unusable. **Mitigation:** the allowlist covers the five read-only
+  commands that dominate a session. Add to it as needed.
+- **Risk:** a project `.opencode/opencode.jsonc` silently overrides the global
+  block. **Mitigation:** use `policies` for the rules that must hold.
+- **Risk:** the deny patterns miss a variant. **Mitigation:** the broad `ask`
+  is the real guard. The denies are defence in depth.
+- **Risk:** tranche 2 ships without evidence, as tranche 1 did. **Mitigation:**
+  the confidence table says LOW for both contested items. Ship them as hygiene
+  changes and say so.
+- **Risk:** a bare `chezmoi apply` deploys unrelated in-flight changes.
+  **Mitigation:** apply by target. `chezmoi apply ~/.agents/rules` and
   `chezmoi apply ~/.config/opencode/opencode.jsonc`.
 
 ## Open questions
 
-1. Which effort becomes the default: `max` as today, or `high`?
-2. Is a 49% cut acceptable, or do you want a smaller cut that keeps the
-   reference text in place?
-3. Do you want the destructive-action rule global, so it loads in every
-   project, or only in this repo?
-4. Do you want the `permissions` array in the global OpenCode config, which
-   applies to every project, or in the repo `.opencode/opencode.jsonc`?
-5. Should Phase 6 run, or should the changes ship on the evidence alone?
+1. Do you accept the two-tranche split, or do you want one change set?
+2. Tranche 2: ship as hygiene, or gate behind a pilot?
+3. Is a 33% cut worth the work, given seven files still breach the ceiling?
+4. Should the ceiling itself be relaxed for the safety files, or enforced on
+   all 16?
+5. Global `permissions`, or repo `.opencode/opencode.jsonc`?
+6. If code-execution quality matters more than latency, should the model swap
+   be evaluated before this plan? The plan's own data favours the swap.
 
 ## Decisions
 
-- 2026-10-25: The plan is a draft. No file in `dot_agents/`, `AGENTS.md`, or
-  the OpenCode config changed during the review.
-- 2026-10-25: The global rules stay global. The user keeps one rule set for
-  every project. The review changes the content, not the scope.
-- 2026-10-25: Phase 4 uses the v2 `permissions` array, not the deprecated
-  `permission` object. Basis: the v2.1.4 config schema.
-- 2026-10-25: Phase 5 sets effort on the root `model`. The earlier claim that
-  the root model cannot carry a variant was wrong. Basis: the v2.1.4 config
-  schema.
+- 2026-10-25: The plan is a draft and is not approved. No file in
+  `dot_agents/`, `AGENTS.md`, or the OpenCode config changed during the
+  review.
+- 2026-10-25: Phase 4 uses `action: "shell"`. The v1 token `bash` validates
+  and does nothing.
+- 2026-10-25: Phase 4 uses default-ask plus an allowlist. A deny-list cannot
+  express the policy, because matching is whole-value anchored.
+- 2026-10-25: Phase 5 puts `variant` inside `model`. `agents.<name>.variant`
+  fails schema validation.
+- 2026-10-25: F-1 is withdrawn. The motivating experiment is p about 0.33 and
+  confounded by the output-token cap.
+- 2026-10-25: The 20,000-byte target is withdrawn. The arithmetic lands at
+  about 26,000 bytes, a 33% cut.
+- 2026-10-25: The `git commit` permission entry is dropped. It conflicts with
+  the session-end commit rule and stalls unattended runs.
 
 ## Deferred notes
 
-- The skill catalog costs about 1,600 tokens on every session. No published
-  study measures the damage of a large catalog on a flash model. A test with
-  5 of the 11 skills disabled would answer it. That test is not in this plan.
-- `~/.agents/rules.personal.d/asd-ste100-trigger.md` makes every reply over
-  roughly 6 sentences load a 3,301-word skill. A count of how often that
-  trigger fires would settle whether the Phase 1 cut costs prose quality.
+- The skill catalog costs about 5,000 bytes, roughly 1,300 tokens, on every
+  session. No published study measures the damage of a large catalog on a
+  flash model.
+- OctoBench (arXiv 2601.10343) measures instruction adherence per injection
+  channel: system prompt, Agents.md, memory, tool schema. It covers
+  MiniMax-M2.1, not M3.1 Flash. It is the right design for a future Phase 6.
+- `asd-ste100-trigger.md` loads a 3,301-word skill on any reply over about 6
+  sentences. That is 0.57 times the whole rule set. Whether it fires often
+  enough to matter is unmeasured.
+- The `cc-safety-net` plugin and the `permissions` array are two guards over
+  the same commands. They should not both be maintained. Pick one owner.
 - The `question` tool comes from the `opencode-magic-context` plugin, not
-  from OpenCode. The `sudo-ask` and `ambiguity-resolution` rules depend on it
-  with no fallback. A plain-text fallback sentence would close the gap.
-- The `cc-safety-net` plugin blocks several destructive commands. The audit
-  read its bundled output by pattern search rather than from the policy
-  source. The Phase 4 list is written from the OpenCode permission schema, so
-  the two lists do not need to agree.
+  OpenCode. `sudo-ask.md` and `ambiguity-resolution.md` depend on it with no
+  fallback.
 
 ## References
 
 ### Model
 
 - MiniMax M3.1 Flash announcement — https://www.minimax.io/blog/minimax-m31f
-- MiniMax text-generation guide (effort levels, thinking) —
-  https://platform.minimax.io/docs/guides/text-generation
+- MiniMax Codex guide (effort ladder, 512K client window) —
+  https://platform.minimax.io/docs/m-plan/codex.md
 - MiniMax tool-use guide (`reasoning_content`, interleaved thinking) —
   https://platform.minimax.io/docs/guides/text-m3-function-call
-- MiniMax M2 agent-generalization post —
-  https://platform.minimax.io/docs/guides/text-m2-agent-generalization.md
-- MiniMax Codex guide (512K against 1M context) —
-  https://platform.minimax.io/docs/m-plan/codex.md
+- MiniMax text-generation guide —
+  https://platform.minimax.io/docs/guides/text-generation
 - Artificial Analysis model page —
   https://artificialanalysis.ai/models/minimax-m3-1-flash
-- Artificial Analysis AA-Omniscience definition —
+- AA-Omniscience definition —
   https://artificialanalysis.ai/evaluations/omniscience
 - Artificial Analysis launch thread —
   https://x.com/ArtificialAnlys/status/2112211865128608002
-- VentureBeat launch report —
-  https://venturebeat.com/technology/minimaxs-new-m3-1-flash-beats-deepseek-and-opus-5-on-a-key-business-benchmark-at-lower-cost-but-with-a-high-hallucination-rate
-- AI/ML API hands-on review (the controlled "admit uncertainty" test, the
-  effort ladder, the nonexistent-town test) —
+- AI/ML API hands-on review (the controlled admit-uncertainty test, the effort
+  ladder, the effect-ladder comparison) —
   https://aimlapi.com/blog/minimax-m3-1-flash-review
-- Atomic Agent test (low against max on one task, no-progress loop) —
+- Atomic Agent test (low against max on one task, loop detector) —
   https://atomicagent.io/blog/minimax-m3-1-flash/
-- Atomic Agent model comparison —
-  https://atomicagent.io/blog/deepseek-v4-1-flash-vs-minimax-m3-1-flash/
 - BenchLeader model page (Terminal-Bench, LiveBench, IFBench gap) —
   https://www.benchleader.com/models/minimax-m3-1-flash
+- BenchLeader IFBench leaderboard (MiniMax M3 at 82.9%, rank 2) —
+  https://www.benchleader.com/benchmarks/aa_ifbench
 - OpenCode public usage data —
   https://opencode.ai/data/minimax/minimax-m3-1-flash
 
 ### Prompt design
 
-- IFScale, instruction density and degradation curves —
-  https://arxiv.org/abs/2507.11538
+- IFScale — https://arxiv.org/abs/2507.11538
+- OctoBench, scaffold-aware instruction following in repository-grounded
+  agentic coding — https://arxiv.org/abs/2601.10343
 - Anthropic, effective context engineering —
   https://www.anthropic.com/research/effective-context-engineering-for-ai-agents
 - Anthropic, Agent Skills —
@@ -579,46 +673,38 @@ answers for this model: does the instruction set work here.
   https://www.anthropic.com/engineering/writing-tools-for-agents
 - Anthropic, Claude Code best practices —
   https://www.anthropic.com/research/claude-code-best-practices
-- OpenAI, Codex prompting guide (tool routing, plan closure) —
+- OpenAI, Codex prompting guide —
   https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide
 - OpenAI, GPT-5.2 prompting guide —
   https://developers.openai.com/cookbook/examples/gpt-5/gpt-5-2_prompting_guide
-- agentskills.io specification (progressive disclosure, token limits) —
-  https://agentskills.io/specification
-- agents.md format —
-  https://agents.md
-- Cursor rules (activation modes, what to avoid) —
-  https://cursor.com/docs/rules
-- Aider conventions file —
-  https://aider.chat/docs/usage/conventions.html
-- Chroma, context rot —
-  https://research.trychroma.com/context-rot
-- NeQA, negation and inverse scaling —
-  https://arxiv.org/abs/2305.17311
+- agentskills.io specification — https://agentskills.io/specification
+- agents.md — https://agents.md
+- Cursor rules — https://cursor.com/docs/rules
+- Chroma, context rot — https://research.trychroma.com/context-rot
 
 ### Harness
 
-- OpenCode config schema (the `permission`, `permissions`, and `AgentConfig`
-  definitions) — https://opencode.ai/config.json
-- OpenCode permissions — https://opencode.ai/docs/permissions
+- OpenCode config schema — https://opencode.ai/config.json
+- OpenCode permissions (v2 action names `shell` and `subagent`, last match
+  wins) — https://opencode.ai/docs/permissions
+- OpenCode policies — https://opencode.ai/docs/policies
 - OpenCode models and variants — https://opencode.ai/v2/docs/models
 - OpenCode instructions — https://opencode.ai/v2/docs/instructions
 
 ### Internal
 
 - `.agents/skills/document-conventions/references/structure-and-length.md` —
-  the rule-file budget of 30 to 80 words with a 150-word ceiling
-- `.agents/skills/document-conventions/SKILL.md` — the decision matrix and
-  the harness-neutral rule policy
-- `dot_agents/rules/.template-resources/` — the six host-rendered snippets
+  the 30-80 word target and 150-word ceiling
+- `dot_agents/rules/.template-resources/` — six host-rendered snippets, not
+  deployed (`chezmoi managed` count is 0)
 - `dot_config/opencode/private_opencode.jsonc` — the effective config
 
 ## Current status
 
-Research, audit, and plan are done on 2026-10-25. The plan carries the problem
-background, the five research steps, the findings, the conclusion with a
-confidence grade per recommendation, and the reference list. Two technical
-errors in the first draft are corrected: the Phase 4 permission shape and the
-Phase 5 root-model variant. No file in `dot_agents/`, `AGENTS.md`, or the
-OpenCode config changed during the review. Next action is the user's
-go-ahead and the answers to the five open questions.
+Reworked after four independent cross-checks on 2026-10-25. Two findings
+removed the plan's central premise: the motivating experiment is p about 0.33
+and confounded, and the model family scores 82.9% on IFBench. One finding
+showed that the permission block would be inert under the v1 action token:
+`action: "bash"` does nothing in v2. The plan is split into a safe tranche and
+a contested tranche. No file in `dot_agents/`, `AGENTS.md`, or the OpenCode
+config changed. Next action is the user's answers to the six open questions.
