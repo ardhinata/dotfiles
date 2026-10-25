@@ -40,11 +40,14 @@ is for transient scratchpads only — date-tagged web-learned facts go in
 ## Per-tool parameters
 
 A search or extract MCP often has per-tool defaults that the remote server
-does **not** apply for you. Before the first call to a given `tavily_*`,
-`firecrawl_*`, or `context7_*` tool, load the matching skill for the
-defaults it carries: `~/.agents/skills/tavily-defaults/SKILL.md` for the
-Tavily tools. Passing the defaults explicitly is cheaper than discovering
-the cost difference after the call.
+does **not** apply for you. Before the first call to a given `firecrawl_*` or
+`context7_*` tool, load the matching skill for the defaults it carries.
+Passing the defaults explicitly is cheaper than discovering the cost
+difference after the call.
+
+No Tavily MCP server is configured on this host. The `tavily_*` tools do not
+exist. OpenCode's built-in `websearch` provider pins its own parameters in
+the binary, so the agent cannot pass them.
 
 ## Knowledge Staleness
 

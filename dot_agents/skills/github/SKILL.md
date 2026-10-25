@@ -66,7 +66,7 @@ gh issue list --state open --limit 50
 gh issue view 123 --comments
 gh issue create --title "..." --body "..." --label bug --assignee @me
 gh issue close 123 --comment "fixed by #124"
-gh issue develop 123 --branch fix/123 --base main    # create a branch linked to the issue
+gh issue develop 123 --name fix/123 --base main     # create a branch linked to the issue
 gh search issues "is:open is:issue label:bug repo:owner/repo"
 ```
 
@@ -94,7 +94,7 @@ gh repo sync                                       # mirror upstream
 gh repo set-default owner/repo                      # set this checkout as default
 gh browse                                          # open current repo in browser
 gh browse 42                                        # open issue/PR #42
-gh browse -n main path/to/file                     # print URL only
+gh browse path/to/file -b main -n                   # print URL only (no browser)
 ```
 
 ### Releases
@@ -180,8 +180,8 @@ gh api repos/owner/repo/rulesets --input rulesets.json --method PUT
 | Goal | Command |
 |---|---|
 | Open repo / issue / PR in browser | `gh browse [path\|#]` |
-| Read a single file from a repo | `gh repo read-file owner/repo path/to/file` (no clone) |
-| List a repo's directory | `gh repo read-dir owner/repo path/to/dir` |
+| Read a single file from a repo | `gh repo read-file path/to/file --repo owner/repo` (no clone) |
+| List a repo's directory | `gh repo read-dir --repo owner/repo path/to/dir` |
 | Find a PR by branch | `gh pr list --head <branch> --json number,title,url` |
 | Find an issue by text | `gh issue list --search "in:title <phrase>"` |
 | Get the current PR's CI status | `gh pr checks --json name,conclusion,state` |
