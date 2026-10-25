@@ -33,17 +33,23 @@
       "model": "openrouter/qwen/qwen3.7-flash"
     }
   },
+  // Tavily is the only websearch provider with a keyless fallback, so the tool
+  // still works when TAVILY_API_KEY is absent. "random" also picks exa and
+  // firecrawl, which fail with HTTP 401 when their key is missing.
+  "websearch": {
+    "provider": "tavily",
+  },
   "providers": {
     // Openrouter-specific provider settings to pin the inference provider to cheapest available
     "openrouter": {
       "package": "@opencode/ai/providers/openrouter",
       "models": {
-        "deepseek/deepseek-v4.1-flash": {
+        "deepseek/deepseek-v4.1-flash-1017": {
           "settings": {
             "provider": {
               "only": [
                 "decart/fp4",
-                "open-inference/fp4",
+                "inference-net/fp8",
                 "sail-research/fp4",
                 "deepinfra/fp8",
                 "relace"
@@ -93,6 +99,7 @@
                 "novita/fp8",
                 "relace",
                 "sail-research/fp4",
+                "gmicloud/fp8",
 
               ]
             }
