@@ -1,22 +1,22 @@
 {{- /* runtime-tools.md.tmpl — chezmoi template, branches per host */ -}}
 # Runtime Tools
 
-Router rule. Triggers load the relevant flat skill — `fnm` for Node
-toolchain concerns, `container-tools` for container runtime concerns.
-Each skill holds the install / fallback commands and decision tables.
+Router rule. Triggers point at the reference material for the tool in
+question — the Node note is in the `fnm` section below, the container notes
+are in the `container-tools` skill.
 
-## Load the relevant skill when any of these is true
+## Load the relevant reference when any of these is true
 
 - About to run any `node`, `npm`, `pnpm`, `yarn`, `npx`, `corepack`, or
   `bun` command in a project that has a `.node-version`, `.nvmrc`, or
-  `package.json#engines.node` → load the `fnm` skill.
+  `package.json#engines.node` → read the `fnm` section below.
 - About to run any `docker`, `podman`, `nerdctl`, or `containerd` command
   → load the `container-tools` skill.
 - Editing or authoring a `Dockerfile`, `Containerfile`, `compose.yaml`,
   `compose.yml`, `docker-compose.yml`, or `podman-compose.yml` → load
   the `container-tools` skill.
 - The user asks which Node version is active, or to install / switch
-  Node → load the `fnm` skill.
+  Node → read the `fnm` section below.
 - The user asks which container tool to use on this machine → load the
   `container-tools` skill.
 
@@ -52,10 +52,10 @@ relevant flat skill.
 
 ## Boundary
 
-- **Per-host detection + per-tool router** (this rule) → loads the
-  right flat skill for the current trigger.
+- **Per-host detection + per-tool router** (this rule) → points at the
+  right reference for the current trigger.
 - **fnm mechanics** (version detection, install, fallback, corepack,
-  not-installed recommendation) → `fnm` skill.
+  not-installed recommendation) → the `fnm` section below.
 - **Container runtime selection** (shim detection, compose variant, OCI
   vs Docker Hub, not-installed recommendation) → `container-tools`
   skill.

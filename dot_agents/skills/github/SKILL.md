@@ -193,7 +193,7 @@ gh api repos/owner/repo/rulesets --input rulesets.json --method PUT
 
 - For text rendering (TUI / output formatting): use `gh issue/pr view --comments` not web scraping.
 - For chezmoi templating that involves GitHub refs: combine with the `chezmoi` skill.
-- For shell-side scripting helpers: load the `fnm` skill when any Node tooling is in the chain.
+- For shell-side scripting helpers: read the `fnm` note in the `runtime-tools` rule when any Node tooling is in the chain.
 
 ## Pointers
 

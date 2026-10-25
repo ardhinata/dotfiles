@@ -1,6 +1,6 @@
 ---
 name: project-context
-description: Project-level agent guidance and the AGENTS.md lifecycle. Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an AGENTS.md would eliminate, when a vendor-specific directory (`.cursor/`, `.claude/`, `.opencode/`, etc.) is found at the project root, or when integrating agent rules and skills under `.agents/<vendor>/`. Treats `AGENTS.md` as the canonical agent instruction standard — vendor files (CLAUDE.md, .cursorrules, .windsurfrules, GEMINI.md) stay one-line pointers to it, never a second source of truth. For project directory layout, `.tmp/` subroles, vendor path unification, and knowledge-cache placement, load the `project-layout` skill instead.
+description: Use when starting work in a project that lacks `AGENTS.md`, when discovering non-obvious project conventions an AGENTS.md would eliminate, when a vendor-specific directory (`.cursor/`, `.claude/`, `.opencode/`, etc.) is found at the project root, or when integrating agent rules and skills under `.agents/<vendor>/`. Treats `AGENTS.md` as the canonical agent instruction standard — vendor files (CLAUDE.md, .cursorrules, .windsurfrules, GEMINI.md) stay one-line pointers to it, never a second source of truth. For project directory layout, `.tmp/` subroles, vendor path unification, and knowledge-cache placement, load the `project-layout` skill instead.
 ---
 
 # Project Context
@@ -50,6 +50,7 @@ project's conventions:
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/opencode/` in OpenCode.
 Skills live in the shared home `~/.agents/skills/`, which every agent reads.
+The `project-layout` skill owns the canonical tree.
 
 ## Trigger checklist
 
@@ -58,7 +59,7 @@ Surface a suggestion when any of the following is true:
 - `AGENTS.md` is missing
 - `README.md` is missing or lacks project-specific info (background, problem statement, tech stack)
 - No `docs/` directory (or similar) is listed from `README.md` / `AGENTS.md`
-- About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in a project with no knowledge cache
+- About to call `firecrawl_*` or `context7_*` for the first time in a project with no knowledge cache
 - Turn-1 discovery revealed non-obvious conventions an `AGENTS.md` would eliminate
 - Spent >2 turns explaining project-specific patterns
 - User asks to create, fix, or review a `.gitignore`
@@ -71,10 +72,6 @@ The whole point of these files is **hard-earned context an agent would likely mi
 ## User input
 
 **Always** consider user input (if any) before proceeding. If user input conflicts with Phase 0 facts, prefer user input and flag the discrepancy before drafting.
-
-```text
-$ARGUMENTS
-```
 
 ## Execution phases
 
@@ -133,7 +130,8 @@ If `README.md` is missing, suggest the GitHub five-question template (`what / wh
 
 ### Phase 3: Vendor directory unification
 
-Two different jobs, two different mechanisms.
+Trigger only. The procedure lives in the `project-layout` skill, which owns
+the canonical tree and the vendor-unification mechanics.
 
 **Shared skills** go in `.agents/skills/`. Every harness finds them there
 natively — no symlink, no copy, no config field. Claude Code is the
@@ -142,16 +140,10 @@ give it one symlink to the same tree.
 
 **Harness-specific assets** — rule files, custom commands, hooks — go in
 `.agents/<vendor-name>/` and are reached through the harness's own root
-directory. When the project root contains a vendor-specific directory
-(`.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
-`.windsurf/`, `.continue/`, etc.):
+directory.
 
-1. Move its contents to `.agents/<vendor-name>/` (e.g. `.cursor/` → `.agents/cursor/`).
-2. Create a symlink `<vendor-name>/` → `.agents/<vendor-name>/` at the project root so vendor tools keep finding their config.
-3. Add the symlink pattern to `.gitignore` so it is not committed.
-4. Add a `✅ Always` rule to `AGENTS.md` > Boundaries stating: *recreate the symlink if it is missing on a fresh clone* (i.e. `ln -s .agents/<vendor> <vendor>`).
-
-If the symlink is missing when you arrive, recreate it before reading the vendor config.
+If the symlink is missing when you arrive, recreate it before reading the
+vendor config.
 
 ### Phase 4: Rules and skills integration
 

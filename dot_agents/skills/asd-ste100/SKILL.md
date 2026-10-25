@@ -1,15 +1,12 @@
 ---
 name: asd-ste100
 description: >-
-  Write, rewrite, and audit technical English under ASD-STE100 Simplified Technical English.
-  Apply the 53 writing rules of Issue 9 (Jan 2025): one meaning per word, one part of speech per
-  word, simple tenses only, no "-ing" verbs, active voice, ≤20 words for procedures and ≤25 for
-  descriptions, no semicolons, no phrasal verbs, ≤3-word noun clusters. Use when the user asks for
-  Simplified Technical English, STE, ASD-STE100, controlled language, plain English, or text for
-  readers who do not speak English as a first language, or when text will be parsed by another
-  agent or translation pipeline and misreading has a real cost. Use to audit text and report each
-  rule violation sentence by sentence. Use it for procedures, runbooks, README files, release
-  notes, error messages, and safety text. Not for creative or marketing copy.
+  Rewrite technical English under ASD-STE100 Simplified Technical English (Issue 9, 2025): one meaning per
+  word, simple tenses, active voice, at most 20 words per procedure, no semicolons, no phrasal verbs. Use
+  when the user asks for STE, ASD-STE100, controlled language, plain English, or text for readers who do
+  not speak English as a first language. Use for procedures, runbooks, READMEs, release notes, error
+  messages, and safety text. Use to audit text and report each rule violation. Not for creative or
+  marketing copy.
 license: MIT. LICENSE has the complete terms.
 compatibility: The checker script needs Python 3.9 or later. It uses the standard library only.
 metadata:
@@ -205,11 +202,12 @@ a frequency, or a mechanism has stopped being a rewrite.
 
 ## Step 4 — check the result
 
-Run the checker on the file:
+Run the checker on the file. Use the absolute path to the script, because the
+working directory is the project, not the skill directory.
 
 ```bash
-python3 scripts/ste_check.py --mode descriptive path/to/file.md
-python3 scripts/ste_check.py --mode procedural --max-words 20 path/to/file.md
+python3 ~/.agents/skills/asd-ste100/scripts/ste_check.py --mode descriptive path/to/file.md
+python3 ~/.agents/skills/asd-ste100/scripts/ste_check.py --mode procedural --max-words 20 path/to/file.md
 ```
 
 The script applies the word-count rules of Section 8. Text in parentheses counts as one word. A

@@ -53,7 +53,7 @@ pick one and use it consistently across a project.
 ### `description`
 
 ```yaml
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (note, plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill.
+description: Use when starting a new document, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document. Gives the filename rules, frontmatter policy, section order, length budget, decision matrix, templates, and checklists for each doc type. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ```
 
 Rules:

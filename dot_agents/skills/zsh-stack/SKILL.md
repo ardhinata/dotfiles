@@ -132,24 +132,7 @@ zstyle ':prezto:module:gpg' loaded 'yes'
 
 Format: `zstyle ':prezto:module:<name>[:<subkey>]' <key> <value>`. Under zgenom: `zgenom prezto <name>[:<subkey>] <key> <value>`. A literal `'*'` module maps to `:prezto:*` (global).
 
-Common keys:
-
-| Key | Effect | Where read |
-|---|---|---|
-| `loaded <yes\|no>` | pmodload gate; set by `pmodload`, can be pre-set by user | init.zsh:97 |
-| `color <yes\|no>` | global color gate; forced `no` under dumb `TERM`; gates `environment` termcap + **gates syntax-highlighting entirely** | init.zsh:9 (syntax-highlighting) |
-| `theme` | which `prompt_*_setup` runs (here `powerlevel10k`) | prompt/init.zsh:12 |
-| `pwd-length <short\|long\|full>` | prompt path abbreviation | prompt-pwd |
-| `managed <yes\|no>` | tells `editor-info` the theme is prezto-compatible | prompt README |
-| `histsize` | sets `HISTSIZE` and `SAVEHIST` (history/init.zsh:29-34) | history/init.zsh:31 |
-| `histfile` | history file path | history/init.zsh:30 |
-| `savehist` | `SAVEHIST` | history/init.zsh:33 |
-| `correct <yes\|no>` | gates `setopt CORRECT` | utility/init.zsh:14-16 |
-| `safe-ops <yes\|no>` | `-i` on `cp/ln/mv/rm` | utility/init.zsh:71-76 |
-| `utility:download helper` | `get` backend (`wget`/`curl`/`aria2c`/…) | utility/init.zsh:169-181 |
-| `directory:alias skip`, `git:alias skip`, `history:alias skip` | skip module alias sets | directory/init.zsh:28; git/alias.zsh:28; history/init.zsh:40 |
-| `case-sensitive` | completion matcher case-sensitivity | completion/init.zsh:136 |
-| `highlighters`, `styles`, `pattern` | syntax-highlight mapping | syntax-highlighting/init.zsh:17-36 |
+The key table is in `references/prezto-zstyle-api.md`. Read it when you need the exact key name or where prezto reads it.
 
 ### Per-module notes (only what this project loads)
 
@@ -212,26 +195,7 @@ Repo: `romkatv/powerlevel10k` (commit `9253fb1` cloned 2026-08-08).
 
 ### Tunables
 
-| Knob | Default | Notes |
-|---|---|---|
-| `POWERLEVEL9K_INSTANT_PROMPT` | `verbose` | `verbose` warns on console output during init; `quiet` silences; `off` disables. Requires Zsh ≥5.4. |
-| `POWERLEVEL9K_DISABLE_INSTANT_PROMPT` | `false` | Hard off; also used internally when gitstatus fails to attach. |
-| `POWERLEVEL9K_LEFT_PROMPT_ELEMENTS` | `context dir vcs` | Left segments. |
-| `POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS` | `status root_indicator background_jobs history time` | Empty → no `RPROMPT`. |
-| `POWERLEVEL9K_MODE` | unset (auto) | `compatible`/`nerdfont-complete`/`awesome-patched`/… |
-| `POWERLEVEL9K_COLORTERM_OVERRIDE` | unset | Force `COLORTERM` for truecolor detection. |
-| `POWERLEVEL9K_OS_ICON` | derived from OS + `*_ICON` map | OS/distro icon segment. |
-| `POWERLEVEL9K_PROMPT_ADD_NEWLINE` | `false` | Blank line above prompt (also in instant-prompt snapshot). |
-| `POWERLEVEL9K_PROMPT_ADD_NEWLINE_COUNT` | `1` | Blank-line count. |
-| `POWERLEVEL9K_TRANSPARENT_BACKGROUND` | unset | No `%k` block fill. |
-| `POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD` | unset | Wizard auto-launches on first load unless `true`. |
-| `POWERLEVEL9K_NEW_TTY_MAX_AGE_SECONDS` | `5` | TTL for "new terminal" snapshot capture. |
-| `POWERLEVEL9K_GITSTATUS_DIR` | `${__p9k_root_dir}/gitstatus` | Override gitstatus path. |
-| `POWERLEVEL9K_GITSTATUS_INIT_TIMEOUT_SEC` | `10` | Wait for gitstatus daemon. |
-| `POWERLEVEL9K_DISABLE_GITSTATUS` | `false` | Skip daemon (slow). |
-| `GITSTATUS_AUTO_INSTALL` | `1` | Auto-build gitstatusd on first run. |
-| `GITSTATUS_CACHE_DIR` | `${XDG_CACHE_HOME:-$HOME/.cache}/gitstatus` | Where gitstatusd binaries/logs live. |
-| `GITSTATUS_NUM_THREADS`, `GITSTATUS_LOG_LEVEL`, `GITSTATUS_ENABLE_LOGGING` | auto / INFO / off | Daemon tuning. |
+The knob table is in `references/p10k-tunables.md`. Read it when you need a default value or the effect of a knob.
 
 ### Pitfalls
 
@@ -275,7 +239,7 @@ Repo: `romkatv/powerlevel10k` (commit `9253fb1` cloned 2026-08-08).
 
 | Project file | Layer | Notes |
 |---|---|---|
-| `dot_zshrc` | all three | The orchestration. Lines 1-7 = p10k preamble, 9-13 = env+fpath, 16 = zgenom knob, 18 = zgenom source, 24 = autoupdate, 27-73 = saved-cache guard + prezto setup, 75-77 = sourced helpers, 80 = `~/.p10k.zsh`. |
+| `dot_zshrc` | all three | The orchestration. Lines 1-7 = p10k preamble, 9-13 = env+fpath, 16 = zgenom knob, 18 = zgenom source, 24 = autoupdate, 27-73 = saved-cache guard + prezto setup, 75-77 = sourced helpers, 82 = `~/.p10k.zsh`. |
 | `dot_shell/zsh/00-before-zgenom.zsh` | zgenom/prezto | `fpath` prepend for `compinit`; zstyle-disable prezto `gpg` module. Must run **before** zgenom init. |
 | `dot_shell/zsh/10-common-export.zsh` | post-zgenom | Exports + `fnm env --use-on-cd` + `runpriv` PATH. Top comment says it runs after completions are active. |
 | `dot_shell/zsh/12-gpg.zsh` | post-zgenom | Owns GPG_TTY lifecycle. Replaces prezto's disabled gpg module's `export GPG_TTY=$TTY` + UPDATESTARTUPTTY. Has a preexec hook for just-in-time tty refresh (alacritty reassigns controlling tty mid-startup). |
@@ -283,6 +247,13 @@ Repo: `romkatv/powerlevel10k` (commit `9253fb1` cloned 2026-08-08).
 | `dot_p10k.zsh` | p10k | User prompt config (~87 KB). Sourced last (`dot_zshrc:82`). **Never run `p10k configure`** — it overwrites. |
 | `dot_shell/zsh/20-ejson-environment-load.zsh` | post-zgenom | Loads the ejson secret store into the environment. Sourced at `dot_zshrc:79`. Runs only in an interactive session, so a desktop-launched app has no key. |
 | `dot_shell/zsh/completions/` | completion | Custom `#compdef` functions (e.g. `_runpriv`). fpath-prepended by `00-before-zgenom.zsh`. |
+
+## Reference files
+
+| File | When to read |
+|---|---|
+| `references/prezto-zstyle-api.md` | The `zstyle` key table — exact key names, effects, and where prezto reads them |
+| `references/p10k-tunables.md` | The `POWERLEVEL9K_*` and `GITSTATUS_*` knob table — defaults and effects |
 
 ## Related facts
 

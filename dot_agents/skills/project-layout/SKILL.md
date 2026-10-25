@@ -1,6 +1,6 @@
 ---
 name: project-layout
-description: Canonical on-disk directory structure for agentic-driven projects. Use when laying out a new project, diagnosing a missing or wrong path under `.agents/`, `.agents/docs/cache/`, `docs/`, or `.tmp/scratch/`, when unifying a vendor directory (`.cursor/`, `.claude/`, `.opencode/`, etc.) under `.agents/<vendor>/` with a root symlink, when checking the knowledge-cache layout (date-tag prefix, required README index, one-topic-per-file), or when migrating legacy paths (`.tmp/doc-cache/`, `.help/`, `docs/cache/`). Also load when a project's structure deviates from the canonical tree and the deviation needs justification.
+description: Use when laying out a new project, diagnosing a missing or wrong path under `.agents/`, `.agents/docs/cache/`, `docs/`, or `.tmp/scratch/`, when unifying a vendor directory (`.cursor/`, `.claude/`, `.opencode/`, etc.) under `.agents/<vendor>/` with a root symlink, when checking the knowledge-cache layout (date-tag prefix, required README index, one-topic-per-file), or when migrating legacy paths (`.tmp/doc-cache/`, `.help/`, `docs/cache/`). Gives the canonical on-disk directory structure for agentic-driven projects. Also load when a project's structure deviates from the canonical tree and the deviation needs justification.
 ---
 
 # Project Layout

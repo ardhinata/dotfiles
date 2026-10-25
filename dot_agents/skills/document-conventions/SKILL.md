@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Document and filename conventions for every doc type the agent authors or edits — filename rules, frontmatter policy, section order, length budget, decision matrix, templates, checklists. Use when starting a new document, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document and wondering what shape it should take. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
+description: Use when starting a new document, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document. Gives the filename rules, frontmatter policy, section order, length budget, decision matrix, templates, and checklists for each doc type. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions
@@ -50,7 +50,7 @@ harness's user-level config directory: `~/.config/opencode/` in OpenCode.
 Skills live in the shared home `~/.agents/skills/`, and harness-neutral rules
 live in the shared home `~/.agents/rules/` — both are read by every harness.
 Use `~/.agents/rules/` only for rules that name a harness-specific
-tool or feature.
+tool or feature. The `project-layout` skill owns the canonical tree.
 
 ## When to load
 
@@ -88,31 +88,15 @@ disclosure).
 | [`assets/checklists.md`](assets/checklists.md) | Per-type pre-publish checklist |
 | [`assets/templates/`](assets/templates/) | Starter templates for each doc type |
 
-## The decision matrix (quick view)
+## The decision matrix
 
-The full version is in [`references/decision-matrix.md`](references/decision-matrix.md).
-
-| You want to… | Write |
-|---|---|
-| Capture a verified, non-obvious, reusable finding during a task | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Plan a multi-step task | **Persistent plan** — `docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
-| Document a decision with options and consequences | **ADR** — `docs/adr/NNNN-<slug>.md` |
-| Propose a large design for review | **RFC** — `docs/rfcs/NNNN-<slug>.md` |
-| Cache a reusable web-learned fact | **Knowledge-cache entry** — `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
-| Write an incident write-up | **Postmortem** — `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` |
-| Encode a repo-wide rule the agent must follow every session | **Rule file** — `~/.agents/rules/<slug>.md` |
-| Package a workflow the agent loads on demand | **Skill** — `~/.agents/skills/<slug>/SKILL.md` (with frontmatter) |
-| Introduce the project to humans | **README.md` |
-| Encode project conventions for agents | **AGENTS.md** (closest to file wins) |
-| Introduce a doc subtree | **topic README.md** |
-| Record release-by-release changes | **CHANGELOG.md** |
-| Document contribution workflow | **CONTRIBUTING.md** |
-| Park throwaway work | **`.tmp/scratch/<anything>`** — per-worktree ephemeral (gitignored, never commit). The `.tmp/migration/` subdir is one-time bootstrap scratch; see the `project-layout` skill |
+Read [`references/decision-matrix.md`](references/decision-matrix.md) to pick
+the doc type. It holds the full matrix and the heuristics for ambiguous
+pairs.
 
 > **Filename collisions:** date-prefixed names sort chronologically but can
 > collide on the same day. Scan the target directory before writing and
 > append a counter (`-2`, `-3`) when needed.
-
 ## Universally applicable rules
 
 These rules apply to **every** doc type unless the per-type reference says
@@ -152,53 +136,18 @@ otherwise:
    recovery phrases never go in docs. If a finding requires mentioning
    one, point to the encrypted file and stop.
 
-## Filename quick reference
+## Filename and frontmatter
 
-| Pattern | Type |
-|---|---|
-| `AGENTS.md` | Project agent guide (root or nested) |
-| `README.md` | Human-facing project intro / topic intro |
-| `CONTRIBUTING.md` | Contribution workflow |
-| `CHANGELOG.md` | Release-by-release change log |
-| `LICENSE` | License file |
-| `.tmp/scratch/<anything>` | Per-worktree ephemeral (gitignored, never commit) |
-| `.tmp/migration/<anything>` | One-time bootstrap scratch (gitignored, per-project) |
-| `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Knowledge-cache entry |
-| `.agents/docs/cache/<topic>/README.md` | Topic README (cache index) |
-| `.agents/docs/cache/README.md` | Cache root index |
-| `~/.agents/rules/<slug>.md` | Rule file |
-| `~/.agents/skills/<slug>/SKILL.md` | Skill main file |
-| `~/.agents/skills/<slug>/references/*.md` | Skill reference file |
-| `docs/adr/NNNN-<slug>.md` | MADR-style ADR |
-| `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` | Postmortem |
-| `docs/rfcs/NNNN-<slug>.md` | RFC |
-| `docs/design/<slug>.md` | Design doc |
-| `docs/plans/<slug>.md` | Persistent plan (user-specified) |
-| `docs/how-to/<slug>.md` | How-to guide |
-| `docs/reference/<slug>.md` | Reference guide |
-
-Full schemas are in [`references/by-doc-type.md`](references/by-doc-type.md).
-
-## Frontmatter quick reference
-
-| Type | Frontmatter? |
-|---|---|
-| Rule file (`~/.agents/rules/*.md`) | **Forbidden** (project decision — the loader does not parse it) |
-| SKILL.md | **Required** — `name` + `description` |
-| ADR (MADR) | Optional but recommended — `status`, `date`, `decision-makers` |
-| Knowledge-cache entry | Optional — `source`, `captured`, `freshness` |
-| Persistent plan | Optional — `status`, `owner`, `last-updated` |
-| README.md / CHANGELOG.md / CONTRIBUTING.md | No |
-| AGENTS.md | No |
-| Scratch (`.tmp/scratch/`) | No |
-
-See [`references/frontmatter.md`](references/frontmatter.md) for full field
-schemas and YAML rules.
+[`references/by-doc-type.md`](references/by-doc-type.md) holds the full
+per-type tables for filenames, frontmatter, required sections, and length
+budgets. [`references/frontmatter.md`](references/frontmatter.md) holds the
+frontmatter policies and the YAML rules.
 
 ## Workflow
 
-1. **Pick the type.** Use the decision matrix above. If a task needs
-   *both* persistence and searchability, an ADR captures the why; a
+1. **Pick the type.** Read
+   [`references/decision-matrix.md`](references/decision-matrix.md). If a task
+   needs *both* persistence and searchability, an ADR captures the why; a
    knowledge-cache entry captures the what.
 2. **Use the template.** Every doc type has a starter in
    `assets/templates/`. Copy, rename, fill.
