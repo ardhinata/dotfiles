@@ -10,11 +10,14 @@ across two harness migrations. It carries 16 global rule files, four of which
 are routers, plus two project files. Each file was justified on its own. No
 step in the history asked whether the set as a whole fits a fast model.
 
-**Every rule file breaks the house length standard.** The
-document-conventions skill sets 30 to 80 words as the target and 150 words as
-the ceiling for a rule file. All 16 global files exceed 150. The shortest is
-`long-running-tools.md` at 170 words. The longest is
-`zsh-emulate-fallback.md` at 630.
+**No rule file breaks the house length standard.** The document-conventions
+skill sets 30 to 80 *lines* as the target and 150 *lines* as the ceiling for
+a rule file. All 19 global rule files are inside the ceiling. The longest is
+`runtime-tools.md` at 77 lines.
+
+An earlier draft of this review measured words instead of lines and reported
+that all 16 rule files breached the ceiling. They did not. The payload
+concern below is real; the convention-breach claim was not.
 
 **The daily model changed on 2026-10-19.** MiniMax M3.1 Flash is now the
 default here and the second most used model on OpenCode by token volume. Its

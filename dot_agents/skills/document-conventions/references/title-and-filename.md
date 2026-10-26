@@ -129,6 +129,25 @@ Pattern: `NNNN-<slug>.md`
   (`docs/adr/backend/0001-foo.md`); sequence restarts within each
   category but the file is still uniquely identified by full path.
 
+### Numbered prefix — sections inside a split doc
+
+Pattern: `NN-<section-slug>.md`
+
+- **2-digit zero-padded.** The order is reading order, so a reader can
+  sort the directory and get the intended sequence.
+- **The directory name keeps the date prefix.** The split form of
+  `docs/plans/2026-07-27-my-task.md` is `docs/plans/2026-07-27-my-task/`,
+  and the sections inside carry no date. The date belongs to the doc, not
+  to a section.
+- **The index is `README.md`.** Not `00-index.md`. A directory whose index
+  has a different name needs a convention for finding it. `README.md` is
+  found by every tool and every renderer.
+- **Numbering starts at `01`.** `README.md` is not numbered because it is
+  the index, not a section.
+- **Renumbering is allowed within a directory.** Unlike ADR numbers, a
+  section number carries no external reference, so reordering the sections
+  and renumbering them together is safe. Do not leave gaps.
+
 ### No date — most other types
 
 README.md, CHANGELOG.md, CONTRIBUTING.md, AGENTS.md, Rule files,
@@ -189,7 +208,11 @@ CONTRIBUTING.md
 LICENSE
 
 docs/plans/YYYY-MM-DD-<task-slug>.md
+docs/plans/YYYY-MM-DD-<task-slug>/        # split form: index + numbered sections
+  README.md
+  01-<section-slug>.md
 docs/post-mortem/YYYY-MM-DD-<slug>.md
+docs/post-mortem/YYYY-MM-DD-<slug>/        # split form
 .tmp/scratch/<anything>                   # never commit
 .tmp/migration/<anything>                  # never commit
 

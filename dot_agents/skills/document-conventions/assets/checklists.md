@@ -81,13 +81,27 @@ otherwise.
 - [ ] Each row has relative link + date + source
 - [ ] Plain Markdown
 
+## Split doc directory
+
+Applies when a doc passed its hard ceiling and was split into a directory.
+
+- [ ] Directory name is the slug the single file would have had
+- [ ] `README.md` at the root of the directory, named exactly that
+- [ ] Index carries the summary and the status, not only a link list
+- [ ] Index links every section file, with a one-line description each
+- [ ] Section files named `NN-<section-slug>.md`, 2-digit, starting at 01
+- [ ] No gaps in the numbering
+- [ ] Each section file has one H1 matching its slug
+- [ ] Relative links between sections and back to the index
+- [ ] Every section file stands on its own. A reader can open one alone.
+
 ## Persistent plan
 
 - [ ] User-approved path (default `docs/plans/<YYYY-MM-DD>-<task-slug>.md`)
 - [ ] Sections: Goal, Scope, Steps, Status
 - [ ] Committed to the project repo
 - [ ] Updated in place at every checkpoint (not via new file)
-- [ ] Length under 300 lines; split into phases if longer
+- [ ] Length under 300 lines; split into a directory if longer
 
 ## Postmortem (`docs/post-mortem/`)
 

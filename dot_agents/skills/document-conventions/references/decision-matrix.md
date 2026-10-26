@@ -53,6 +53,21 @@ These rules resolve ambiguity when the matrix has two plausible rows.
 - If the doc will outlive the decision, write an ADR. If it walks
   through *doing* the work, write a plan.
 
+### One file or a directory
+
+- **One file** when the doc is under its type's hard ceiling. A split
+  doc costs a reader one extra hop, so it is not free.
+- **A directory** when the doc passed its hard ceiling and holds one
+  subject with many sections. The directory name is the slug the single
+  file would have had. Inside it, an index `README.md` plus numbered
+  section files.
+- **Separate linked docs** when the doc holds several subjects that
+  happen to meet in one file. A plan that contains an ADR's worth of
+  decision records links to `docs/adr/`. It does not absorb them.
+
+Do not split a doc that fits. Do not fold two subjects into one
+directory to avoid writing a second doc.
+
 ### Plan vs. knowledge-cache entry
 
 - A **plan** has ordered steps and checkpoints. It describes work.

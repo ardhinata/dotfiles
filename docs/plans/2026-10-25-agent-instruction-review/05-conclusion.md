@@ -69,9 +69,10 @@ words from files Phase 1 never lists: `local-first` 388, `sudo-ask` 413,
 `project-context` 316, `ambiguity-resolution` 262, `ssh-read-allowlist` 264,
 `zsh-stack` 257, `long-running-tools` 170.
 
-After a 9-file cut, **seven files still breach the 150-word ceiling**, and two
-of those are safety files this plan deliberately protects. State that
-trade-off rather than calling the cut complete.
+After a 9-file cut, **no rule file breaches the length ceiling**, because
+none breached it before the cut either. The budget is 150 lines; the longest
+rule file is 77. State that plainly rather than claiming the cut was needed
+to meet a standard it never violated.
 
 ### The model question
 

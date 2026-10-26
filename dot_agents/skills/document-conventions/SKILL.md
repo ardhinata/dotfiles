@@ -86,7 +86,7 @@ disclosure).
 | [`references/cross-references.md`](references/cross-references.md) | Linking style, anchors, path citations |
 | [`references/anti-patterns.md`](references/anti-patterns.md) | Do/don't checklist, common mistakes |
 | [`assets/checklists.md`](assets/checklists.md) | Per-type pre-publish checklist |
-| [`assets/templates/`](assets/templates/) | Starter templates for each doc type |
+| [`assets/templates/`](assets/templates/) | Starter templates for each doc type, plus the split-doc directory index |
 
 ## The decision matrix
 
@@ -97,6 +97,18 @@ pairs.
 > **Filename collisions:** date-prefixed names sort chronologically but can
 > collide on the same day. Scan the target directory before writing and
 > append a counter (`-2`, `-3`) when needed.
+
+## When a doc is too big
+
+A doc over its hard ceiling splits into a **directory**: an index
+`README.md` plus numbered section files `NN-<section-slug>.md`. The
+directory name is the slug the single file would have had.
+
+Use a directory for one long subject. Use separate linked docs when the
+content holds several subjects. See
+[structure-and-length.md](references/structure-and-length.md#when-a-doc-outgrows-its-file)
+for the full rule and the types that may split.
+
 ## Universally applicable rules
 
 These rules apply to **every** doc type unless the per-type reference says

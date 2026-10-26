@@ -13,6 +13,12 @@ checklist before publishing any doc.
   doc. Cite, don't reproduce.
 - **Massive code blocks.** 200+ lines of inline code should be a
   separate file with a link.
+- **One huge file.** A doc over its hard ceiling that was never split.
+  Split it into a directory: an index plus numbered section files.
+- **A directory with no index.** A folder of section files and no
+  `README.md`. The reader needs somewhere to start.
+- **An index that is only a ToC.** The index must carry the summary and
+  the status, so a reader needs not open a section file.
 - **Markdown as prose.** Walls of paragraphs without headings, lists,
   or tables. Reformat to use structure.
 
@@ -101,6 +107,9 @@ checklist before publishing any doc.
 
 - **Skipping the planning step.** Writing a doc without a plan when
   the doc is multi-section. Use a persistent plan under `docs/plans/`.
+- **Splitting the wrong way.** A directory for one long subject is right.
+  Folding several subjects into one directory is not — link to separate
+  docs instead.
 - **Skipping the duplicate check.** Not listing the target directory
   before creating a new file. Causes same-day slug collisions.
 - **Promoting a stale cache entry.** A `.agents/docs/cache/` entry from

@@ -33,6 +33,8 @@ layout, and they should be described as such:
 - The `.tmp/{scratch,migration}` role split
 - `docs/design/`, `docs/plans/`, and `docs/reference/` as separate trees
 - The date-prefixed filename convention
+- A split doc as a directory next to its single-file form
+  (`docs/plans/<slug>.md` and `docs/plans/<slug>/` are the same doc)
 
 Note that `docs/how-to/` + `docs/reference/` are two of Diátaxis's four
 quadrants — tutorials and explanation are not represented here, so do not

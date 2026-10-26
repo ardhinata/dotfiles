@@ -22,6 +22,14 @@ Four reviewers, non-overlapping scope, all four found material errors.
 | `bash` to `shell` | Phase 4 rewritten. Proven by a live A/B test: a `bash` deny let the command run, a `shell` deny blocked it |
 | Deny-list to default-ask plus allowlist | Phase 4 rewritten. The docs warn against recognising every dangerous command by pattern |
 | "9 of 16" to "16 of 16" | Recommendation 1 downgraded from HIGH to MEDIUM. The byte target no longer follows from the ceiling |
+
+**A later correction, found on 2026-10-26.** The "16 of 16" figure above is
+itself wrong. The house budget for a rule file is 30 to 80 **lines** with a
+150-line ceiling — every template states the unit. The review measured
+**words**. No rule file breached the ceiling. The longest was
+`zsh-emulate-fallback.md` at 75 lines. The budget table in
+`structure-and-length.md` now names the unit, so the ambiguity cannot
+recur.
 | 49% to 33% | The 20,000-byte target is withdrawn. Recomputed below |
 | ponytail 5,565 to 2,861 | The payload total drops to ~52,600 bytes |
 | 2.9 times to 0.57 times | The `asd-ste100` argument weakens. It is still the largest single on-demand load |

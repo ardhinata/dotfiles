@@ -482,9 +482,9 @@ Four skills either deleted or merged.
   characters. Test with the labelled-query method from the agentskills.io
   description guide.
 - **Risk:** merging `fnm` and `container-tools` into the rule file pushes the
-  rule back over the 150-word ceiling. **Mitigation:** the ceiling is already
-  broken by all 16 rule files. See the rules analysis. This plan does not fix
-  that.
+  rule back over the 150-line ceiling. **Mitigation:** the ceiling is not at
+  risk. Every rule file is inside it, and the budget counts lines, not
+  words.
 - **Risk:** the description edits re-route prompts to other skills, which is
   the measured interference effect. **Mitigation:** edit one description at a
   time and re-run the trigger eval after each.

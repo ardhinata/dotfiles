@@ -15,7 +15,7 @@ Each row covers one doc type. Columns:
 - **Required sections** — minimum set the type *must* include.
 - **Optional sections** — common additions that may appear.
 - **Section order** — fixed / loose / none.
-- **Length budget** — target and hard ceiling.
+- **Length budget** — target and hard ceiling, in lines.
 - **Validation** — how to verify it follows the convention.
 - **Source** — where the rule comes from.
 
@@ -188,7 +188,7 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` |
+| Path | `docs/post-mortem/<YYYY-MM-DD>-<slug>.md`, or `docs/post-mortem/<YYYY-MM-DD>-<slug>/` with `README.md` + `NN-<section>.md` when split |
 | Lifetime | Git-tracked in the project repo. |
 | Commit policy | Committed with the project repo. |
 | Frontmatter | Optional. Recommended: `severity`, `status`, `date` |
@@ -205,12 +205,12 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `docs/plans/<YYYY-MM-DD>-<task-slug>.md` (user-specified paths allowed) |
+| Path | `docs/plans/<YYYY-MM-DD>-<task-slug>.md` (user-specified paths allowed), or `docs/plans/<YYYY-MM-DD>-<task-slug>/` with `README.md` + `NN-<section>.md` when split |
 | Frontmatter | Optional. Recommended: `status` (`draft`/`active`/`completed`/`abandoned`), `owner`, `last-updated` |
 | Required sections | H1, `## Goal`, `## Scope`, `## Steps`, `## Status` |
 | Optional sections | `## Decisions`, `## Risks`, `## Open questions`, `## Related` |
 | Section order | Loose |
-| Length budget | < 500 lines; longer plans should link out to design docs / ADRs |
+| Length budget | < 500 lines; over the ceiling, split into a directory (see [structure-and-length.md](structure-and-length.md#when-a-doc-outgrows-its-file)) or link out to design docs / ADRs |
 | Validation | User-approved path; same fields as transient plan but durable |
 | Source | `document-conventions` skill; per-user quirks live at `~/.agents/rules.personal.d/*.md` |
 
@@ -235,7 +235,7 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `docs/rfcs/NNNN-<slug>.md` |
+| Path | `docs/rfcs/NNNN-<slug>.md`, or `docs/rfcs/NNNN-<slug>/` with `README.md` + `NN-<section>.md` when split |
 | Frontmatter | Optional. Recommended: `status` (`draft`/`review`/`accepted`/`rejected`/`withdrawn`), `reviewers`, `deadline`, `last-updated` |
 | Required sections | H1 (slug title), `## Summary`, `## Motivation`, `## Detailed design`, `## Drawbacks`, `## Alternatives`, `## Open questions`, `## Unresolved questions` |
 | Optional sections | `## Prior art`, `## Future possibilities`, `## Implementation plan`, `## Acknowledgements` |
@@ -250,7 +250,7 @@ without it?". Cut otherwise.
 
 | Field | Value |
 |---|---|
-| Path | `docs/design/<slug>.md` |
+| Path | `docs/design/<slug>.md`, or `docs/design/<slug>/` with `README.md` + `NN-<section>.md` when split |
 | Frontmatter | Optional. Recommended: `status`, `last-updated` |
 | Required sections | H1, `## Problem`, `## Goals / non-goals`, `## Proposed design`, `## Alternatives considered` |
 | Optional sections | `## Open questions`, `## Implementation plan`, `## Testing`, `## Risks` |

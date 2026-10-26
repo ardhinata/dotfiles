@@ -37,7 +37,8 @@ because OpenCode re-injects the instruction files into every request.
 Compaction replaces message history, not the system prompt, so turning
 compaction on would not reduce this. That is 38,929 bytes of global rule
 files, 5,801 bytes of project files, and a catalog of eleven skill
-descriptions. All 16 global rule files broke the house standard of 150 words.
+descriptions. No global rule file breached the house length standard. The
+budget is 150 lines; the longest rule file is 77.
 The shortest was 170 words.
 
 **The gap.** No rule told the model to re-read a file it edited, to run a

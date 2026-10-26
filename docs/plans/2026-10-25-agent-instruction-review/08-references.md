@@ -118,7 +118,7 @@ inference).
 ### Internal
 
 - `.agents/skills/document-conventions/references/structure-and-length.md` —
-  the 30-80 word target and 150-word ceiling
+  the 30-80 line target and 150-line ceiling
 - `dot_agents/rules/.template-resources/` — six host-rendered snippets, not
   deployed (`chezmoi managed` count is 0)
 - `dot_config/opencode/private_opencode.jsonc` — the effective config

@@ -21,7 +21,7 @@ Concretely:
 - Files under 100 lines → read whole, no ToC needed
 - 100–300 lines → optional ToC if navigation helps
 - 300–500 lines → required ToC; consider splitting
-- 500+ lines → split into parent + references/
+- 500+ lines → split into a directory
 
 (Gloaguen et al., arXiv:2602.11988: even human-curated context files
 raise inference cost > 20 %; LLM-generated ones measurably *reduce*
@@ -29,7 +29,10 @@ task success. Curate ruthlessly.)
 
 ### Per-type length budgets
 
-| Type | Target | Hard ceiling | Why |
+All numbers are **lines**, not words. A rule file of 150 lines is not a rule
+file of 150 words.
+
+| Type | Target (lines) | Hard ceiling (lines) | Why |
 |---|---|---|---|
 | Rule file | 30–80 | 150 | Loaded every session; keep the shared context budget small |
 | SKILL.md | < 300 | 500 | Per agentskills.io — beyond 500, split into references/ |
@@ -49,6 +52,49 @@ task success. Curate ruthlessly.)
 | CONTRIBUTING.md | < 200 | 400 | Link out to detailed guides |
 | .tmp/scratch | none | none | Delete when done |
 | .tmp/migration | none | none | Delete when done |
+
+### When a doc outgrows its file
+
+A doc that passes its hard ceiling splits into a **directory**, not a longer
+file. The directory holds an index and one file per section.
+
+| Part | Rule |
+|---|---|
+| Directory name | The slug the file would have had: `docs/plans/2026-07-27-my-task/` |
+| Index | `README.md`. Carries the summary, the status, and a table of the section files |
+| Section files | `NN-<section-slug>.md`. Two-digit zero-padded, so the order is visible and stable |
+| Section content | One top-level section per file |
+| Cross-links | Relative links between section files and back to the index |
+
+The index is not a bare table of contents. A reader must get the point and
+the status from `README.md` without opening a section file.
+
+### Split a directory, or link out to separate docs
+
+Two different remedies. Pick by subject, not by size.
+
+| The content is | The remedy |
+|---|---|
+| One subject with many sections | A directory. One index, numbered section files |
+| Several subjects with separate audiences | Separate docs, linked from each other. A plan that holds an ADR's worth of decision records links to `docs/adr/`; it does not absorb them |
+| Reference material for a workflow | A skill's `references/`, or the knowledge cache |
+
+A directory is for one subject that happens to be long. Linking out is for
+several subjects that happen to meet in one file. Merging a design doc and
+its ADR into a directory loses the ADR's stable numbering.
+
+### Which types may split
+
+| Type | May split into a directory |
+|---|---|
+| Persistent plan | Yes |
+| Postmortem | Yes |
+| RFC | Yes |
+| Design doc | Yes |
+| ADR | **No.** One decision per ADR. A second decision gets its own number |
+| Rule file | **No.** The 150-line ceiling means cut it or move the detail to a skill |
+| Knowledge-cache entry | **No.** One finding per file. Already atomic |
+| SKILL.md | Already does. `SKILL.md` plus `references/` is the same pattern |
 
 ## Section ordering
 
