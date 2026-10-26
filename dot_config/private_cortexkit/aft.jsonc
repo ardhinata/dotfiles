@@ -60,6 +60,11 @@
 
     // "timeout_ms": 25000,      // schema default; fine for background builds
     // "max_batch_size": undefined, // let the pipeline size its own batches
-    "max_batch_size": 120,
+    // Measured 2026-10-26: the upstream provider (Nebius Token Factory)
+    // enforces a tokens-per-minute quota and answers a burst with HTTP 429.
+    // AFT shrinks the batch on a timeout, but a 429 keeps the batch size, so
+    // one big request can fail on its own and burn three retries. A cap of
+    // 32 rows bounds one attempt to 65k tokens at 2048 tokens per row.
+    "max_batch_size": 32,
   },
 }
