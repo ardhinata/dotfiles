@@ -5,3 +5,4 @@ target-version = "py311"
 # chezmoi applies the executable bit from the `executable_` prefix; the
 # source file is intentionally not +x.
 "executable_shellx" = ["EXE001"]
+"executable_embedding_dimensions_proxy.py" = ["EXE001"]

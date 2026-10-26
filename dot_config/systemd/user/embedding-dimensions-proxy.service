@@ -1,0 +1,15 @@
+[Unit]
+Description=Embedding dimensions proxy for the OpenAI-compatible embeddings API
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/.shell/helper/embedding_dimensions_proxy.py
+Environment=EMBEDDING_PROXY_DIMENSIONS=1024
+Environment=EMBEDDING_PROXY_PORT=8099
+Environment=EMBEDDING_PROXY_UPSTREAM=https://openrouter.ai/api/v1/embeddings
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
