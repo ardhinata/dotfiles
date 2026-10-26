@@ -14,7 +14,8 @@
   ],
   "instructions": [
     "~/.agents/rules/*.md",
-    "~/.agents/rules.personal.d/*.md"
+    "~/.agents/rules.personal.d/*.md",
+    "~/.config/opencode/rules/*.md"
   ],
   "permissions": [
     { "action": "external_directory", "resource": "~/.local/share/opencode/worktree/**", "effect": "allow" },

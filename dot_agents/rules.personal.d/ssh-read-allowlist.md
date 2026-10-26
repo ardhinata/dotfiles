@@ -10,9 +10,4 @@ only when the user opens it for this task.
 Under `~/.ssh/agent-keys/`, directory listings and `*.pub` files are allowed.
 Private keys are not.
 
-SSH credentials live in gpg-agent. Ask the agent, never the key file, about a
-usable SSH identity: `ssh-add -l` for fingerprints, `gpg --list-keys
---with-keygrip` for keygrips, and `gpgconf --list-dirs agent-ssh-socket` for
-the socket path.
-
 Do not list `~/.ssh/` as a first step before deciding what to read.

@@ -34,6 +34,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - After a refactor that does not change the source directory layout, run `git status --short`, stage, and commit the working tree before ending the session. If the refactor changes the layout, ask first and do not commit.
 - Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the one location OpenCode, Codex, Copilot, Cursor, Gemini CLI, Zed, goose, Amp, and Factory Droid all scan natively. Do not copy them into a per-harness directory.
 - **Add global rules and skills via `dot_agents/`, never via `chezmoi add ~/.agents/…`.** Both source trees target `~/.agents/`, and chezmoi resolves the collision by shadowing — `chezmoi add ~/.agents/rules/x.md` lands in the non-deploying `.agents/` tree, and the file never reaches `$HOME`. Edit `dot_agents/rules/` or `dot_agents/skills/` instead, then `chezmoi apply`.
+- **Put a rule that names one harness's tool under `dot_config/<vendor>/rules/`.** A shared rule in `dot_agents/rules/` reaches every harness, so it must not depend on a tool that only one harness has. Load the per-harness file with that harness's own `instructions` glob in `dot_config/<vendor>/private_*.jsonc`.
 
 ### ⚠️ Ask first
 - Adding new encryption keys (triggers `chezmoi re-encrypt` across all files)
@@ -58,3 +59,5 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **Document conventions** (filename, frontmatter, section order): `dot_agents/skills/document-conventions/SKILL.md` (deployed to `~/.agents/skills/document-conventions/`)
 - **Local chezmoi/sprig documentation**: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
 - **Personal rules** (sudo-ask, ssh-read-allowlist, …): `dot_agents/rules.personal.d/` (deployed to `~/.agents/rules.personal.d/`)
+- **SSH keys, gpg-agent, and live output over ssh**: `dot_agents/skills/ssh/SKILL.md` (deployed to `~/.agents/skills/ssh/`)
+- **Harness-specific rules (OpenCode only)**: `dot_config/opencode/rules/` (deployed to `~/.config/opencode/rules/`, loaded by the `instructions` glob in `dot_config/opencode/private_opencode.jsonc`)

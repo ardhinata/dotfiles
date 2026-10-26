@@ -8,8 +8,9 @@ For live remote output:
 - Dynamically linked commands: wrap them in `stdbuf -oL`.
 - Python: use `python -u` or `PYTHONUNBUFFERED=1`. `stdbuf` does not affect
   it.
-- Static binaries, a missing `stdbuf`, or any other case: use `ssh -tt`. It
-  merges stderr into stdout and turns `\n` into `\r\n`.
+- Static binaries, a missing `stdbuf`, or any other case: use `ssh -tt`.
 
 Do not use `nohup`, `&`, or `disown` to fix buffering. Use the harness
 background facility.
+
+Load the `ssh` skill for the full table and the caveats.
