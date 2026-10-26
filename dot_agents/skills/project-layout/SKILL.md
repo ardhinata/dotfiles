@@ -50,6 +50,7 @@ Skills live in the shared home `~/.agents/skills/`, which every agent reads.
 AGENTS.md                          ← required pointer target (see project-context)
 README.md                          ← required pointer target (see project-context)
 docs/                              ← human-facing, hand-written (Standard Readme / Diátaxis)
+  plans/                           ← dated plans for work that was executed (committed)
 .agents/                           ← unified agent root
   skills/                          ← agent skills, shared by every harness
     <name>/SKILL.md                ← discovered natively by OpenCode, Codex, Copilot,
@@ -125,6 +126,26 @@ The cache lives at `.agents/docs/cache/` (sibling of `.agents/docs/` for non-cac
 ```
 
 A `README.md` index is **required** at `.agents/docs/cache/README.md` (and recommended per topic), with relative links listing every entry (topic, source, capture date, freshness note). Cache entries are gitignored — they are scratch space, not documentation. See `references/knowledge-cache.md` in the `project-context` skill for authoring rules (date tag, source, freshness note).
+
+## Generated content
+
+Generated content has one home per kind. Ask one question: does this need to
+be read later, by a human or by a future session?
+
+| Content | Home | Commit? |
+|---|---|---|
+| A decision, or a plan that was executed | `docs/adr/`, `docs/plans/` | Committed, dated, reviewable |
+| A procedure the agent should reuse | `.agents/skills/<name>/SKILL.md` | Committed, agentskills.io format |
+| A web-learned fact worth recalling | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Gitignored, per machine |
+| Work still in flight | `.tmp/scratch/` | Gitignored, dies with the worktree |
+
+`.agents/` holds machine-consumed context. `docs/` holds human-reviewed
+records. `.tmp/` holds disposable work.
+
+Keep a generated plan in `.tmp/scratch/` only while it is still being written.
+Move it to `docs/plans/<YYYY-MM-DD>-<slug>.md` before the work starts, and
+keep the filename so the move is a rename. A plan that never moves leaves no
+record of what was decided.
 
 ## Legacy paths & migration
 

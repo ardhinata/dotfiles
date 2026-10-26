@@ -153,10 +153,7 @@ tags
 # Ignore temporary decrypted file
 **/*.decrypted
 
-# Ignore temp directory
-.temp/
-
-# Migration staging
+# Scratch area: .tmp/scratch/ (per-worktree) and .tmp/migration/ (per-project).
 .tmp/
 
 # Knowledge cache — date-tagged web research entries (see .agents/docs/cache/README.md).

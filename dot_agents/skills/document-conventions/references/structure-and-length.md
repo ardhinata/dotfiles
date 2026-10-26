@@ -45,6 +45,7 @@ file of 150 words.
 | Knowledge-cache root README | < 100 | 200 | Index, not content |
 | Postmortem | 50–300 | 600 | Tends to grow with timeline detail |
 | Persistent plan | < 300 | 500 | Link out to design docs for depth |
+| Transient plan | none | none | Delete when done, or promote to `docs/plans/` |
 | ADR (MADR) | 50–200 | 400 | One decision per ADR |
 | RFC | 200–1000 | 2000 | Heavyweight; formal review |
 | Design doc | 500–1500 | 3000 | Most flexible |

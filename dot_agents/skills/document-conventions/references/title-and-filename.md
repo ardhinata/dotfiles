@@ -213,6 +213,7 @@ docs/plans/YYYY-MM-DD-<task-slug>/        # split form: index + numbered section
   01-<section-slug>.md
 docs/post-mortem/YYYY-MM-DD-<slug>.md
 docs/post-mortem/YYYY-MM-DD-<slug>/        # split form
+.tmp/scratch/YYYY-MM-DD-<task-slug>.md     # transient plan, never commit
 .tmp/scratch/<anything>                   # never commit
 .tmp/migration/<anything>                  # never commit
 

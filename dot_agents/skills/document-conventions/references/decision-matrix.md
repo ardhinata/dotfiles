@@ -24,6 +24,7 @@ may go stale.
 |---|---|---|---|
 | Capture a verified, non-obvious, reusable finding | Repo knowledge cache, durable | **Knowledge-cache entry** | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` |
 | Multi-step plan | Repo, user-approved | **Persistent plan** | `docs/plans/<YYYY-MM-DD>-<task-slug>.md` |
+| Plan in flight, may be discarded | This worktree, gitignored, never commit | **Transient plan** | `.tmp/scratch/<YYYY-MM-DD>-<task-slug>.md` |
 | Decision with options + consequences, needs to be discoverable later | Repo, durable | **ADR** | `docs/adr/NNNN-<slug>.md` |
 | Design proposal, needs team review | Repo, durable, reviewable | **RFC** | `docs/rfcs/NNNN-<slug>.md` |
 | Design proposal, internal, lighter than an RFC | Repo, durable | **Design doc** | `docs/design/<slug>.md` |
@@ -52,6 +53,16 @@ These rules resolve ambiguity when the matrix has two plausible rows.
   are referenced by the new ADR.
 - If the doc will outlive the decision, write an ADR. If it walks
   through *doing* the work, write a plan.
+
+### Persistent plan vs. transient plan
+
+- A **persistent plan** is committed and reviewable. It records the work
+  that was executed.
+- A **transient plan** lives in `.tmp/scratch/` and is never committed. It
+  records work that is still being written and may be discarded.
+- Start in `.tmp/scratch/`. Move the file to `docs/plans/` before the work
+  starts, keeping the filename, so a reviewer sees what the agent intended
+  to do.
 
 ### One file or a directory
 
@@ -131,5 +142,6 @@ directory to avoid writing a second doc.
   promote it.
 - Cross-worktree vs. cross-machine: nothing in the agent layer is
   cross-worktree by default any more. A finding that must survive a
-  machine loss belongs in the project repo (`docs/`) or the knowledge
-  cache, not in a per-worktree scratch directory.
+  machine loss belongs in the project repo (`docs/`). The knowledge cache
+  is gitignored, so it survives a worktree but not a machine loss. A
+  per-worktree scratch directory survives neither.

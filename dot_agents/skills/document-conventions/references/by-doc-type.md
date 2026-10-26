@@ -32,14 +32,15 @@ Each row covers one doc type. Columns:
 9. [Knowledge-cache root README.md](#knowledge-cache-root-readmemd)
 10. [Postmortem (docs/post-mortem/)](#postmortem)
 11. [Persistent plan](#persistent-plan)
-12. [ADR (MADR)](#adr-madr)
-13. [RFC](#rfc)
-14. [Design doc](#design-doc)
-15. [CHANGELOG.md](#changelogmd)
-16. [CONTRIBUTING.md](#contributingmd)
-17. [.tmp/scratch](#tmpscratch)
-18. [.tmp/migration](#tmpmigration)
-19. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
+12. [Transient plan](#transient-plan)
+13. [ADR (MADR)](#adr-madr)
+14. [RFC](#rfc)
+15. [Design doc](#design-doc)
+16. [CHANGELOG.md](#changelogmd)
+17. [CONTRIBUTING.md](#contributingmd)
+18. [.tmp/scratch](#tmpscratch)
+19. [.tmp/migration](#tmpmigration)
+20. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
 
 ---
 
@@ -211,8 +212,25 @@ without it?". Cut otherwise.
 | Optional sections | `## Decisions`, `## Risks`, `## Open questions`, `## Related` |
 | Section order | Loose |
 | Length budget | < 500 lines; over the ceiling, split into a directory (see [structure-and-length.md](structure-and-length.md#when-a-doc-outgrows-its-file)) or link out to design docs / ADRs |
-| Validation | User-approved path; same fields as transient plan but durable |
+| Validation | User-approved path; same fields as the [transient plan](#transient-plan) but durable |
 | Source | `document-conventions` skill; per-user quirks live at `~/.agents/rules.personal.d/*.md` |
+
+---
+
+## Transient plan
+
+| Field | Value |
+|---|---|
+| Path | `.tmp/scratch/<YYYY-MM-DD>-<task-slug>.md` |
+| Lifetime | Per-working-tree. Gitignored. |
+| Commit policy | **Forbidden.** Never stage this path. |
+| Frontmatter | None |
+| Required sections | None |
+| Optional sections | Any of the [persistent plan](#persistent-plan) sections |
+| Section order | None |
+| Length budget | None |
+| Validation | `.tmp/` is gitignored. Promote to `docs/plans/<YYYY-MM-DD>-<task-slug>.md` before the work starts, keeping the filename |
+| Source | `project-layout` skill (`.tmp/` subroles); `decision-matrix.md` |
 
 ---
 

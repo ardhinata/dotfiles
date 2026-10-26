@@ -8,7 +8,7 @@ Use web tools proactively whenever the answer depends on current, external, or
 specialized information. Do not rely on memory because a lookup feels
 optional, and do not stop at a search snippet when the source can be opened.
 Discover sources, read the relevant page, verify important claims, and cache
-reusable findings.
+findings that are reusable on this machine.
 
 ## Startup rule
 
@@ -60,6 +60,7 @@ knowledge. When unsure, fetch rather than guess.
 
 ## Knowledge Caching
 
-After any lookup that produces reusable or volatile information, write a
-date-tagged cache entry and update the index — placement and authoring rules
-per the referenced skills.
+After any lookup that produces information reusable on this machine or likely
+to go stale, write a date-tagged cache entry and update the index — placement
+and authoring rules per the referenced skills. The cache is gitignored, so it
+survives a worktree but not a machine loss.
