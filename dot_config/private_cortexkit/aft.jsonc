@@ -56,5 +56,6 @@
 
     // "timeout_ms": 25000,      // schema default; fine for background builds
     // "max_batch_size": undefined, // let the pipeline size its own batches
+    "max_batch_size": 120,
   },
 }

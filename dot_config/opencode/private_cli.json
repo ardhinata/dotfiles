@@ -2,10 +2,13 @@
   "$schema": "https://opencode.ai/v2/cli.json",
   "animations": true,
   "session": {
-    "thinking": "show"
+    "thinking": "show",
+    "grouping": "auto",
+    "verbosity": "medium"
   },
   "diffs": {
-    "single": true
+    "single": true,
+    "view": "unified"
   },
   "scroll": {
     "acceleration": true
@@ -14,9 +17,22 @@
     "devtools": true
   },
   "theme": {
-    "name": "catppuccin-macchiato"
+    "name": "opencode2"
   },
   "experimental": {
-    "new-designs": true
+    "new-designs": true,
+    "client-mcp": true
+  },
+  "tabs": {
+    "mode": "auto",
+    "layout": "horizontal"
+  },
+  "attention": {
+    "notifications": true,
+    "sound": true,
+    "volume": 0.5
+  },
+  "terminal": {
+    "copy": "select"
   }
 }

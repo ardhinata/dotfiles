@@ -48,7 +48,7 @@
     "coloring": "indent_aware"
   },
   "soft_wrap_indent": "none",
-  "soft_wrap": "prefer_line",
+  "soft_wrap": "editor_width",
   "restore_on_startup": "launchpad",
   "icon_theme": {
     "mode": "system",
