@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Local embeddings proxy that sets a fixed vector width.
+"""Local embeddings proxy that sets a fixed vector width and a provider.
 
 AFT and Magic Context both send an OpenAI-style /v1/embeddings request
 without a "dimensions" field. The server then returns the model default,
 which is 4096 floats for qwen3-embedding-8b. This proxy adds "dimensions"
 to every request body and relays the response unchanged.
+
+The proxy also pins the provider. The Nebius Token Factory pool answers a
+token burst with HTTP 429, so the request order starts at DeepInfra, which
+costs the same, and keeps SiliconFlow behind it as the second choice. A
+caller that sends its own "provider" field keeps that choice.
 
 The upstream API key stays with the caller. The caller sends its own
 Authorization header and the proxy forwards that header as it is.
@@ -12,12 +17,14 @@ Authorization header and the proxy forwards that header as it is.
 Environment:
   EMBEDDING_PROXY_UPSTREAM    upstream URL, default OpenRouter
   EMBEDDING_PROXY_DIMENSIONS  vector width to request, default 1024
+  EMBEDDING_PROXY_PROVIDER    provider preference as JSON, empty for none
   EMBEDDING_PROXY_PORT        listen port, default 8099
   EMBEDDING_PROXY_TIMEOUT     upstream timeout in seconds, default 180
 """
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -29,6 +36,26 @@ UPSTREAM = os.environ.get(
 DIMENSIONS = int(os.environ.get("EMBEDDING_PROXY_DIMENSIONS", "1024"))
 PORT = int(os.environ.get("EMBEDDING_PROXY_PORT", "8099"))
 TIMEOUT = float(os.environ.get("EMBEDDING_PROXY_TIMEOUT", "180"))
+PROVIDER_FIELD = re.compile(rb'"provider"\s*:\s*"([^"]+)"')
+DEFAULT_PROVIDER = {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True}
+
+
+def load_provider():
+    raw = os.environ.get("EMBEDDING_PROXY_PROVIDER")
+    if raw is None:
+        return DEFAULT_PROVIDER
+    if not raw.strip():
+        return None
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"EMBEDDING_PROXY_PROVIDER is not valid JSON: {error}")
+    if not isinstance(value, dict):
+        raise SystemExit("EMBEDDING_PROXY_PROVIDER must hold a JSON object")
+    return value
+
+
+PROVIDER = load_provider()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -52,6 +79,9 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         body["dimensions"] = DIMENSIONS
+        if PROVIDER is not None and "provider" not in body:
+            body["provider"] = PROVIDER
+
         request = urllib.request.Request(
             UPSTREAM, data=json.dumps(body).encode(), method="POST"
         )
@@ -62,14 +92,28 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-                self.reply(response.status, response.read())
+                data = response.read()
+                self.reply(response.status, data)
+                self.note_provider(data)
         except urllib.error.HTTPError as error:
-            self.reply(error.code, error.read())
+            data = error.read()
+            self.reply(error.code, data)
+            self.note_provider(data)
         except (OSError, ValueError) as error:
             message = json.dumps(
                 {"error": {"message": f"upstream request failed: {error}"}}
             ).encode()
             self.reply(502, message)
+
+    def note_provider(self, data):
+        match = PROVIDER_FIELD.search(data)
+        provider = match.group(1).decode() if match else "unknown"
+        print(
+            f"[embedding-dimensions-proxy] upstream provider={provider} "
+            f"dimensions={DIMENSIONS}",
+            file=sys.stderr,
+            flush=True,
+        )
 
     def reply(self, status, data):
         self.send_response(status)
@@ -86,7 +130,7 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print(
         f"[embedding-dimensions-proxy] listening on 127.0.0.1:{PORT} "
-        f"dimensions={DIMENSIONS} upstream={UPSTREAM}",
+        f"dimensions={DIMENSIONS} provider={json.dumps(PROVIDER)} upstream={UPSTREAM}",
         file=sys.stderr,
         flush=True,
     )

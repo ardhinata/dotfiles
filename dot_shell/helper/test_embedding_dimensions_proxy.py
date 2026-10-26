@@ -11,8 +11,10 @@ and no test framework beyond stdlib `unittest`.
 import importlib.machinery
 import importlib.util
 import json
+import os
 import threading
 import unittest
+import unittest.mock
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -50,7 +52,9 @@ class StubUpstream(BaseHTTPRequestHandler):
             "authorization": self.headers.get("Authorization"),
             "path": self.path,
         }
-        payload = json.dumps({"data": [{"embedding": [0.1, 0.2], "index": 0}]}).encode()
+        payload = json.dumps(
+            {"data": [{"embedding": [0.1, 0.2], "index": 0}], "provider": "DeepInfra"}
+        ).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
@@ -79,6 +83,9 @@ class ProxyTest(unittest.TestCase):
         cls.stub.shutdown()
         cls.stub.server_close()
 
+    def setUp(self):
+        proxy.PROVIDER = {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True}
+
     def post(self, body, headers=None):
         request = urllib.request.Request(
             self.url, data=json.dumps(body).encode(), method="POST"
@@ -100,6 +107,24 @@ class ProxyTest(unittest.TestCase):
         self.post({"model": "m", "input": ["a"], "dimensions": 4096})
         self.assertEqual(1024, StubUpstream.received["body"]["dimensions"])
 
+    def test_injects_the_provider_preference(self):
+        self.post({"model": "m", "input": ["a"]})
+        self.assertEqual(
+            {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True},
+            StubUpstream.received["body"]["provider"],
+        )
+
+    def test_keeps_a_provider_preference_from_the_caller(self):
+        self.post({"model": "m", "input": ["a"], "provider": {"only": ["nebius"]}})
+        self.assertEqual(
+            {"only": ["nebius"]}, StubUpstream.received["body"]["provider"]
+        )
+
+    def test_sends_no_provider_when_the_preference_is_off(self):
+        proxy.PROVIDER = None
+        self.post({"model": "m", "input": ["a"]})
+        self.assertNotIn("provider", StubUpstream.received["body"])
+
     def test_relays_the_authorization_header(self):
         self.post({"model": "m", "input": ["a"]}, {"Authorization": "Bearer test-key"})
         self.assertEqual("Bearer test-key", StubUpstream.received["authorization"])
@@ -112,6 +137,32 @@ class ProxyTest(unittest.TestCase):
             urllib.request.urlopen(request, timeout=10)
         error.exception.close()
         self.assertEqual(404, error.exception.code)
+
+
+class LoadProviderTest(unittest.TestCase):
+    def test_default_preference_without_the_variable(self):
+        self.assertEqual(
+            {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True},
+            proxy.load_provider(),
+        )
+
+    def test_empty_variable_turns_the_preference_off(self):
+        with unittest.mock.patch.dict(os.environ, {"EMBEDDING_PROXY_PROVIDER": "  "}):
+            self.assertIsNone(proxy.load_provider())
+
+    def test_invalid_json_stops_the_script(self):
+        with (
+            unittest.mock.patch.dict(os.environ, {"EMBEDDING_PROXY_PROVIDER": "{oops"}),
+            self.assertRaises(SystemExit),
+        ):
+            proxy.load_provider()
+
+    def test_a_json_array_stops_the_script(self):
+        with (
+            unittest.mock.patch.dict(os.environ, {"EMBEDDING_PROXY_PROVIDER": "[1]"}),
+            self.assertRaises(SystemExit),
+        ):
+            proxy.load_provider()
 
 
 if __name__ == "__main__":
