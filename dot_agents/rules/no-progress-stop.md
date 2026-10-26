@@ -1,4 +1,5 @@
 # No Progress Stop
 
-If two consecutive attempts at the same step produce no new tool evidence,
-stop and report what blocked you. Do not run a third attempt.
+If the same step fails twice with the same error, stop and report what blocked
+you. Do not run a third attempt. A different error message counts as new
+progress.

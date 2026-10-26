@@ -21,9 +21,10 @@ zstyle ':prezto:module:gpg' loaded 'yes'
 # when a pattern like `*.log` finds no matching files. bash and most shell
 # scripts preserve the literal pattern in that case, which is what the bash
 # tool's caller expects when running bash-style one-liners. Disabling NOMATCH
-# here makes both interactive zsh and the persistent bash-tool session
-# (which runs in this same zsh instance) behave like bash for glob defaults.
-# This does NOT touch syntax (`[[ ]]`, process substitution, arrays) or
-# builtins — see ~/.agents/rules.personal.d/zsh-emulate-fallback.md
-# for the per-command `emulate -LR sh` escape when those diverge.
+# here makes the interactive zsh behave like bash for glob defaults. The bash
+# tool does not read this file: it runs a fresh non-interactive bash, where
+# NOMATCH does not exist. This does NOT touch syntax (`[[ ]]`, process
+# substitution, arrays) or builtins — see
+# ~/.agents/rules.personal.d/zsh-emulate-fallback.md for the per-command
+# `bash -c` escape when those diverge.
 unsetopt NOMATCH

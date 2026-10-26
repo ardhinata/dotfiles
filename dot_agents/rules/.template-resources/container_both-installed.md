@@ -1,3 +1,1 @@
-# Container Tools — both installed
-
 Both `docker` and `podman` are available on this machine. Pick one **before** the first container command: check whether `docker` is a Podman shim, then ask the user which to use. The detection commands, the decision table, and the per-runtime command notes are in the **`container-tools` skill** — load it before any `docker` or `podman` call.

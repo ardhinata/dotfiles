@@ -1,9 +1,7 @@
-# Container Tools — Podman only
-
 `docker` is **not** installed; `podman` is available. Use Podman for all
 container work in this project.
 
-## Commands
+#### Commands
 
 - **Container / image ops**: `podman build`, `podman run`, `podman ps`,
   `podman images`, `podman stop`, `podman rm`, `podman pull`, `podman push`,
@@ -13,14 +11,14 @@ container work in this project.
   external Python project) and note it for the user.
 - **Volumes, networks, port mappings**: identical syntax to Docker.
 
-## Image references
+#### Image references
 
 - Dockerfile is already OCI-compatible — no rewriting required.
 - Prefer **OCI references** (`quay.io/...`, `ghcr.io/...`,
   `registry.access.redhat.com/...`) over `docker.io/...` when the project does
   not specifically require Docker Hub.
 
-## First-action sanity check
+#### First-action sanity check
 
 Before the first `podman` invocation in a session, confirm availability:
 

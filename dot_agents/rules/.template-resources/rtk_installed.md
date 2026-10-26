@@ -1,20 +1,19 @@
 # RTK — Rust Token Killer
 
-`rtk` is a token-optimized CLI proxy for shell commands (60-90% token savings). Prefix output-heavy shell commands with `rtk`.
+`rtk` is a token-optimized CLI proxy for shell commands. Prefix output-heavy
+shell commands with `rtk`. The saving on this host is modest: `rtk gain`
+measured 15.9% over 541 commands. Do not claim a larger number.
 
-**Never wrap the harness's dedicated tools** — `grep`, `glob`, `read` and the background-process facility are already token-aware. `rtk` is for shell-only commands with heavy stdout/stderr. Commands with trivial output (`git add`, `mkdir`, `cd`, `touch`) gain nothing — run them raw.
+**Never wrap the harness's dedicated tools** — `aft_search`, `aft_outline`,
+`aft_zoom`, `grep`, `glob`, `read`, and the background-process facility are
+already token-aware. `rtk` is for shell-only commands with heavy stdout or
+stderr. Commands with trivial output (`git add`, `mkdir`, `cd`, `touch`) gain
+nothing — run them raw.
 
-## When to use rtk
-
-Prefix these (and similar) with `rtk`:
-
-- **VCS**: `git status|diff|log|show|push`, `gh`, `glab`, `gt`
-- **Build/test**: `cargo build|test`, `pytest`, `jest`, `vitest`, `playwright`, `rspec`, `rake`, `mvn`, `gradlew`
-- **Lint/format**: `ruff`, `rubocop`, `golangci-lint`, `mypy`, `tsc`, `prettier`, `prisma`
-- **Package mgrs**: `npm`, `npx`, `pnpm`, `pip`, `go mod`
-- **Containers/CLI**: `docker`, `kubectl`, `oc`, `next`, `dotnet`, `aws`, `psql`, `curl`, `tree`, `wget`
-
-For filesystem inspection prefer the harness's dedicated tools (`glob` for file discovery, `grep` for content search, `read` for file contents) — do **not** `rtk`-wrap `ls`/`find`/`diff`/`wc` unless the operation is genuinely shell-side (e.g. piping `find` output through `xargs`, or `diff`ing two generated artifacts with no dedicated-tool equivalent).
+For filesystem inspection prefer the dedicated tools: `glob` for file
+discovery, `grep` for content search, `read` for file contents. Do not
+`rtk`-wrap `ls`, `find`, `diff`, or `wc` unless the operation is genuinely
+shell-side.
 
 ## Chaining
 
@@ -23,9 +22,10 @@ Wrap **each output-producing sub-command** individually, never the whole chain:
 ```bash
 git add . && git commit -m "msg" && rtk git push
 rtk cargo build && rtk cargo test
-mkdir -p build && rtk cmake .. && rtk make
 ```
 
-## Beyond the basics
+## On demand
 
-For diagnostics (`rtk gain`, `rtk discover`, `rtk session`), summary modes (`rtk err`, `rtk smart`, `rtk log`, `rtk json`), and flags (`-v`, `--ultra-compact`, `--skip-env`), run `rtk --help` or `rtk help <subcommand>` on demand.
+Run `rtk --help` or `rtk help <subcommand>` for diagnostics (`rtk gain`,
+`rtk discover`, `rtk session`), summary modes (`rtk err`, `rtk smart`,
+`rtk log`, `rtk json`), and flags (`-v`, `--ultra-compact`, `--skip-env`).

@@ -1,35 +1,40 @@
-Privilege escalation must always be confirmed with the user — even when the tooling supports silent elevation.
+# Sudo Needs Approval
+
+Privilege escalation must be confirmed with the user, even when the tooling
+allows silent elevation.
 
 ## When
 
-Any command that would elevate to root, either directly or transitively:
+Any command that would elevate to root, directly or transitively:
 
-- Direct invocations: `sudo ...`, `sudo -E ...`, `pkexec ...`, `doas ...`.
-- Any shell pattern that ends up elevating (e.g. `sudo bash -c "..."`, passwordless escalation helpers, distro wrappers that internally call `sudo`).
-- A tool whose output implies root was silently elevated (e.g. an install step "ran successfully" with no prompt) — stop and re-ask.
+- `sudo ...`, `sudo -E ...`, `pkexec ...`, `doas ...`
+- A wrapper that ends up elevating, such as `sudo bash -c "..."` or a distro
+  helper that calls sudo internally
+- A tool whose output implies root was silently elevated — stop and re-ask
 
 ## Detect before asking
 
-The escalation shape changes the question you ask. Spend one tool call to learn it before forming the `question`:
+One tool call tells you the shape of the escalation. Put the result in the
+question.
 
-1. **Headless?** Run `tty -s && echo tty || echo notty`. If `notty`, you have no tty to attach a pinentry to; interactive `sudo` will hang. Note this in the question.
-2. **Passwordless for this command?** Run `sudo -n -l <command> 2>&1`. A line like `NOPASSWD: /usr/bin/apt` means the command is silently allowed for the current user; ask whether to use that lane or pause for explicit approval anyway.
-3. **Effective environment for env-preserving flags?** If the user might want `sudo -E`, list the env vars the command actually reads (`systemctl show-environment`, `env | grep …`) so the question can name them.
-
-Use these signals in the `question` body, not as a substitute for asking.
+1. **Terminal?** `tty -s && echo tty || echo notty`. The tool shell has no
+   tty. Interactive sudo then fails fast with "a terminal is required to read
+   the password". It does not hang here.
+2. **Passwordless?** `sudo -n true 2>&1`. Exit 0 with no output means sudo
+   runs without a password, so the target command runs too. "sudo: a password
+   is required" means the escalation needs the user's password. `sudo -n -l`
+   does not answer this: listing the sudoers rules also needs a password.
+3. **Environment for `sudo -E`?** List the env vars the command reads
+   (`systemctl show-environment`, `env | grep …`) so the question can name
+   them.
 
 ## Process
 
-1. Surface the **exact command(s)** and a one-line reason via the `question` tool.
-2. Wait for explicit approval before running anything that requires root.
-3. **Re-confirm per command** — previous approval does not carry forward to a new command.
-4. If the user denies, do not retry, do not look for an alternative escalation path, do not use `pkexec`/`doas` as a workaround unless the user names them.
+1. Surface the exact command and a one-line reason with the `question` tool.
+2. Wait for explicit approval before running anything that needs root.
+3. Re-confirm per command. Earlier approval does not carry forward.
+4. If the user denies, do not retry, and do not look for another escalation
+   path. Do not use `pkexec` or `doas` as a workaround unless the user names
+   them.
 
-## Anti-patterns
-
-- Running `sudo` because "the next step needs it anyway" — ask first.
-- Treating `NOPASSWD` in `/etc/sudoers` as blanket permission — the rule is per-command, not per-session.
-- Using `sudo -E` to preserve env without disclosing the env it preserves.
-- Assuming interactive `sudo` always fails in this environment — it can work via `interactive_terminal`; the rule still applies.
-- Assuming `sudo` will fail just because there is no tty — the user may have configured `NOPASSWD` for that command. Detect with `sudo -n -l`; do not assume.
-- Running `sudo` in a headless context without warning the user — interactive `sudo` hangs on a missing pinentry; the question must mention this when `tty -s` fails.
+To give sudo a terminal, run it through the shell tool's pty mode.

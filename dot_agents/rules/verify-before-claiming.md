@@ -10,7 +10,7 @@ Read the file back. Confirm the change is there.
 ## After a code change
 
 Run the project test or check command. Do not report the change as done until
-the command exits 0. If no check command exists, say so.
+the command exits 0. If no check command exists, say so and name the reason.
 
 ## When you cite a path
 
@@ -21,7 +21,3 @@ evidence.
 ## When you run a command
 
 Show the command and its exit code.
-
-## When a check cannot run
-
-Say so and name the reason.

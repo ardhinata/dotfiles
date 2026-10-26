@@ -11,6 +11,10 @@ Date-tagged, reusable facts learned from web research in this project. Persisten
 
 ## Entries
 
+### agent-instructions
+
+- [2026-10-26 — always-on instruction files: cost, evidence, and the 2026-10-26 trim](agent-instructions/2026-10-26-always-on-instruction-files.md) — Anthropic's own numbers for always-loaded instructions (5,000–10,000 tokens per request, keep total under 5,000), the progressive-disclosure model, lost-in-the-middle and instruction-gap evidence for mid-prompt degradation, and OctoBench's task-solving versus scaffold-compliance gap. Measured local result: 19 global rule files, 41,996 bytes / 6,296 words before the trim, 22,446 bytes / 3,492 words after, 18 TRIM-or-KEEP verdicts, nothing moved to a skill. Sources: Anthropic skills docs and context-engineering post, arXiv 2307.03172, arXiv 2601.03269, arXiv 2601.10343, Scale AI, local `rtk gain`.
+
 ### agent-skills-ecosystem
 
 - [2026-07-28 — skills.sh / agentskills.io vs Kilo](agent-skills-ecosystem/2026-07-28-skills-sh-vs-kilo-comparison.md) — open skills format spec; Kilo's local skills are already spec-compliant. Sources: skills.sh, agentskills.io, anthropics/skills, vercel-labs/skills.

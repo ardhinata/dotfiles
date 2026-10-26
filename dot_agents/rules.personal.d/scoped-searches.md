@@ -1,46 +1,41 @@
-Search and inspection commands must stay within a **bounded path**. An unbounded home-directory scan (`grep -rn foo ~`, `rg foo $HOME`, `find ~`) traverses caches, browser profiles, package databases, `.git/`, `node_modules/`, encrypted bundles, and hundreds of thousands of unrelated files — slow, noisy, and likely to trip secret-file and symlink rules.
+# Scoped Searches
+
+Search and inspection commands must stay within a **bounded path**. An unbounded
+home scan (`grep -rn foo ~`, `rg foo $HOME`, `find ~`) crosses caches, browser
+profiles, package databases, encrypted bundles, and secret files. It is slow,
+noisy, and likely to trip secret-file rules.
 
 ## When
 
-About to run `grep -r`, `rg`, `find`, `fd`, or any tool that walks a directory tree. Prefer the harness's dedicated tools (`glob`, `grep`, `read`) first — they are token-aware and already scope to the workspace. This rule applies when those tools are insufficient and the agent must shell-side grep, rg, or find.
+About to run `grep -r`, `rg`, `find`, `fd`, or any tree walk. Use the dedicated
+tools first: `aft_search`, `aft_outline`, `aft_zoom`, `glob`, `grep`, `read`.
+They are token-aware and already scoped to the workspace. This rule applies
+when those tools cannot answer the question.
 
-## Default scope — the working directory
+## Default scope
 
-Start here unless an explicit reason says otherwise:
+Search the current working directory. One call is enough. If the answer is
+almost certainly in this project, do not widen.
 
-- For project work: the **current working directory** (`$PWD`). One tool call is enough.
-- For mixed-source projects (chezmoi-style source-vs-target trees): the **source tree** the user named.
+## Named escalation
 
-If the answer is "almost certainly in this project", do not widen.
+Target a known global location by its exact path, never its parent:
 
-## Escalate to a **named** managed dir, not the whole home
-
-When the question is genuinely about a known global location, target that directory verbatim — never the parent:
-
-| Looking for | Target dir (do not scan parent) |
+| Looking for | Target |
 |---|---|
-| Global agent config / rules / skills | `~/.config/opencode/`, `~/.agents/` |
-| Global chezmoi source (your dotfiles) | `~/.local/share/chezmoi/` |
-| gpg-agent config / state | `~/.gnupg/gpg-agent.conf`, `~/.gnupg/gpg.conf` (files, not the directory) |
-| SSH config (allowlisted only) | `~/.ssh/config`, `~/.ssh/config.d/` |
-| Shell history | `~/.zsh_history` (or `~/.local/share/fish/fish_history`) |
+| Global agent config, rules, skills | `~/.config/opencode/`, `~/.agents/` |
+| Global chezmoi source | `~/.local/share/chezmoi/` |
+| gpg-agent config | `~/.gnupg/gpg-agent.conf`, `~/.gnupg/gpg.conf` (files, not the directory) |
+| SSH config | `~/.ssh/config`, `~/.ssh/config.d/` |
+| Shell history | `~/.zsh_history` |
 
-If the question might touch multiple of these, run **one bounded call per dir** rather than one giant one.
+Run one bounded call per directory. If the scope is unclear, ask which scope
+instead of widening.
 
-Do not recurse into encrypted/sealed trees (`~/.gnupg/private-keys-v1.d/`, `~/.password-store/`, `~/.local/share/keyring/`, age-encrypted data dirs). Even filename discovery is gated.
+Never recurse into sealed trees: `~/.gnupg/private-keys-v1.d/`,
+`~/.password-store/`, `~/.local/share/keyring/`, age-encrypted data dirs.
 
-## Process for a "where is X?" question
+## Stop
 
-1. **First call**: project dir, targeted glob/grep on the obvious filename stem.
-2. **No hit?** Ask yourself: is X global dotfiles, global agent config, or env-level? If unclear, **ask the user which scope** before widening — most "where is X" questions are local in practice.
-3. **Named escalation**: re-run with the specific bounded dir from the table above.
-4. **No `grep -r ... ~` / `rg ... $HOME` / `find ~` without an explicit, exact target dir.** Always pass the deepest meaningful path.
-5. `glob` is workspace-scoped by design — constrain with `path:` when you know the subtree.
-6. Pass `--hidden` only when you intend to read dotfiles. `rg`/`grep` exclude them by default; do not flip that flag as a "just in case" move.
-7. Use ripgrep when available — it auto-skips `.git/`, `node_modules/`, and respects `.gitignore`.
-8. **Still no hit?** Report "not found in <scope>" and stop. Do not continue widening.
-
-## Anti-patterns
-
-- `grep -rn 'foo' ~` "to be safe" — costs minutes and floods the context with every browser cookie JS file.
-- Disabling `--no-ignore` / `--hidden` to "see everything" — the ignore list is a feature, not friction.
+If the search finds nothing in the named scope, report "not found in <scope>"
+and stop. Do not continue widening.

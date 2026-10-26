@@ -1,30 +1,22 @@
-{{- /* runtime-tools.md.tmpl — chezmoi template, branches per host */ -}}
 # Runtime Tools
 
 Router rule. Triggers point at the reference material for the tool in
-question — the Node note is in the `fnm` section below, the container notes
-are in the `container-tools` skill.
+question.
 
 ## Load the relevant reference when any of these is true
 
 - About to run any `node`, `npm`, `pnpm`, `yarn`, `npx`, `corepack`, or
-  `bun` command in a project that has a `.node-version`, `.nvmrc`, or
+  `bun` command in a project with a `.node-version`, `.nvmrc`, or
   `package.json#engines.node` → read the `fnm` section below.
-- About to run any `docker`, `podman`, `nerdctl`, or `containerd` command
-  → load the `container-tools` skill.
-- Editing or authoring a `Dockerfile`, `Containerfile`, `compose.yaml`,
-  `compose.yml`, `docker-compose.yml`, or `podman-compose.yml` → load
-  the `container-tools` skill.
-- The user asks which Node version is active, or to install / switch
-  Node → read the `fnm` section below.
-- The user asks which container tool to use on this machine → load the
-  `container-tools` skill.
+- About to run any `docker` or `podman` command, to author a `Dockerfile`,
+  `Containerfile`, `compose.yaml`, `compose.yml`, `docker-compose.yml`, or
+  `podman-compose.yml`, or when the user asks which container tool to use →
+  load the `container-tools` skill.
 
 ## This host
 
-The sections below are rendered by chezmoi at apply time and reflect
-what is currently on `$PATH`. Each section is a thin pointer to the
-relevant flat skill.
+The sections below are rendered by chezmoi at apply time and reflect what is
+currently on `$PATH`.
 
 {{- if lookPath "fnm" }}
 
@@ -49,19 +41,3 @@ relevant flat skill.
 
 {{ include "dot_agents/rules/.template-resources/container_only-docker.md" }}
 {{- end }}
-
-## Boundary
-
-- **Per-host detection + per-tool router** (this rule) → points at the
-  right reference for the current trigger.
-- **fnm mechanics** (version detection, install, fallback, corepack,
-  not-installed recommendation) → the `fnm` section below.
-- **Container runtime selection** (shim detection, compose variant, OCI
-  vs Docker Hub, not-installed recommendation) → `container-tools`
-  skill.
-- **Per-project conventions** (lockfile policy, multi-stage build
-  patterns) → not a rule; defer to project conventions.
-- **Adding a new runtime tool in the future** (e.g. `uv`, `mise`,
-  `rtk`-in-router) → create a new flat skill, add a new trigger line
-  to this rule. No edits to existing skills; no parent description to
-  grow.

@@ -1,4 +1,4 @@
-# Long-Running Tools
+# Processes That Outlive One Command
 
 Two kinds of work outlive a single command. Use the dedicated tools, not shell
 backgrounding. Tool names differ per harness — the concepts do not.
@@ -7,10 +7,9 @@ backgrounding. Tool names differ per harness — the concepts do not.
 
 For anything that must keep running (`npm run dev`, `vite`, `next dev`,
 `bun --watch`, test watchers, local services), start it through the harness's
-background-process facility — **not** `&`, `nohup`, `disown`, `setsid`, or
-`Start-Process`. A tracked background process stays visible to the harness and
-can be read from or killed later; a detached shell process is invisible and
-leaks.
+background-process facility. Never use `&`, `nohup`, `disown`, or `setsid`.
+A tracked background process stays visible to the harness and can be read or
+killed later. A detached shell process is invisible and leaks.
 
 | Harness | Facility |
 |---|---|
@@ -24,4 +23,4 @@ subagent tool.
 
 | Harness | Worktree facility | Delegated research |
 |---|---|---|
-| OpenCode | `opencode.worktree_create` | `subagent` tool, always allowed |
+| OpenCode | `opencode.worktree_create` | `subagent` tool |

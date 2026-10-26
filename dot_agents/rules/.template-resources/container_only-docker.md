@@ -1,9 +1,7 @@
-# Container Tools — Docker only
-
 `docker` is installed; `podman` is **not** available. Use Docker for all
 container work in this project.
 
-## Commands
+#### Commands
 
 - **Container / image ops**: standard `docker build`, `docker run`, `docker ps`,
   `docker images`, `docker stop`, `docker rm`, `docker pull`, `docker push`,
