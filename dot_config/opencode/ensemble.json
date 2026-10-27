@@ -6,7 +6,6 @@
     "timeoutMs": 1800000,
     "rateLimitCapacity": 10,
     "dashboardPort": 4747,
-    "defaultModel": "openrouter/minimax/minimax-m3.1-flash",
     "modelPool": ["openrouter/minimax/minimax-m3.1-flash", "opencode-go/deepseek-v4.1-flash", "opencode-go/glm-5.3-flash"],
     "modelsByAgent": {
     },
