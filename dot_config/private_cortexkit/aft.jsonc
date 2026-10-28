@@ -32,7 +32,10 @@
     // returns 512 floats instead of 4096. AFT sends no dimensions field of
     // its own. The proxy forwards the Authorization header, so the API key
     // stays in the environment and never reaches a file.
-    "base_url": "http://127.0.0.1:8099/v1",
+    // The 79720b482212 segment is an identity salt. The proxy drops it before
+    // the call reaches the provider, but AFT hashes the base_url into the
+    // index fingerprint, so changing the salt forces a rebuild of every root.
+    "base_url": "http://127.0.0.1:8099/79720b482212/v1",
     "api_key_env": "OPENROUTER_API_OPENCODE_INDEX",
 
     // --- changed from 3000 (schema default) ---

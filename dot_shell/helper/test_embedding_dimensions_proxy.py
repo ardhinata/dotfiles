@@ -138,6 +138,17 @@ class ProxyTest(unittest.TestCase):
         error.exception.close()
         self.assertEqual(404, error.exception.code)
 
+    def test_serves_a_salted_embeddings_path(self):
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{self.server.server_port}/salty/v1/embeddings",
+            data=json.dumps({"model": "m", "input": ["a"]}).encode(),
+            method="POST",
+        )
+        request.add_header("Content-Type", "application/json")
+        with urllib.request.urlopen(request, timeout=10) as response:
+            self.assertEqual(200, response.status)
+        self.assertEqual(1024, StubUpstream.received["body"]["dimensions"])
+
 
 class LoadProviderTest(unittest.TestCase):
     def test_default_preference_without_the_variable(self):

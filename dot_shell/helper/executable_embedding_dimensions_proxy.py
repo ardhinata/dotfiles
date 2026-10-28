@@ -63,8 +63,14 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "embedding-dimensions-proxy/1"
 
     def do_POST(self):
-        if self.path.rstrip("/") != "/v1/embeddings":
-            self.reply(404, b'{"error":{"message":"only /v1/embeddings is served"}}')
+        # Any path that ends with /embeddings is served. A caller can put a
+        # salt segment in front of it (for example /<salt>/v1/embeddings). The
+        # salt never reaches the provider, but it changes the endpoint string
+        # that the caller hashes into its embedding identity, so changing the
+        # salt forces a re-embed.
+        path = self.path.split("?", 1)[0].rstrip("/")
+        if not path.endswith("/embeddings"):
+            self.reply(404, b'{"error":{"message":"only an /embeddings path is served"}}')
             return
 
         length = int(self.headers.get("Content-Length") or 0)
