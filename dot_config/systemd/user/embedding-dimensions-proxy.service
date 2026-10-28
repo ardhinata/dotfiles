@@ -5,13 +5,17 @@ After=network-online.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 %h/.shell/helper/embedding_dimensions_proxy.py
-Environment=EMBEDDING_PROXY_DIMENSIONS=1024
+Environment=EMBEDDING_PROXY_DIMENSIONS=512
 Environment=EMBEDDING_PROXY_PORT=8099
 Environment=EMBEDDING_PROXY_UPSTREAM=https://openrouter.ai/api/v1/embeddings
 # The Nebius Token Factory pool answers a token burst with HTTP 429, so the
 # request order starts at DeepInfra, which costs the same per token, and
 # keeps SiliconFlow behind it as the second choice.
 Environment='EMBEDDING_PROXY_PROVIDER={"order":["deepinfra","siliconflow"],"allow_fallbacks":true}'
+# 512 floats is the width the A/B on 2026-10-28 picked: it matched 1024 on
+# every retrieval metric, and it cuts the semantic index by 38 percent. The
+# width does not change the token bill, because the same text is embedded
+# either way.
 Restart=on-failure
 RestartSec=5
 

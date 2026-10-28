@@ -71,12 +71,14 @@
     "provider": "openai-compatible",
     "model": "qwen/qwen3-embedding-8b",
     // The local proxy adds "dimensions" to every request, so the model
-    // returns 1024 floats instead of 4096. The plugin sends no dimensions
+    // returns 512 floats instead of 4096. The plugin sends no dimensions
     // field of its own. The proxy forwards the Authorization header, so the
     // API key stays in the environment and never reaches a file.
     "endpoint": "http://127.0.0.1:8099/v1",
     "api_key": "{env:OPENROUTER_API_OPENCODE_INDEX}",
-    "max_input_tokens": 2048,
+    // Same 640 cap as the AFT lane (A/B on 2026-10-28): 19.7 percent fewer
+    // embedded characters, no measurable recall loss.
+    "max_input_tokens": 640,
   },
   "caveman_text_compression": {
     "enabled": true,

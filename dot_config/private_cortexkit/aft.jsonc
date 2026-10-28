@@ -29,7 +29,7 @@
     "backend": "openai_compatible",
     "model": "qwen/qwen3-embedding-8b",
     // The local proxy adds "dimensions" to every request, so the model
-    // returns 1024 floats instead of 4096. AFT sends no dimensions field of
+    // returns 512 floats instead of 4096. AFT sends no dimensions field of
     // its own. The proxy forwards the Authorization header, so the API key
     // stays in the environment and never reaches a file.
     "base_url": "http://127.0.0.1:8099/v1",
@@ -52,7 +52,10 @@
     // qwen3-embedding-8b takes 32768-40960 context; omitting this keeps the
     // MiniLM-era 512-token chunk caps. Raise for finer-grained indexing; pay
     // in tokens + rebuild.
-    "max_input_tokens": 2048,
+    // 640 is the measured sweet spot (A/B on 2026-10-28): it cut the embedded
+    // text by 19.7 percent with no measurable recall loss, and the median
+    // chunk sits far below the cap either way.
+    "max_input_tokens": 640,
     //
     // Default 20000 is a local-fastembed memory guard. Remote backends embed
     // server-side, so this only bites on roots over 20k files.
@@ -64,7 +67,7 @@
     // enforces a tokens-per-minute quota and answers a burst with HTTP 429.
     // AFT shrinks the batch on a timeout, but a 429 keeps the batch size, so
     // one big request can fail on its own and burn three retries. A cap of
-    // 32 rows bounds one attempt to 65k tokens at 2048 tokens per row.
+    // 32 rows bounds one attempt to 20k tokens at 640 tokens per row.
     "max_batch_size": 32,
   },
 }
