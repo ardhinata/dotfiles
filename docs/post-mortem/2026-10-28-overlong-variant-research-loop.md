@@ -118,6 +118,16 @@ The fix is small. The catalog notice could name the search rule in one line.
 
 > The catalog is partial. Search it for the tool that answers the question before you read source code.
 
+Correction, added 2026-10-28: the notice already names the search rule. The
+live text comes from `packages/core/src/codemode/instructions.ts:13` in tag
+`v2.1.4` and reads "use `search(...)` to find a tool, then call it by the
+`path` in the result". The text is compiled into `/usr/bin/opencode`, so no
+chezmoi file can change it. The miss came from the catalog budget instead.
+`catalog.ts:49` sets `INLINE_BUDGET = 2_000` characters, and `rankListings` at
+`catalog.ts:175` orders each namespace by line cost, cheapest first. A long
+signature is dropped from the inline listing while it stays searchable.
+`tools.opencode.models` was hidden by its own signature length.
+
 ### 3.2 The AFT notice versus reading a tagged revision
 
 The AFT notice forbids shell for code search and points at `aft_search`, `aft_outline`, and `aft_zoom`. It offers a `path` argument for another project. The AFT notice cannot read a git tag. The task needed the file content at tag v2.1.4, and `git show v2.1.4:path` was the only accurate route.
@@ -128,6 +138,13 @@ The rule can keep its intent and state the exception.
 
 > Use `aft_search`, `aft_outline`, and `aft_zoom` for code reads. Use `git show <tag>:<path>` when the answer must come from a specific revision. State the exception in your reply.
 
+Correction, added 2026-10-28: no exception is needed. The notice bans
+`grep`/`rg`/`find`/`sed`/`awk`/`cat` through shell. It then states "Keep
+`bash` for shell facts (git state, file metadata, processes)"
+(`aft-opencode@0.62.0/dist/index.js:51810`). `git show <tag>:<path>` is not in
+the ban list, so the rule was followable. The notice text is also fixed in the
+plugin bundle.
+
 ### 3.3 The research budget against "do a research when necessary"
 
 The user asked for research. No rule caps the depth. The Ponytail injection says to read the code the change touches. Its reply rule asks for one or two lines at the end. Neither sets a limit.
@@ -136,9 +153,12 @@ The result is what the report describes. The agent read 196 tool results and no 
 
 ### 3.4 The knowledge-cache rule against the reuse of findings
 
-`web-verification.md` asks the agent to write a dated cache entry after any lookup that produces reusable information. It asks the agent to read the cache index first. The agent did neither. The ensemble plugin cannot carry a `#variant`. That fact is reusable, and it is not cached. The next session pays the same 138 calls again.
+`web-verification.md` asks the agent to write a dated cache entry after any lookup that produces reusable information. It asks the agent to read the cache index first. The agent did neither. The ensemble plugin cannot carry a `#variant`. That fact is reusable, and it was not cached. The next session pays the same 138 calls again.
 
 The rule was live and loaded. It lost to the pull of the current task.
+
+Correction, added 2026-10-28: the entry now exists at
+`.agents/docs/cache/opencode-harness/2026-10-28-ensemble-model-pool-variant.md`.
 
 ## Finding 4 — Faster options that the instruction set limited or forbade
 
@@ -169,30 +189,39 @@ The second root cause is the first step. The agent began with source archaeology
 - One background job ran 30 minutes and was killed with no result.
 - Two user interrupts asked for speed. The third asked for a stop.
 - Zero requested changes reached the configuration file.
-- The knowledge cache has no entry about the plugin model handling. The next session pays the same cost.
+- The knowledge cache had no entry about the plugin model handling. The next
+  session paid the same cost. The entry now lives at
+  `.agents/docs/cache/opencode-harness/2026-10-28-ensemble-model-pool-variant.md`.
 - The working tree still holds two uncommitted files from the earlier task in this session: `dot_config/opencode/private_opencode.jsonc` and `dot_config/zed/private_settings.json`.
 
 ## Action items
 
-Each item names the file to change and the change to make. The first three carry most of the value.
+The plan for these items is
+[docs/plans/2026-10-28-research-loop-instruction-fixes.md](../plans/2026-10-28-research-loop-instruction-fixes.md).
+It was verified against the OpenCode v2.1.4 source, the deployed rule files,
+and the exported transcript of this session before it was written.
 
-1. **Add a research budget to the instruction set.** Add a rule file under `~/.agents/rules/`. Set a call limit for research tasks. Require the agent to state the planned number of calls in the first reply. Require the agent to report the count at the end. Target: 30 lines.
+Three of the original items should not be applied as written.
 
-2. **Add an ask-trigger rule.** Ask at the first decision point with two or more materially different outcomes, once the cheapest check is done. One question costs one turn. Report a spec deviation as soon as the agent finds it. Merge with `ambiguity-resolution.md` rather than adding a separate file, to keep the payload flat.
+- **Item 6 is already fixed upstream.** The Code Mode notice in the live
+  prompt comes from `packages/core/src/codemode/instructions.ts:13` in tag
+  `v2.1.4`. It already reads "use `search(...)` to find a tool, then call it by
+  the `path` in the result". The text is compiled into `/usr/bin/opencode`, so
+  no chezmoi file can change it.
+- **Item 7 needs no exception.** The AFT notice bans `grep`/`rg`/`find`/`sed`/
+  `awk`/`cat` through shell. It then states "Keep `bash` for shell facts (git
+  state, file metadata, processes)". `git show <tag>:<path>` is not in the ban
+  list, so the rule was followable.
+- **Item 9 misreads the Ponytail text.** The injected text constrains the
+  closing lines of a reply, not the body. A research reply can carry a table
+  above those lines.
 
-3. **Add a first-step rule for plugin and CLI work.** Read the README or the tool description first. Do not grep the source before that. Search the tool catalog before you read any source. Target: 20 lines.
+Two facts that this list misses came from measuring the transcript.
 
-4. **Extend `no-progress-stop.md`.** Add the second trigger: two consecutive probes of one hypothesis that add no information, whatever the output text says.
-
-5. **Add a one-question-per-phase rule.** State the next question before the next batch of calls. Do not mix a harness question with a task question in one phase.
-
-6. **Fix the Code Mode catalog notice.** Name the search rule in one line: the catalog is partial, so search it for the tool that answers the question before reading source code.
-
-7. **Fix the AFT notice.** State the git-tag exception: use `git show <tag>:<path>` when the answer must come from a specific revision, and say so in the reply.
-
-8. **Write the knowledge-cache entry.** Record that the ensemble plugin cannot carry a `#variant` on a pool model. Record that its model pool entries take a plain `provider/model` string. Add the entry to the cache index.
-
-9. **Reconcile the Ponytail reply rule with research tasks.** The Ponytail injection asks for one or two lines at the end. A research reply needs the call count and the negative results. Let a research reply carry a short table instead.
+- The first user turn ran 105 assistant steps and 165 tool calls. It made zero
+  `question` calls.
+- The decisive read of `v2-client.ts` landed at step 38. A step cap of 30
+  stops the turn before the agent learns the fact that settles the question.
 
 ## Lessons learned
 

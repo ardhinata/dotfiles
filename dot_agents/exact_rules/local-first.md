@@ -27,6 +27,16 @@ In roughly this order — read what exists, skip what doesn't:
 8. **`docs/` index** — skim filenames and titles only.
 9. **Code itself** — when the above do not cover it.
 
+## A dependency is a local source
+
+When the question is about an installed package, plugin, or CLI, its own docs
+come before its source. Read the package README, the `--help` text, or the
+config schema. The same order applies to the harness: search the tool catalog
+before you read harness source.
+
+To answer from a specific revision, `git show <tag>:<path>` is the correct
+read. It is a shell fact, not a source search.
+
 ## Anti-Patterns
 
 - Assuming project structure from filenames alone.
