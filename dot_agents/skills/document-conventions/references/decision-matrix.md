@@ -1,17 +1,17 @@
 # Decision Matrix
 
 The one-page answer to "what kind of doc am I writing?". Use the matrix
-first; consult the per-type tables in
+first. Consult the per-type tables in
 [`by-doc-type.md`](by-doc-type.md) only after picking a row.
 
 ## How to use this matrix
 
-1. Identify the *intent* of the doc you're writing. Common intents:
+1. Identify the *intent* of the doc you are writing. Common intents:
    capture finding, plan work, record decision, propose design, cache
    research, encode rule, package workflow, introduce project, document
    release, document contribution.
-2. Find the row that matches intent **and** scope (task-only vs.
-   repo-durable, internal vs. external).
+2. Find the row that matches intent **and** scope (task-only compared to
+   repo-durable, internal compared to external).
 3. Use the column links to jump straight to the per-type rule.
 
 If two rows fit, prefer the more-verified, lower-overhead one. A
@@ -46,10 +46,10 @@ These rules resolve ambiguity when the matrix has two plausible rows.
 ### Plan vs. ADR
 
 - A **plan** is forward-looking and disposable. It walks through *what
-  we'll do*, in steps, with checkpoints. Plans can be revised without
+  we will do*, in steps, with checkpoints. Plans can be revised without
   notice.
 - An **ADR** is backward-looking and durable. It captures *what we
-  decided and why*. ADRs are immutable once accepted; superseded ADRs
+  decided and why*. ADRs are immutable once accepted. Superseded ADRs
   are referenced by the new ADR.
 - If the doc will outlive the decision, write an ADR. If it walks
   through *doing* the work, write a plan.
@@ -81,10 +81,10 @@ directory to avoid writing a second doc.
 
 ### Plan vs. knowledge-cache entry
 
-- A **plan** has ordered steps and checkpoints. It describes work.
+- A **plan** contains ordered steps and checkpoints. It describes work.
 - A **knowledge-cache entry** is a discrete, reusable finding. It describes *a fact*.
-- If the content is "do these N steps in order", it's a plan. If it's
-  "this tool has a quirk — here's why", it's a cache entry.
+- If the content is "do these N steps in order", it is a plan. If it is
+  "this tool has a quirk — here's why", it is a cache entry.
 
 ### Knowledge-cache entry vs. rule file
 
@@ -106,8 +106,8 @@ directory to avoid writing a second doc.
 - An **RFC** is the heavyweight version: same as a design doc but
   formally requested for review and comment, often with a deadline and
   reviewers.
-- Use an ADR when the decision is captured; use a design doc when you
-  need to *make* the decision; use an RFC when the decision affects
+- Use an ADR when the decision is captured. Use a design doc when you
+  need to *make* the decision. Use an RFC when the decision affects
   many people and they need to weigh in.
 
 ### Rule file vs. SKILL
@@ -136,11 +136,11 @@ directory to avoid writing a second doc.
 - Default to the **lower-overhead, shorter-lived** option. Promote to a
   longer-lived doc only when the user asks, the finding clearly
   outlasts the session, or another doc explicitly references it.
-- When two types fit and you cannot tell which, write a cache entry and
-  link to the plan, knowledge cache, or rule you would have written. The
-  cache entry captures the finding; the user or future session can
+- When two types fit and you cannot tell which, write a cache entry. Link
+  to the plan, knowledge cache, or rule that you would write instead. The
+  cache entry captures the finding. The user or future session can
   promote it.
-- Cross-worktree vs. cross-machine: nothing in the agent layer is
+- Cross-worktree compared to cross-machine: nothing in the agent layer is
   cross-worktree by default any more. A finding that must survive a
   machine loss belongs in the project repo (`docs/`). The knowledge cache
   is gitignored, so it survives a worktree but not a machine loss. A

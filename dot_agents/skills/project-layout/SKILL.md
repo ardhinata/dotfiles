@@ -26,7 +26,7 @@ lives in `document-conventions`.
 **House style.** No external standard covers these — they are this project's
 layout, and they should be described as such:
 
-- `.agents/<vendor>/` with a root symlink (the *procedure*; note that only
+- `.agents/<vendor>/` with a root symlink (the *procedure*. Note that only
   `.agents/skills/` is a discovery location any tool actually scans — see
   "Vendor unification" below)
 - `.agents/docs/cache/` with per-topic directories and README indexes
@@ -37,7 +37,7 @@ layout, and they should be described as such:
   (`docs/plans/<slug>.md` and `docs/plans/<slug>/` are the same doc)
 
 Note that `docs/how-to/` + `docs/reference/` are two of Diátaxis's four
-quadrants — tutorials and explanation are not represented here, so do not
+quadrants. Tutorials and explanation are not represented here, so do not
 describe this tree as "Diátaxis".
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
@@ -80,7 +80,7 @@ Anything that must outlive the worktree belongs in the project repo
 
 ## `.tmp/` subroles
 
-Two subdirectories are first-class; each has a distinct lifetime and commit policy.
+Two subdirectories are first-class. Each has a distinct lifetime and commit policy.
 Pick the one that matches the intent.
 
 | Subdir | Lifetime | Commit? | When to write | When to delete |
@@ -105,7 +105,7 @@ symlink to the same tree.
 fragments — go in `.agents/<vendor>/` and are reached through the harness's
 own root directory. When the project root has a vendor directory
 (`.kiro/`, `.claude/`, `.opencode/`, `.cursor/`, `.aider/`,
-`.windsurf/`, `.continue/`, etc.):
+`.windsurf/`, `.continue/`, and others):
 
 1. Move the directory's contents to `.agents/<vendor>/`.
 2. Create a root symlink `<vendor>/` → `.agents/<vendor>/` so vendor tools keep finding their config.
@@ -125,7 +125,7 @@ The cache lives at `.agents/docs/cache/` (sibling of `.agents/docs/` for non-cac
 .agents/docs/cache/<topic>/YYYY-MM-DD-<short-slug>.md
 ```
 
-A `README.md` index is **required** at `.agents/docs/cache/README.md` (and recommended per topic), with relative links listing every entry (topic, source, capture date, freshness note). Cache entries are tracked in git so a fresh clone inherits them, and the cache is never deployed — the repo-root `.agents/` tree does not reach `$HOME`. See `references/knowledge-cache.md` in the `project-context` skill for authoring rules (date tag, source, freshness note).
+A `README.md` index is **required** at `.agents/docs/cache/README.md` (and recommended per topic), with relative links listing every entry (topic, source, capture date, freshness note). Cache entries are tracked in git so a fresh clone inherits them. The cache is never deployed — the repo-root `.agents/` tree does not reach `$HOME`. See `references/knowledge-cache.md` in the `project-context` skill for authoring rules (date tag, source, freshness note).
 
 ## Generated content
 
@@ -157,7 +157,7 @@ Older projects may use a non-canonical location for the knowledge cache. Accepta
 | `.help/` | Project predates both `.agents/` and the cache convention; migrate when convenient |
 | `docs/cache/` | Project prefers a discoverable cache under `docs/`; acceptable as a permanent deviation |
 
-All three are date-tagged under the same `YYYY-MM-DD-<slug>.md` pattern; only the parent path differs.
+All three are date-tagged under the same `YYYY-MM-DD-<slug>.md` pattern. Only the parent path differs.
 
 ## When to deviate
 

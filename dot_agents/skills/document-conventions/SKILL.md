@@ -19,17 +19,25 @@ This skill mixes two things. Know which is which before you cite one.
 
 | Rule | Source |
 |---|---|
-| `SKILL.md` frontmatter (`name` + `description`) | agentskills.io specification |
+| `SKILL.md` frontmatter (`name` + `description` limits) | agentskills.io specification |
+| Third-person `description`, no XML tags, no reserved words | Claude skill authoring best practices |
 | ADR frontmatter, optional | MADR template |
-| One H1 per file | markdownlint MD025, Google style guide |
-| Lowercase hyphenated filenames, known stems exempt | Google filenames guide, agentskills.io `name` field |
+| One H1 per page | Google style guide, headings. markdownlint MD025 only forbids a *second* H1; it cannot enforce exactly one. |
+| Lowercase hyphenated filenames, known stems exempt | Google filenames guide, agentskills.io `name` field. Google allows underscores for directory consistency; this skill does not. |
 | ISO 8601 dates | ISO 8601, Keep a Changelog |
 | Forward slashes in paths | Claude skill authoring best practices |
 | Relative links between docs in one repo | GitLab style guide |
-| No secrets in docs | OWASP Secrets Management Cheat Sheet |
+| No secrets in docs | GitLab style guide, "Fake tokens"; GitHub, "Removing sensitive data from a repository" |
 | "Pick the lightest convention that fits" | agentskills.io best practices, Diátaxis |
 | Intent → document-type matrix | the Diátaxis compass pattern |
 | `NNNN-<slug>.md` for ADRs and RFCs | MADR, Rust RFC template |
+| README section order | Standard Readme spec |
+| CHANGELOG categories, `[YANKED]`, date format | Keep a Changelog 1.1.0 |
+| Blameless postmortem, action-item owner and tracking issue | Google SRE postmortem culture |
+| Design doc: goals, trade-offs, alternatives | Software Engineering at Google, ch.10 |
+
+For the per-type verdicts, and the list of citations that were wrong, read
+[`references/standards-map.md`](references/standards-map.md).
 
 **House style.** No external standard covers these. They are this project's
 conventions — internally consistent, but cite them as house style, not as
@@ -40,6 +48,8 @@ industry practice:
 - Every per-type length budget (all numbers in
   [structure-and-length.md](references/structure-and-length.md))
 - The frontmatter matrix — which types require, forbid, or tolerate it
+- Tightenings applied on top of a standard: the closed ADR status set, the
+  fixed CHANGELOG category order, the ban on underscores in filenames
 - The "rule file carries no frontmatter" rule. This is a project decision.
   Cursor's `.mdc` convention requires frontmatter, but no rule loader
   parses it.
@@ -85,6 +95,7 @@ disclosure).
 | [`references/structure-and-length.md`](references/structure-and-length.md) | Required sections, ordering, length budgets |
 | [`references/cross-references.md`](references/cross-references.md) | Linking style, anchors, path citations |
 | [`references/anti-patterns.md`](references/anti-patterns.md) | Do/don't checklist, common mistakes |
+| [`references/standards-map.md`](references/standards-map.md) | Which rules are standard, which are house style, which citations were wrong |
 | [`assets/checklists.md`](assets/checklists.md) | Per-type pre-publish checklist |
 | [`assets/templates/`](assets/templates/) | Starter templates for each doc type, plus the split-doc directory index |
 
@@ -115,17 +126,20 @@ These rules apply to **every** doc type unless the per-type reference says
 otherwise:
 
 1. **Plain Markdown.** No HTML except where Markdown genuinely cannot
-   express something (e.g. `<details>` for collapsible sections).
+   express something (for example `<details>` for collapsible sections), and HTML
+   comments used as notes to the author.
 2. **Forward slashes** in file paths, even on Windows (`reference/foo.md`,
    not `reference\foo.md`). The agentskills.io spec asks for relative paths
-   from the skill root; forward slashes are the cross-platform form of that.
+   from the skill root. Forward slashes are the cross-platform form of that.
 3. **ISO 8601 dates** (`YYYY-MM-DD`) for any date in filenames or headings.
    `YYYY-MM-DD` sorts lexicographically and is unambiguous across locales
    (Keep a Changelog §"Confusing Dates").
 4. **Lowercase, hyphenated slugs.** Lowercase a–z, digits, hyphens. No
    spaces, underscores, capitals, or special chars in filenames. Hyphens
-   are the word separator; *never* use underscores or camelCase in
-   filenames. **This applies only to files where *you* choose the name.**
+   are the word separator. *Never* use underscores or camelCase in
+   filenames. Google allows underscores when a directory already uses them
+   for consistency. This skill does not. **This applies only to files where
+   *you* choose the name.**
    Established stems (`README.md`, `AGENTS.md`, `CHANGELOG.md`,
    `LICENSE`), tool-fixed names (`Makefile`, `Dockerfile`,
    `package.json`), and project prefixes (`dot_*`, `executable_*`,
@@ -143,7 +157,7 @@ otherwise:
    [frontmatter § global rule files](references/frontmatter.md)).
 8. **Be conservative with structure.** Pick the lightest convention that
    fits. Avoid adding sections "for completeness". The user's task is the
-   source of truth; the doc shape serves it.
+   source of truth. The doc shape serves it.
 9. **No secrets.** Tokens, private keys, fingerprints, passwords, and
    recovery phrases never go in docs. If a finding requires mentioning
    one, point to the encrypted file and stop.
@@ -159,8 +173,8 @@ frontmatter policies and the YAML rules.
 
 1. **Pick the type.** Read
    [`references/decision-matrix.md`](references/decision-matrix.md). If a task
-   needs *both* persistence and searchability, an ADR captures the why; a
-   knowledge-cache entry captures the what.
+   needs *both* persistence and searchability, an ADR captures the why.
+   A knowledge-cache entry captures the what.
 2. **Use the template.** Every doc type has a starter in
    `assets/templates/`. Copy, rename, fill.
 3. **Validate.** Run the per-type checklist from
@@ -176,7 +190,7 @@ frontmatter policies and the YAML rules.
 6. **Style pass.** Run the `asd-ste100` skill's Scan Checklist
    over the prose (synonym rotation, hedge stacking, nominalization,
    marketing adjectives, run-on sentences, soft phrasal verbs). This
-   skill owns *shape*; `asd-ste100` owns *clarity*. Apply it before
+   skill owns *shape*. `asd-ste100` owns *clarity*. Apply it before
    emitting the doc — no human is in the loop afterward to disambiguate.
 
 ## Captured sources
@@ -194,6 +208,9 @@ These rules are synthesised from:
 - [Semantic Versioning 2.0.0](https://semver.org/)
 - [MADR — Markdown Any Decision Records](https://adr.github.io/madr/)
 - [adr.github.io — decision records](https://adr.github.io/)
+- [Standard Readme spec](https://github.com/RichardLitt/standard-readme/blob/main/spec.md)
+- [Google SRE — Example Postmortem](https://sre.google/sre-book/example-postmortem/)
+- [Software Engineering at Google, ch.10 — Documentation](https://abseil.io/resources/swe-book/html/ch10.html)
 - [Andy Matuschak — Evergreen notes](https://notes.andymatuschak.org/Evergreen_notes)
 - Global rules: `~/.agents/rules/*.md` (web-verification, project-context,
   local-first, ambiguity-resolution, long-running-tools, document-conventions)
@@ -202,7 +219,7 @@ These rules are synthesised from:
 - Project decision — rule files carry no frontmatter even though skills do
 
 Re-verify before relying on exact field limits in 2027+. Volatility is high
-for skill/agents.md specs (< 12 months old); low for Keep a Changelog,
+for skill/agents.md specs (< 12 months old). It is low for Keep a Changelog,
 SemVer, MADR, Diátaxis, Conventional Commits.
 
 ## Anti-patterns (top three)

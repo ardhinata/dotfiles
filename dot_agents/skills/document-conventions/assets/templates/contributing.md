@@ -26,10 +26,13 @@ PRs accepted.
 
 ### Commit messages
 
-We follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/).
-Required prefixes: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`,
-`chore:`. Breaking changes: append `!` after the type or include a
-`BREAKING CHANGE:` footer.
+We follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
+`feat` and `fix` are the required types. The others are allowed: `docs`,
+`refactor`, `test`, `chore`, `build`, `ci`, `style`, `perf`.
+
+Breaking changes: put `!` immediately before the colon, after the type and
+the optional scope (`feat(api)!: ...`), or add a footer that starts with the
+uppercase text `BREAKING CHANGE:`.
 
 ### Pull requests
 
@@ -51,7 +54,7 @@ By participating, you are expected to uphold this code.
 <Process.>
 ```
 
-**Length:** < 200 lines target; 400 hard ceiling. Link out for
+**Length:** < 200 lines target, 400 hard ceiling. Link out for
 detail.
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md).

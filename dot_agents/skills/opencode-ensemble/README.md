@@ -8,7 +8,10 @@ Install from this repository:
 npx skills@latest add hueyexe/opencode-ensemble --skill opencode-ensemble
 ```
 
-Use this skill when you want your agent to decide whether a team is worthwhile, split work into independent slices, choose `explore` vs `build` teammates, select model strategy, write teammate prompts, review results, and clean up safely.
+Use this skill when you want your agent to decide whether a team is worthwhile.
+Use it to split work into independent slices, choose `explore` vs `build`
+teammates, and select model strategy. Use it to write teammate prompts, review
+results, and clean up safely.
 
 ## Structure
 

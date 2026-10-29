@@ -19,26 +19,30 @@ false goal**. Even within a single language, multiple cases are common
 Java / TypeScript / C#). Authoritative style guides therefore delegate
 the choice to the surrounding context:
 
-- **Google C++ Style Guide — File Names**: *"Filenames should be all
-  lowercase and can include underscores (`_`) or dashes (`-`). **Follow
-  the convention that your project uses.** If there is no consistent
-  local pattern to follow, prefer `_`."*
-- **Google developer documentation style guide — Filenames**: *"If
-  you're adding to a directory where everything else already uses
-  underscores, and it's not feasible to change everything to hyphens,
-  **it's okay to use underscores to stay consistent.**"*
-- **Devopedia — Naming Conventions**: *"there's no single one that fits
-  all scenarios. Each programming language recommends its own
-  convention. … When a project is written in multiple languages, it's
-  not possible to have a single naming convention. For each language,
-  adopt the naming convention prevalent in that language."*
-- **ITU Online — Programming Case Styles**: *"There is no universal
-  winner among the programming cases types. The right choice is the
-  one that fits the ecosystem and matches the surrounding codebase."*
+- **Google C++ Style Guide — File Names**:
+  > Filenames should be all lowercase and can include underscores (`_`) or
+  > dashes (`-`). **Follow the convention that your project uses.** If
+  > there is no consistent local pattern to follow, prefer `_`.
+- **Google developer documentation style guide — Filenames**:
+  > If you're adding to a directory where everything else already uses
+  > underscores, and it's not feasible to change everything to hyphens,
+  > **it's okay to use underscores to stay consistent.**
+- **Devopedia — Naming Conventions**:
+  > there's no single one that fits all scenarios. Each programming
+  > language recommends its own convention. … When a project is written
+  > in multiple languages, it's not possible to have a single naming
+  > convention. For each language, adopt the naming convention prevalent
+  > in that language.
+- **ITU Online — Programming Case Styles**:
+  > There is no universal winner among the programming cases types. The
+  > right choice is the one that fits the ecosystem and matches the
+  > surrounding codebase.
+
+The quotes are verbatim. Keep them word for word when you cite them again.
 
 In short: **the case system follows the context** (language,
 ecosystem, tool, or project), not the other way around. "Use
-kebab-case for everything" is a popular heuristic, but applying it
+kebab-case for everything" is a popular heuristic. Applying it
 blindly to filenames like `README.md`, `Makefile`, or `package.json`
 creates friction that no style guide recommends.
 
@@ -53,12 +57,12 @@ Pick the convention that matches the file type, in this order:
    them to `readme.md`, `agents-guide.md`, or `changelog-of-releases.md`
    would be a regression even though those names *technically* follow
    the slug rules. The "Filename-to-topic rules" table below codifies
-   this list; do not invent new stems when one of them will do.
+   this list. Do not invent new stems when one of them will do.
 2. **Domain-standard names** (tool-specific). `Makefile`, `Dockerfile`,
    `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`,
    `.gitignore`, `.env`, `tsconfig.json` — tool-specific filenames are
-   fixed by the tool that consumes them. Follow the tool's convention;
-   do not rewrite them as `make-file.md` or `git-ignore.md` "for
+   fixed by the tool that consumes them. Follow the tool's convention.
+   Do not rewrite them as `make-file.md` or `git-ignore.md` "for
    consistency".
 3. **Project-imposed prefixes / suffixes.** Some projects add
    prefixes or suffixes that override generic slug rules — the
@@ -68,7 +72,7 @@ Pick the convention that matches the file type, in this order:
    a code generator's `*.g.dart`). The rule is: when the project,
    its tooling, or its language ecosystem specifies a prefix or
    suffix, follow it. Document non-obvious project rules in
-   `AGENTS.md`; this skill is not the right place for them.
+   `AGENTS.md`. This skill is not the right place for them.
 4. **Kebab-case slugs (lowercase a–z + hyphens)** — only for files
    where *you* choose the name: notes, plans, design docs, how-to
    guides, knowledge-cache entries, rule files, skill subdirectories,
@@ -76,7 +80,7 @@ Pick the convention that matches the file type, in this order:
 
 The "Filename rules (universal)" section that follows applies inside
 category (4). It must **not** override categories (1)–(3). When in
-doubt, copy what the surrounding files in the repo already do; the
+   doubt, copy what the surrounding files in the repo already do. The
 goal is to fit in with established conventions, not to apply a single
 rule everywhere.
 
@@ -86,9 +90,9 @@ These rules apply to every doc type unless a per-type rule says
 otherwise:
 
 1. **Lowercase a–z, digits, hyphens only.** No spaces, no underscores, no
-   capitals. Hyphens are the word separator; *never* use underscores or
+   capitals. Hyphens are the word separator. *Never* use underscores or
    camelCase in filenames.
-2. **No leading or trailing hyphens.** Filenames don't start or end
+2. **No leading or trailing hyphens.** Filenames do not start or end
    with `-`. Avoid consecutive `--`.
 3. **No file extension beyond `.md`** (or `.markdown`). `.md` is the
    project default.
@@ -107,11 +111,11 @@ Three patterns appear, by doc type:
 
 Pattern: `YYYY-MM-DD-<slug>.md`
 
-- **Why ISO 8601:** sorts lexicographically; unambiguous across locales
+- **Why ISO 8601:** sorts lexicographically. It is unambiguous across locales
   (Keep a Changelog §"Confusing Dates").
 - **Where the date goes:** at the start of the filename, separated by
   `-`. The date *is* part of the filename, not the slug.
-- **Same-day collisions:** append a counter, e.g.
+- **Same-day collisions:** append a counter, for example
   `2026-07-27-foo-2.md`. Avoid this by scanning the target directory
   (the cache topic dir, `docs/plans/`, `docs/post-mortem/`) before
   writing.
@@ -122,11 +126,11 @@ Pattern: `NNNN-<slug>.md`
 
 - **4-digit zero-padded sequence.** MADR allows up to 9999 ADRs in one
   directory.
-- **Sequencing is stable.** Don't renumber existing files when adding
-  new ones; always append. MADR ADR-0002: "do not use numbers in
+- **Sequencing is stable.** Do not renumber existing files when adding
+  new ones. Always append. MADR ADR-0002: "do not use numbers in
   headings" — the number is in the filename, not the H1.
 - **Monorepos / categories:** MADR allows subdirectories per category
-  (`docs/adr/backend/0001-foo.md`); sequence restarts within each
+  (`docs/adr/backend/0001-foo.md`). The sequence restarts within each
   category but the file is still uniquely identified by full path.
 
 ### Numbered prefix — sections inside a split doc
@@ -162,7 +166,7 @@ A slug is the lowercase-hyphenated form of a phrase. Examples:
 - "How to deploy to Kubernetes" → `how-to-deploy-to-kubernetes.md`
 - "FNM Node Manager" → `fnm-node-manager.md` (or `fnm.md` if your repo
   has only one such file)
-- "Rename `_draft` to `draft/`" → don't slug this; the topic is
+- "Rename `_draft` to `draft/`" → do not slug this. The topic is
   "directory renames"
 
 Slug heuristics:
@@ -179,6 +183,12 @@ Slug heuristics:
 
 Every file should have **exactly one H1**, written in sentence case.
 
+This is a house rule with published backing: the [Google style
+guide](https://developers.google.com/style/headings) says to "only use a
+level-1 heading once on a page". markdownlint MD025 is only a partial
+enforcement. It fires when the first line of the file is an H1 and a second
+H1 appears. It cannot catch a file with no H1 at all.
+
 | Doc type | H1 form |
 |---|---|
 | Skill SKILL.md | Title Case, matches `name` field (`# Document Conventions`) |
@@ -193,7 +203,7 @@ Every file should have **exactly one H1**, written in sentence case.
 | CONTRIBUTING.md | `# Contributing` |
 
 **No numbering in H1s** (MADR ADR-0002). The ADR filename carries the
-number; the H1 does not.
+number. The H1 does not.
 
 ## Per-type filename patterns (summary)
 
@@ -254,14 +264,14 @@ consistently across the repo:
 | `ROADMAP.md` | Forward-looking plan (rare) |
 | `FAQ.md` | Frequently asked questions |
 
-Do not invent new stems (`NOTES.md`, `MEMOS.md`, etc.) when one of
+Do not invent new stems such as `NOTES.md` or `MEMOS.md` when one of
 the above will do.
 
 ## Project-specific prefixes and suffixes
 
 Tool-specific prefixes and suffixes (a dotfile manager's `dot_*`,
 a build system `_test.go`, a language's `_test.py`, a templating
-engine's `*.tmpl`, a PEG-generated `*.peg`, etc.) override the generic
+engine's `*.tmpl`, a PEG-generated `*.peg`, and similar) override the generic
 slug rules. **This skill is intentionally project-agnostic** — it
 does not document those conventions. Document them in your project's
 `AGENTS.md` and link to the relevant tool's documentation so future

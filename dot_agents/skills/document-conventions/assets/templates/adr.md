@@ -5,7 +5,7 @@ recommended. Sections in **MADR order** (fixed).
 
 ```markdown
 ---
-status: "<proposed | rejected | accepted | deprecated | superseded by ADR-NNNN>"
+status: "<proposed | rejected | accepted | deprecated | … | superseded by ADR-NNNN>"
 date: YYYY-MM-DD
 decision-makers: [<handle>, <handle>]
 consulted: [<handle>]
@@ -71,10 +71,16 @@ etc.>
 **Length:** 50–200 lines.
 
 **Filename:** `NNNN-<slug>.md`. NNNN is 4-digit zero-padded. Sequence
-is append-only; do not renumber.
+is append-only. Do not renumber.
 
-**Status values:** `proposed` / `rejected` / `accepted` / `deprecated`
-/ `superseded by ADR-NNNN`. Update; never delete.
+**Status values:** the house set is `proposed` / `rejected` / `accepted` /
+`deprecated` / `superseded by ADR-NNNN`. MADR leaves the set open, so a
+status such as `on hold` is allowed if the house set is widened. Update.
+Never delete.
+
+**Sections:** MADR marks every section below the first three optional, and
+publishes minimal and bare variants. The house rule keeps the full set in
+the order below.
 
 **No numbering in headings** (MADR ADR-0002). The number is in the
 filename, not the H1.

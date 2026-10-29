@@ -8,7 +8,12 @@ Usage:
     python3 ste_check.py FILE [FILE ...]
     python3 ste_check.py --mode procedural FILE
     python3 ste_check.py --json FILE
+    python3 ste_check.py --print-prose FILE
     cat FILE | python3 ste_check.py -
+
+--print-prose prints the prose of a file without the markup, and exits. It is
+the input for a second checker that has a dictionary but does not read
+Markdown.
 
 Exit status: 1 when it finds an error, 0 when it finds none.
 """
@@ -193,9 +198,10 @@ SENTINEL = "\x00"
 NO_SPLIT = [
     re.compile(r"\b(?:e\.g|i\.e|etc|vs|n\.b|et al|dr|mr|mrs|ms|inc|ltd|fig|no|approx)\.", re.I),
     re.compile(r"(?<=\d)\.(?=\d)"),          # 3.9, 1.024
-    re.compile(r"(?<=\d):(?=\d)"),           # 10:30
+    re.compile(r"(?<=\d):(?=\d)"),          # 10:30
     re.compile(r"://"),                      # https://
     re.compile(r"\b[A-Za-z]\.(?=[A-Za-z]\.)"),  # a.b.c
+    re.compile(r"`[^`]*`"),                  # inline code, such as `writing-rules.md`
 ]
 
 
@@ -205,49 +211,19 @@ def mask_no_split(text: str) -> str:
     for pattern in NO_SPLIT:
         for match in pattern.finditer(text):
             for i in range(match.start(), match.end()):
-                if chars[i] in ".:":
+                if chars[i] in ".!?:;":
                     chars[i] = SENTINEL
     return "".join(chars)
 
 
-def to_sentences(blocks: list[tuple[int, str, str]]) -> list[tuple[int, str]]:
-    """Split prose into sentences. Each sentence keeps the line where it starts.
+def group_paragraphs(blocks: list[tuple[int, str, str]]) -> list[list[tuple[int, str]]]:
+    """Group blocks into paragraphs.
 
     A blank line ends a paragraph. `strip_markdown` drops blank lines, so a gap in the
     line numbers marks the boundary. A list item is always its own unit (rule 4.3).
     """
-    sentences: list[tuple[int, str]] = []
-    paragraph: list[tuple[int, str]] = []
-
-    def flush(par: list[tuple[int, str]]) -> None:
-        if not par:
-            return
-        # Record where each source line starts inside the joined paragraph.
-        spans: list[tuple[int, int]] = []
-        offset = 0
-        pieces: list[str] = []
-        for line, prose in par:
-            spans.append((offset, line))
-            pieces.append(prose)
-            offset += len(prose) + 1
-        joined = " ".join(pieces)
-        masked = mask_no_split(joined)
-
-        def line_of(pos: int) -> int:
-            found = spans[0][1]
-            for start, line in spans:
-                if start <= pos:
-                    found = line
-                else:
-                    break
-            return found
-
-        # Rule 8.4: in a vertical list a colon ends a sentence.
-        for match in re.finditer(r"[^.!?:]+(?:[.!?:]+|$)", masked):
-            text = joined[match.start():match.end()].strip().rstrip(".!?:").strip()
-            if text:
-                sentences.append((line_of(match.start()), text))
-
+    groups: list[list[tuple[int, str]]] = []
+    current: list[tuple[int, str]] = []
     previous_line = None
     for line, prose, kind in blocks:
         starts_new = (
@@ -255,13 +231,61 @@ def to_sentences(blocks: list[tuple[int, str, str]]) -> list[tuple[int, str]]:
             or previous_line is None
             or line != previous_line + 1
         )
-        if starts_new:
-            flush(paragraph)
-            paragraph = []
-        paragraph.append((line, prose))
+        if starts_new and current:
+            groups.append(current)
+            current = []
+        current.append((line, prose))
         previous_line = line
-    flush(paragraph)
+    if current:
+        groups.append(current)
+    return groups
+
+
+def paragraph_sentences(par: list[tuple[int, str]]) -> list[tuple[int, str]]:
+    """Split one paragraph into sentences. Each sentence keeps the line where it starts."""
+    if not par:
+        return []
+    # Record where each source line starts inside the joined paragraph.
+    spans: list[tuple[int, int]] = []
+    offset = 0
+    pieces: list[str] = []
+    for line, prose in par:
+        spans.append((offset, line))
+        pieces.append(prose)
+        offset += len(prose) + 1
+    joined = " ".join(pieces)
+    masked = mask_no_split(joined)
+
+    def line_of(pos: int) -> int:
+        found = spans[0][1]
+        for start, line in spans:
+            if start <= pos:
+                found = line
+            else:
+                break
+        return found
+
+    sentences: list[tuple[int, str]] = []
+    # Rule 8.4: in a vertical list a colon ends a sentence.
+    for match in re.finditer(r"[^.!?:]+(?:[.!?:]+|$)", masked):
+        text = joined[match.start():match.end()].strip().rstrip(".!?:").strip()
+        if text:
+            sentences.append((line_of(match.start()), text))
     return sentences
+
+
+def to_sentences(blocks: list[tuple[int, str, str]]) -> list[tuple[int, str]]:
+    """Split prose into sentences. Each sentence keeps the line where it starts."""
+    sentences: list[tuple[int, str]] = []
+    for par in group_paragraphs(blocks):
+        sentences.extend(paragraph_sentences(par))
+    return sentences
+
+
+def prose_text(blocks: list[tuple[int, str, str]]) -> str:
+    """Return the prose of a document, without the markup. Paragraphs stay separate."""
+    paragraphs = [" ".join(prose for _, prose in par) for par in group_paragraphs(blocks)]
+    return "\n\n".join(paragraphs)
 
 
 def count_words(sentence: str) -> int:
@@ -364,13 +388,22 @@ def main() -> int:
                          "hold quotations and deliberate bad examples.")
     ap.add_argument("--json", action="store_true", help="write JSON")
     ap.add_argument("--errors-only", action="store_true", help="hide warnings")
+    ap.add_argument("--print-prose", action="store_true",
+                    help="print the prose of the file, without the markup, and exit")
     args = ap.parse_args()
 
     limit = args.max_words or LIMITS[args.mode]
     technical_nouns = load_technical_nouns(args.technical_nouns)
+    texts = [
+        (path, sys.stdin.read() if path == "-" else open(path, encoding="utf-8").read())
+        for path in args.files
+    ]
+    if args.print_prose:
+        for path, text in texts:
+            print(prose_text(strip_markdown(text)))
+        return 0
     findings: list[Finding] = []
-    for path in args.files:
-        text = sys.stdin.read() if path == "-" else open(path, encoding="utf-8").read()
+    for path, text in texts:
         findings.extend(check_text(path, text, limit, technical_nouns, args.include_quotes))
     if args.errors_only:
         findings = [f for f in findings if f.severity == "error"]

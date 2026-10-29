@@ -47,8 +47,8 @@ Rules:
 **Naming style.** Anthropic's best-practices guide recommends *gerund
 form* (verb + `-ing`): `processing-pdfs`, `analyzing-spreadsheets`. This
 skill deliberately uses the noun form `document-conventions` because the
-skill is a *reference*, not a workflow. Either form is acceptable;
-pick one and use it consistently across a project.
+skill is a *reference*, not a workflow. Either form is acceptable.
+Pick one and use it consistently across a project.
 
 ### `description`
 
@@ -63,7 +63,7 @@ Rules:
 - No XML tags (`<` or `>`)
 - Third person — *"Extracts text from PDFs"* not *"I can help with
   PDFs"* (Anthropic best-practices: descriptions are injected into the
-  system prompt; inconsistent point of view breaks discovery)
+  system prompt. Inconsistent point of view breaks discovery)
 - Names both **what** the skill does **and** **when** to use it
 - Includes specific keywords the agent will see in the user's request
 
@@ -87,7 +87,7 @@ allowed-tools: Read Write Edit Bash(git:*)
   unless relevant
 - `metadata` — arbitrary key/value. Use namespaced keys to avoid
   collisions (`skill.author`, not `author`)
-- `allowed-tools` — **experimental**; agent implementation support
+- `allowed-tools` — **experimental**. Agent implementation support
   varies
 
 ## Optional: ADR (MADR) frontmatter
@@ -106,7 +106,7 @@ informed: [engineering-team]
 ```
 
 Status values are a controlled vocabulary. Update when the decision
-changes; do not delete superseded ADRs — link forward to their
+changes. Do not delete superseded ADRs. Link forward to their
 successors.
 
 ## Optional: knowledge-cache entry frontmatter
@@ -125,9 +125,9 @@ tags: [changelog, semver]
 
 `freshness` tells the next agent when to re-verify. Use:
 
-- `stable` — not expected to change for years (e.g. RFC 2119, SemVer)
-- `check-<date>` — re-verify by this date (e.g. `check-2027-01`)
-- `volatile` — re-verify on every use (e.g. a vendor's pricing page)
+- `stable` — not expected to change for years (for example RFC 2119, SemVer)
+- `check-<date>` — re-verify by this date (for example `check-2027-01`)
+- `volatile` — re-verify on every use (for example a vendor's pricing page)
 
 ## Optional: plan frontmatter
 
@@ -158,7 +158,7 @@ Frontmatter uses standard YAML 1.2. Common foot-guns:
    `null`) are coerced to booleans/null. Quote to keep as strings:
    `version: "1.0"`.
 3. **Multi-line strings:** use `|` (literal) or `>` (folded). Both
-   preserve newlines; `>` folds them into spaces.
+   preserve newlines. `>` folds them into spaces.
 4. **Indentation:** YAML forbids tabs. Use two spaces per level.
 5. **Lists:** start with `- ` at the same indentation level as the
    key, not the key's value.
@@ -172,7 +172,7 @@ use frontmatter (project decision). Reasons:
 
 - The loader does not parse frontmatter, so adding it is dead weight
   that drifts from the on-disk schema
-- Cursor parses frontmatter as metadata; in mixed-team repos this
+- Cursor parses frontmatter as metadata. In mixed-team repos this
   creates a false expectation
 - The skill loader reads SKILL.md frontmatter but treats rule
   files as plain Markdown
@@ -187,7 +187,7 @@ top-of-file heading (H1) instead.
 | `skills-ref validate <dir>` | `SKILL.md` frontmatter | https://github.com/agentskills/agentskills |
 | `markdownlint` | Markdown style (lists, headings) | `npm i -g markdownlint-cli` |
 | `remark-lint` | Markdown style + plugins | `npm i -g remark-cli` |
-| `standard-readme-preset` | `README.md` compliance | `npm i -g standard-readme-preset` |
+| `standard-readme` | `README.md` compliance | `npm i -g standard-readme` |
 
 Run the relevant validator before publishing. Treat warnings as
 errors when a doc is for production use (CHANGELOG, AGENTS.md, SKILL.md,

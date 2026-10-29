@@ -10,7 +10,7 @@ checklist before publishing any doc.
 - **Archival.** "We might need this someday". Capture in
   `.agents/docs/cache/` instead. Promote only when used.
 - **Restating the rule.** Repeating the doc-type spec inside the
-  doc. Cite, don't reproduce.
+  doc. Cite. Do not reproduce.
 - **Massive code blocks.** 200+ lines of inline code should be a
   separate file with a link.
 - **One huge file.** A doc over its hard ceiling that was never split.
@@ -24,22 +24,22 @@ checklist before publishing any doc.
 
 ## Structure anti-patterns
 
-- **Multiple H1s.** Markdown allows it; renderers don't. One H1 per
+- **Multiple H1s.** Markdown allows it. Renderers do not. One H1 per
   file.
 - **Numbered headings.** `## 1. Findings`. The doc has a filename.
   Use the filename for numbering (MADR ADR-0002).
 - **Skipping heading levels.** H2 → H4 without an H3 in between.
   Either re-level or restructure.
 - **Inverted pyramid.** Putting the conclusion at the end. Put the
-  point first; details after.
+  point first. Put details after.
 - **Decorative sections.** `## 🎉 Conclusion` or `## Some thoughts`.
   Use the doc's actual ending sections (`Status`, `References`,
   `Open questions`).
 
 ## Filename anti-patterns
 
-- **Spaces or capitals in filenames.** `My Notes.md` is a disaster;
-  use `my-notes.md`.
+- **Spaces or capitals in filenames.** `My Notes.md` is a disaster.
+  Use `my-notes.md`.
 - **Underscores as separators.** `my_notes.md` is hard to type and
   inconsistent with the rest of the web. Use `my-notes.md`.
 - **Non-ASCII filenames.** `café.md` may render fine but breaks
@@ -48,10 +48,10 @@ checklist before publishing any doc.
   date part of the slug. The convention is `YYYY-MM-DD-foo.md` —
   date prefix, then slug.
 - **Stale "v2", "v3" suffixes.** When the file is a rewrite, replace
-  the old file or move it to an archive folder; do not version in the
+  the old file or move it to an archive folder. Do not version in the
   filename.
 - **Legacy paths.** Writing to `.tmp/notes/`, `.tmp/plans/`, or
-  `.tmp/user_cache/`. Those dirs no longer exist; the only writable
+  `.tmp/user_cache/`. Those dirs no longer exist. The only writable
   transient dir is `.tmp/scratch/`, which is gitignored and never
   committed.
 
@@ -65,10 +65,10 @@ checklist before publishing any doc.
 - **Trailing whitespace or BOM.** YAML parsers may reject files
   starting with a UTF-8 BOM. Save as plain UTF-8.
 - **Reserved words as the `name` field.** `name: anthropic-helper`
-  is invalid; "anthropic" is reserved per the agentskills.io spec.
-- **Frontmatter as a comment.** Don't put notes to yourself in
-  frontmatter; put them in the body.
-- **Quotes inside frontmatter values.** `name: 'foo-bar'` is fine;
+  is invalid. "anthropic" is reserved per the agentskills.io spec.
+- **Frontmatter as a comment.** Do not put notes to yourself in
+  frontmatter. Put them in the body.
+- **Quotes inside frontmatter values.** `name: 'foo-bar'` is fine.
   `name: 'foo "bar"'` may need escaping. Prefer double quotes when
   the value contains single quotes or special characters.
 
@@ -79,27 +79,27 @@ checklist before publishing any doc.
   (see the `knowledge-cache` authoring reference).
 - **Duplication.** Two files describing the same thing. Either merge
   or link.
-- **Stale content.** A "current state" doc that hasn't been touched
+- **Stale content.** A "current state" doc that was not touched
   in a year. Either re-verify or label "last verified YYYY-MM-DD".
 - **Secrets in docs.** Tokens, private keys, fingerprints, recovery
   phrases — never. If a finding requires referencing one, point to the
   encrypted file and stop.
 - **Outsourced content.** Long verbatim quotes from external sources.
-  Cite and link; quote sparingly.
+  Cite and link. Quote sparingly.
 - **Marketing voice.** "blazingly fast", "next-gen", "the best".
-  Strip adjectives; state the facts.
+  Strip adjectives. State the facts.
 - **Vague timestamps.** "recently", "a while back", "next quarter".
   Use `YYYY-MM-DD` or "in v1.2.0".
-- **Vendor-specific language in cross-vendor docs.** Don't write "if
-  you're using Claude, do X" in a CHANGELOG or AGENTS.md.
+- **Vendor-specific language in cross-vendor docs.** Do not write "if
+  you are using Claude, do X" in a CHANGELOG or AGENTS.md.
 
 ## Linking anti-patterns
 
 - **`click here`.** Replace with descriptive link text.
 - **Absolute URLs for internal files.** Use relative paths.
-- **Anchors that don't exist.** Broken anchors. Validate.
+- **Anchors that do not exist.** Broken anchors. Validate.
 - **Three-deep relative paths.** Move the doc, not the link.
-- **References to encrypted files by content.** Don't quote the
+- **References to encrypted files by content.** Do not quote the
   content of `.age` / `.decrypted` / `encrypted_*` files even when
   linking.
 
@@ -115,8 +115,9 @@ checklist before publishing any doc.
 - **Promoting a stale cache entry.** A `.agents/docs/cache/` entry from
   a year ago probably no longer reflects current code. Re-verify before
   promoting to a durable doc.
-- **Editing `AGENTS.md` without user review.** Project-context rule
-  forbids unilateral edits; same for any project context file.
+- **Editing `AGENTS.md` without user review.** The project-context rule
+  forbids unilateral edits. The same rule applies to any project context
+  file.
 - **Editing a cache entry without updating the topic README.**
   Forgetting the index entry makes the cache effectively invisible.
 - **Committing to `.tmp/scratch/`.** The `.tmp/` tree is gitignored.
@@ -127,8 +128,8 @@ checklist before publishing any doc.
 - **Tutorials that explain.** If your tutorial has paragraphs of
   context, it is an explanation. Re-classify.
 - **How-to guides that teach.** If your how-to includes "first,
-  let's understand…", it is a tutorial. Re-classify.
-- **Reference that instructs.** If your reference has numbered
+  let us understand…", it is a tutorial. Re-classify.
+- **Reference that instructs.** If your reference contains numbered
   steps, it is a how-to. Re-classify.
 - **Explanation that references the API.** If your explanation
   includes tables of fields, it is reference. Re-classify.
@@ -137,11 +138,11 @@ checklist before publishing any doc.
 
 ## Markdown rendering anti-patterns
 
-- **Hard-wrapped paragraphs.** Markdown doesn't need `\\` between
-  lines; most renderers handle soft-wrap. Hard-wrap prevents
+- **Hard-wrapped paragraphs.** Markdown does not need `\\` between
+  lines. Most renderers handle soft-wrap. Hard-wrap prevents
   reflow when the viewport changes.
 - **Trailing two-space line breaks.** Use blank lines for
-  paragraphs; the two-space hack is brittle.
+  paragraphs. The two-space hack is brittle.
 - **Inline HTML for what Markdown can do.** Only use `<details>`,
   `<sub>`, `<sup>`, and similar when Markdown truly cannot express
   it.
@@ -154,7 +155,7 @@ checklist before publishing any doc.
 
 1. Identify which rule it violates. The reference files link back
    to the source spec.
-2. Re-classify or re-cut, don't patch. Half-applied fixes are
+2. Re-classify or re-cut. Do not patch. Half-applied fixes are
    worse than the original.
 3. If a pattern recurs, add it to this list with a one-line note
    about the trap.
@@ -163,7 +164,7 @@ checklist before publishing any doc.
 
 This list synthesises findings from:
 
-- Gloaguen et al., arXiv:2602.11988 — the
+- Gloaguen and others, arXiv:2602.11988 — the
   context-file cost paper
 - Diátaxis / Divio — quadrant confusion
 - MADR — heading numbering, status field, YAML frontmatter

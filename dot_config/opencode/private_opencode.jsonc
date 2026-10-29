@@ -9,25 +9,30 @@
     // Pin every version. An unpinned specifier is cached on first install and
     // never updates, which is how cc-safety-net sat at 2.6.19 while npm had
     // 2.7.0. `opencode plugin check` shows what is behind.
-    "cc-safety-net@2.7.0",
-    "@cortexkit/aft-opencode@0.62.0",
-    "@cortexkit/opencode-magic-context@0.49.25",
-    "opencode-handoff@0.6.1",
-    "@dietrichgebert/ponytail@5.3.2",
-    "@hueyexe/opencode-ensemble@0.20.0",
+    "cc-safety-net@latest",
+    "@cortexkit/aft-opencode@latest",
+    "@cortexkit/opencode-magic-context@latest",
+    "opencode-handoff@latest",
+    "@dietrichgebert/ponytail@latest",
+    "@hueyexe/opencode-ensemble@latest",
     // Removals last. A builtin id matches at any position, so this is for
     // readability, not for effect. AFT owns the shell tool and the hashline
     // edit path, so the builtin shell and patch tools go.
     "-opencode.tool.shell",
-    "-opencode.tool.patch"
+    "-opencode.tool.patch",
   ],
   "instructions": [
     "~/.agents/rules/*.md",
     "~/.agents/rules.personal.d/*.md",
-    "~/.config/opencode/rules/*.md"
+    "~/.agents/rules.opencode/*.md",
+    "~/.config/opencode/rules/*.md",
   ],
   "permissions": [
-    { "action": "external_directory", "resource": "~/.local/share/opencode/worktree/**", "effect": "allow" },
+    {
+      "action": "external_directory",
+      "resource": "~/.local/share/opencode/worktree/**",
+      "effect": "allow",
+    },
     // These two skills document tools that do not exist on this host.
     // tavily-defaults describes five Tavily MCP tools and no MCP server is
     // configured. spec-kit describes a tool that was removed on 2026-10-24.
@@ -58,14 +63,11 @@
     { "action": "shell", "resource": "rm -*fr /*", "effect": "deny" },
     { "action": "shell", "resource": "rm -*fr ~*", "effect": "deny" },
     { "action": "shell", "resource": "rm -*fr ./*", "effect": "deny" },
-    { "action": "shell", "resource": "rm -*fr ../*", "effect": "deny" }
+    { "action": "shell", "resource": "rm -*fr ../*", "effect": "deny" },
   ],
   "snapshots": true,
   "watcher": {
-    "ignore": [
-      ".git/**",
-      "node_modules/**"
-    ]
+    "ignore": [".git/**", "node_modules/**"],
   },
   "formatter": true,
   // Effort is pinned to `high`. The model defaults to `max`, which costs 48x
@@ -78,15 +80,11 @@
       // Title generation needs no reasoning. The model exposes a toggle rather
       // than an effort ladder, so `#none` is the low rung. It is the cheapest
       // valid variant. `#high` and `#max` also exist.
-      "model": "openrouter/qwen/qwen3.7-flash#none"
-    }
+      "model": "openrouter/qwen/qwen3.7-flash#none",
+    },
   },
-  // Tavily is the only websearch provider with a keyless fallback, so the tool
-  // still works when TAVILY_API_KEY is absent. "random" also picks exa and
-  // firecrawl, which fail with HTTP 401 when their key is missing.
-  "websearch": {
-    "provider": "tavily",
-  },
+  // The websearch provider is not pinned. OpenCode picks one at runtime, so
+  // the provider keys must exist in the environment that starts OpenCode.
   "providers": {
     // Openrouter-specific provider settings to pin the inference provider to cheapest available
     "openrouter": {
@@ -100,28 +98,24 @@
                 "inference-net/fp8",
                 "sail-research/fp4",
                 "deepinfra/fp8",
-                "relace"
-              ]
-            }
-          }
+                "relace",
+              ],
+            },
+          },
         },
         "minimax/minimax-m3": {
           "settings": {
             "provider": {
-              "only": [
-                "minimax"
-              ]
-            }
-          }
+              "only": ["minimax"],
+            },
+          },
         },
         "minimax/minimax-m3.1-flash": {
           "settings": {
             "provider": {
-              "only": [
-                "minimax"
-              ]
-            }
-          }
+              "only": ["minimax"],
+            },
+          },
         },
         "z-ai/glm-5.3": {
           "settings": {
@@ -133,10 +127,10 @@
                 "relace",
                 "siliconflow/fp8",
                 "novita/fp8",
-                "inference-net/fp4"
-              ]
-            }
-          }
+                "inference-net/fp4",
+              ],
+            },
+          },
         },
         "z-ai/glm-5.3-flash": {
           "settings": {
@@ -148,26 +142,21 @@
                 "relace",
                 "sail-research/fp4",
                 "gmicloud/fp8",
-
-              ]
-            }
-          }
+              ],
+            },
+          },
         },
         "xiaomi/mimo-v2.6-flash": {
           "settings": {
             "provider": {
-              "only": [
-                "makora/fp8",
-                "novita/fp8",
-                "xiaomi/fp8"
-              ]
-            }
-          }
-        }
-      }
-    }
+              "only": ["makora/fp8", "novita/fp8", "xiaomi/fp8"],
+            },
+          },
+        },
+      },
+    },
   },
   "compaction": {
-    "auto": false
-  }
+    "auto": false,
+  },
 }

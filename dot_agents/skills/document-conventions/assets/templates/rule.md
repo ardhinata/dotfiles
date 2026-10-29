@@ -33,11 +33,11 @@ related rules, skills, or files rather than restating.>
 - <link 2>
 ```
 
-**Length:** 30–80 lines target; 150 hard ceiling. If longer, split into
+**Length:** 30–80 lines target, 150 hard ceiling. If longer, split into
 multiple rules or push detail to a skill.
 
 **Slug rules:** lowercase, hyphens, no trailing punctuation. Match the
-intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
+intent, not the filename (for example `fnm.md` not `node-version-management.md`).
 
-**Verification:** no frontmatter parser exists; review by hand against
+**Verification:** no frontmatter parser exists. Review by hand against
 the [`checklists.md`](../checklists.md).

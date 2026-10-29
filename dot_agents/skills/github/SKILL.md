@@ -5,7 +5,7 @@ description: GitHub work via the official `gh` CLI. Load for any GitHub-related 
 
 # GitHub CLI (`gh`)
 
-Use `gh` for every GitHub-related action. It is authenticated, handles pagination, respects rate limits, and emits JSON when asked. Never `curl https://api.github.com` — go through `gh api` instead.
+Use `gh` for every GitHub-related action. It is authenticated, handles pagination, respects rate limits, and emits JSON when asked. Never `curl https://api.github.com`. Use `gh api` instead.
 
 ## When to Load
 
@@ -137,7 +137,7 @@ gh search prs "is:merged author:@me" --json number,title,repository --limit 50
 
 ### Raw REST / GraphQL via `gh api`
 
-Use `gh api` whenever the high-level command does not cover the call (e.g. rulesets, reactions, projects v2, custom endpoints):
+Use `gh api` whenever the high-level command does not cover the call (for example rulesets, reactions, projects v2, custom endpoints):
 
 ```bash
 # REST — path templating is brace-expanded
@@ -158,22 +158,22 @@ gh api repos/owner/repo/rulesets --input rulesets.json --method PUT
 ## Scripting Patterns
 
 - **Always** add `--json` + `--jq` for anything downstream consumes. Default text output is for humans and can change between releases.
-- **Always** pass `--limit` explicitly on `list`/`search` commands when you need a specific cap; the default is 30.
+- **Always** pass `--limit` explicitly on `list`/`search` commands when you need a specific cap. The default is 30.
 - **Prefer** `gh api` over `curl` for github.com — it inherits auth, host, and tokens correctly.
 - **Prefer** `gh search` over GitHub's web UI for filtering through the agent.
-- **Detect** silent pagination truncation: `gh api ... --paginate --slurp` returns one big array; without `--slurp` the default is to print only the last page.
+- **Detect** silent pagination truncation: `gh api ... --paginate --slurp` returns one big array. Without `--slurp` the default is to print only the last page.
 - **Exit codes**: `0` ok, `1` failure, `2` cancelled, `4` auth required. Check `gh help exit-codes` when scripting.
 
 ## Anti-Patterns
 
 - ❌ `curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/...` — use `gh api` instead.
-- ❌ `webfetch` against `api.github.com` — the GitHub API rarely returns readable markdown; use `gh api` or `gh <noun> view`.
+- ❌ `webfetch` against `api.github.com` — the GitHub API rarely returns readable markdown. Use `gh api` or `gh <noun> view`.
 - ❌ `git ls-remote` to discover PR/issue refs — use `gh pr/issue list`.
 - ❌ Building JSON by string concatenation — pipe `--input file.json` or `-f key=value` to `gh api`.
 - ❌ Echoing `gh auth token` in logs or responses — it is a credential.
-- ❌ Skipping `gh auth status` when a command fails with `401`/`403`; the failure is usually a scope, not a bug.
+- ❌ Skipping `gh auth status` when a command fails with `401`/`403`. The failure is usually a scope, not a bug.
 - ❌ Writing `gh pr create` with `--title`/`--body` from `printf` heredocs that contain backticks — use `--body-file` or `--body "$VAR"` to avoid shell expansion.
-- ❌ Reading encrypted secrets out of `dot_ssh/keys/`, `.encryption_keys/`, or age-encrypted files to pass to `gh secret set` — read from the live secret store instead, or ask the user to provide the value.
+- ❌ Reading encrypted secrets out of `dot_ssh/keys/`, `.encryption_keys/`, or age-encrypted files to pass to `gh secret set`. Read from the live secret store instead, or ask the user to provide the value.
 
 ## Quick Decision Cheatsheet
 

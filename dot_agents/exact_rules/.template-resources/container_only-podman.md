@@ -1,4 +1,4 @@
-`docker` is **not** installed; `podman` is available. Use Podman for all
+`docker` is **not** installed. `podman` is available. Use Podman for all
 container work in this project.
 
 #### Commands

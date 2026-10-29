@@ -5,7 +5,7 @@ files and lines.
 
 ## Link forms
 
-Three link forms are valid; each has a place.
+Three link forms are valid. Each has a place.
 
 ### Relative path — between docs in the same repo
 
@@ -67,7 +67,7 @@ Or, when the path needs to be a clickable link:
 - For a range, use `:N-M` or list both lines (`executable_shellx:506
   and :510`).
 - **Do not paste the code** into the doc unless the snippet is itself
-  the answer. Cite, don't reproduce.
+   the answer. Cite. Do not reproduce.
 
 ## When to use which form
 
@@ -150,7 +150,7 @@ literal" and prevent accidental linkification.
 
 ## Disambiguating "the same doc"
 
-If two docs in the repo have the same basename (e.g. `README.md` in
+If two docs in the repo have the same basename (for example `README.md` in
 many folders), qualify the link text:
 
 ```markdown
@@ -179,14 +179,14 @@ See [a sibling entry](2026-08-10-other-slug.md).
 ```
 
 When the target lives in another tree, prefer phrasing like "see the
-related doc titled …" and link the **commit hash** rather than the file
-path; path stability across trees is not guaranteed.
+related doc titled …". Link the **commit hash** rather than the file
+path. Path stability across trees is not guaranteed.
 
 ## Anti-patterns in linking
 
 1. **Absolute URLs to internal files.**
    `https://github.com/me/repo/blob/main/docs/foo.md` — this breaks
-   the moment the repo moves (or you're reading the chezmoi source).
+   the moment the repo moves (or you are reading the chezmoi source).
    Use a relative path.
 2. **Anchoring to auto-generated headings.** If a heading is the
    result of a plugin (`<!-- GENERATED -->`) the anchor may not be
@@ -195,7 +195,7 @@ path; path stability across trees is not guaranteed.
 4. **Three-deep relative paths.** If you find yourself writing
    `../../../foo.md`, the doc is in the wrong place. Move it.
 5. **Linking from one scratchpad to another ephemeral note.** Scratch
-   is per-worktree; cross-references break on destroy. Reference durable
+   is per-worktree. Cross-references break on destroy. Reference durable
    content (the knowledge cache, project-tracked docs) instead.
 
 ## Tooling

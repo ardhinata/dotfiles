@@ -61,13 +61,13 @@ context to act later.>
 <Last-updated checkpoint. Concise.>
 ```
 
-**Length:** < 300 lines target; 500 hard ceiling. Split into phases
+**Length:** < 300 lines target, 500 hard ceiling. Split into phases
 if longer.
 
 **Filename:** `YYYY-MM-DD-<task-slug>.md`. Lowercase + hyphens. Scan the
 target directory before writing to avoid a same-day slug collision.
 
-**Update cadence:** at every checkpoint / milestone. Don't let the file
+**Update cadence:** at every checkpoint / milestone. Do not let the file
 drift from reality.
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md).

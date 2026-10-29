@@ -2,22 +2,40 @@
 
 The full reference for each doc type the agent creates or edits. Use this
 table to confirm filename, frontmatter, sections, ordering, and length
-after you have picked a type from the
+after you pick a type from the
 [decision matrix](decision-matrix.md).
 
 ## How to read this table
 
 Each row covers one doc type. Columns:
 
-- **Filename pattern** — exact glob; `<…>` are placeholders.
-- **Frontmatter** — required / optional / forbidden; field schema if
+- **Filename pattern** — exact glob. The `<…>` parts are placeholders.
+- **Frontmatter** — required / optional / forbidden. Field schema if
   present.
 - **Required sections** — minimum set the type *must* include.
 - **Optional sections** — common additions that may appear.
 - **Section order** — fixed / loose / none.
 - **Length budget** — target and hard ceiling, in lines.
 - **Validation** — how to verify it follows the convention.
+- **Template** — the starter file, when the type ships one.
 - **Source** — where the rule comes from.
+
+## Template coverage
+
+Thirteen of the twenty types ship a starter in `assets/templates/`. The
+rest are deliberately template-free:
+
+| Type | Why no template |
+|---|---|
+| Skill reference file | the skill template already documents the `references/` layout |
+| AGENTS.md | the template lives in the `project-context` skill |
+| Topic README.md, cache root README.md | the cache-topic template is the worked example of the same shape |
+| Transient plan, `.tmp/scratch`, `.tmp/migration` | scratch files are never committed and have no required sections |
+| Diátaxis quadrants | diataxis.fr asks for no imposed structure |
+
+Per-type verdicts — which rules are backed by a published standard and which
+are house style — are in
+[`standards-map.md`](standards-map.md).
 
 ## Table of contents
 
@@ -58,7 +76,7 @@ Each row covers one doc type. Columns:
 | Source | Global decision; see `~/.agents/rules/*.md` for examples |
 
 **Slug rules:** lowercase, hyphens, no trailing punctuation. Match the
-intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
+intent, not the filename (for example `fnm.md` not `node-version-management.md`).
 
 ---
 
@@ -67,8 +85,8 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 | Field | Value |
 |---|---|
 | Path | `~/.agents/skills/<slug>/SKILL.md` (or project-local `.agents/skills/<slug>/`, `.<vendor>/skills/<slug>/`) |
-| Frontmatter | **Required.** `name` (≤ 64 chars, lowercase letters/digits/hyphens, no `--`, no leading/trailing hyphen, matches parent dir), `description` (≤ 1024 chars, non-empty, third person, names *what* and *when*). Optional: `license`, `compatibility` (≤ 500 chars), `metadata`, `allowed-tools` (experimental). |
-| Required sections | H1 (the skill's name or one-line summary), body content per the agentskills.io "Recommended sections" — step-by-step instructions, examples, edge cases |
+| Frontmatter | **Required.** `name` (1–64 chars, lowercase letters/digits/hyphens, no `--`, no leading/trailing hyphen, matches parent dir), `description` (1–1024 chars, non-empty, names *what* and *when*, and should include the keywords agents search for; write it in third person — that rule comes from the Claude docs, not the spec). Optional: `license`, `compatibility` (≤ 500 chars), `metadata` (a map from string keys to string values), `allowed-tools` (a space-separated string of tool names, experimental). Claude adds two more rules the spec omits: no XML tags in either field, and no reserved words `anthropic` or `claude` in `name`. |
+| Required sections | H1 (house style — the spec puts no format restriction on the body). The spec *recommends* three sections: step-by-step instructions, examples of inputs and outputs, common edge cases. |
 | Optional sections | `## When to load`, `## Quick start`, `## Workflow`, `## Anti-patterns`, `## References`, `## Captured …` |
 | Section order | Loose but progressive: orient → quick start → details → edge cases → anti-patterns → references |
 | Length budget | Target < 300 lines; hard ceiling 500 lines. Beyond this, split into `references/*.md` |
@@ -97,13 +115,14 @@ intent, not the filename (e.g. `fnm.md` not `node-version-management.md`).
 | Field | Value |
 |---|---|
 | Path | `AGENTS.md` at the repo root, and one nested per monorepo package |
-| Frontmatter | **Forbidden.** Plain Markdown only. |
+| Frontmatter | **Forbidden by house rule.** The [agents.md](https://agents.md/) spec mandates no fields and defines no format, so the ban is this project's choice, not the spec's. |
 | Required sections | At minimum, a `Pointers` section referencing `README.md` and any skill/rule folders. Strong recommendation: `Boundaries` (`✅ Always` / `⚠️ Ask first` / `🚫 Never`). |
 | Optional sections | `Purpose`, `Stack`, `Commands`, `Code style`, `Testing rules`, `Boundaries`, `Pointers` |
 | Section order | Loose — the agents.md spec is free-form |
 | Length budget | Target 40–80 lines, hard ceiling 150 (global rule) |
-| Validation | Manual review; nested AGENTS.md overrides root when closer to edited file; closest-wins |
-| Source | [agents.md](https://agents.md/); [project-context skill](../../project-context/SKILL.md); Gloaguen et al., arXiv:2602.11988 (cost of LLM-generated context files) |
+| Validation | Manual review; nested AGENTS.md overrides root when closer to edited file; closest-wins, and an explicit user chat prompt overrides everything |
+| Template | [`project-context/assets/templates/agents.md`](../../project-context/assets/templates/agents.md) |
+| Source | [agents.md](https://agents.md/); [project-context skill](../../project-context/SKILL.md); [Gloaguen et al., arXiv:2602.11988](https://arxiv.org/abs/2602.11988) (cost of LLM-generated context files) |
 
 **Key rule:** every line must answer "would an agent get this wrong
 without it?". Cut otherwise.
@@ -116,11 +135,11 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `README.md` at repo root; `README.<lang>.md` for translations (BCP 47) |
 | Frontmatter | None |
-| Required sections | Title (H1), Short Description (< 120 chars, no `>`, own line, on its own line), Install, Usage, Contributing, License — per Standard Readme. English README must be `README.md`. |
-| Optional sections | Banner, Badges, Long Description, ToC, Security, Background, API, Maintainers, Thanks |
+| Required sections | Title (H1), Short Description (less than 120 characters, no `>`, on its own line), Table of Contents (required unless the README is shorter than 100 lines), Install, Usage, Contributing, License — per Standard Readme. The README must not contain broken links, and its code examples must be linted the way the rest of the project lints code. English README must be `README.md`. |
+| Optional sections | Banner, Badges, Long Description, Security, Extra, Background, API, Maintainers, Thanks |
 | Section order | **Fixed** by Standard Readme: Title → Banner → Badges → Short Description → Long Description → ToC → Security → Background → Install → Usage → Extra → API → Maintainers → Thanks → Contributing → License |
 | Length budget | Target < 200 lines; "comprehensive" 200–500. Move longer material to `docs/` |
-| Validation | Standard Readme linter (`standard-readme-preset`); or manual checklist in [`assets/checklists.md`](../assets/checklists.md) |
+| Validation | Standard Readme linter (`npx standard-readme`); or manual checklist in [`assets/checklists.md`](../assets/checklists.md) |
 | Source | [Standard Readme spec](https://github.com/RichardLitt/standard-readme/blob/main/spec.md); [Make a README](https://www.makeareadme.com/); [GitHub Docs — About READMEs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) |
 
 ---
@@ -192,13 +211,14 @@ without it?". Cut otherwise.
 | Path | `docs/post-mortem/<YYYY-MM-DD>-<slug>.md`, or `docs/post-mortem/<YYYY-MM-DD>-<slug>/` with `README.md` + `NN-<section>.md` when split |
 | Lifetime | Git-tracked in the project repo. |
 | Commit policy | Committed with the project repo. |
-| Frontmatter | Optional. Recommended: `severity`, `status`, `date` |
-| Required sections | H1, `## Summary`, `## Timeline`, `## Root cause`, `## Impact`, `## Action items` |
-| Optional sections | `## Detection`, `## Resolution`, `## Lessons learned`, `## See also` |
+| Frontmatter | Optional. Recommended: `severity`, `status`, `date`, `owner` |
+| Required sections | H1, `## Summary`, `## Impact`, `## Root cause`, `## Timeline`, `## Action items` |
+| Optional sections | `## Trigger`, `## Detection`, `## Resolution`, `## Lessons learned`, `## See also` |
 | Section order | Loose; the above is conventional |
 | Length budget | 50–300 lines |
-| Validation | Linked from any active runbook or related doc; action items moved into a durable tracker |
-| Source | `document-conventions` skill (post-mortem tree under `docs/`) |
+| Validation | Blameless: name systems, not people. Every action item has an owner, a priority, and a tracking issue. The postmortem has one owner for the follow-up. Linked from any active runbook or related doc |
+| Template | [`assets/templates/postmortem.md`](../assets/templates/postmortem.md) |
+| Source | [Google SRE — Example Postmortem](https://sre.google/sre-book/example-postmortem/); [Google SRE — Postmortem Culture](https://sre.google/sre-book/postmortem-culture/); [PagerDuty postmortem template](https://response.pagerduty.com/after/post_mortem_template/) |
 
 ---
 
@@ -239,12 +259,13 @@ without it?". Cut otherwise.
 | Field | Value |
 |---|---|
 | Path | `docs/adr/NNNN-<slug>.md` (NNNN = 4-digit zero-padded sequence) |
-| Frontmatter | Optional. Recommended: `status` (`proposed`/`rejected`/`accepted`/`deprecated`/`superseded by ADR-NNNN`), `date`, `decision-makers`, `consulted`, `informed` |
+| Frontmatter | Optional. Recommended: `status` (`proposed`/`rejected`/`accepted`/`deprecated`/`superseded by ADR-NNNN`), `date`, `decision-makers`, `consulted`, `informed`. MADR leaves the status set open — its own placeholder ends in `…`, and ADR-0008 shows free-form values such as `on hold`. The house rule narrows it to the five values above. |
 | Required sections | Title, `## Context and Problem Statement`, `## Considered Options`, `## Decision Outcome` |
 | Optional sections | `## Decision Drivers`, `### Consequences` (Good/Bad/Neutral), `### Confirmation`, `## Pros and Cons of the Options` (per option), `## More Information` |
-| Section order | **Fixed** per MADR: Title → Context → Drivers → Considered Options → Decision Outcome → Consequences → Confirmation → Pros/Cons → More Info |
+| Section order | **MADR order** (house-tightened to fixed): Title → Context → Drivers → Considered Options → Decision Outcome → Consequences → Confirmation → Pros/Cons → More Info. MADR marks all but the first three optional and ships minimal and bare variants. |
 | Length budget | 50–200 lines |
 | Validation | Numbering without gaps; status field present and accurate; superseded ADRs reference their successor |
+| Template | [`assets/templates/adr.md`](../assets/templates/adr.md) |
 | Source | [MADR](https://adr.github.io/madr/); [adr.github.io](https://adr.github.io/); Nygard 2011 "Documenting Architecture Decisions" |
 
 ---
@@ -255,12 +276,13 @@ without it?". Cut otherwise.
 |---|---|
 | Path | `docs/rfcs/NNNN-<slug>.md`, or `docs/rfcs/NNNN-<slug>/` with `README.md` + `NN-<section>.md` when split |
 | Frontmatter | Optional. Recommended: `status` (`draft`/`review`/`accepted`/`rejected`/`withdrawn`), `reviewers`, `deadline`, `last-updated` |
-| Required sections | H1 (slug title), `## Summary`, `## Motivation`, `## Detailed design`, `## Drawbacks`, `## Alternatives`, `## Open questions`, `## Unresolved questions` |
-| Optional sections | `## Prior art`, `## Future possibilities`, `## Implementation plan`, `## Acknowledgements` |
-| Section order | Loose; common IETF-inspired order above |
+| Required sections | H1 (slug title), `## Summary`, `## Motivation`, `## Detailed design`, `## Drawbacks`, `## Alternatives`, `## Unresolved questions` |
+| Optional sections | `## Prior art`, `## Future possibilities`, `## Implementation plan`, `## Acknowledgements`, `## Open questions` |
+| Section order | Loose; the section list is house style, modelled on the Rust and React RFC templates |
 | Length budget | 200–1000 lines |
 | Validation | Reviewers listed; deadline set; status updated when feedback closes |
-| Source | IETF RFC 2119/8174 (key words); common `docs/rfcs/` pattern from Kubernetes, Rust, React |
+| Template | [`assets/templates/rfc.md`](../assets/templates/rfc.md) |
+| Source | [Rust RFC template](https://raw.githubusercontent.com/rust-lang/rfcs/master/0000-template.md); [React RFC template](https://raw.githubusercontent.com/reactjs/rfcs/main/0000-template.md). RFC 2119 and 8174 govern requirement-keyword casing only, not document structure. |
 
 ---
 
@@ -271,11 +293,12 @@ without it?". Cut otherwise.
 | Path | `docs/design/<slug>.md`, or `docs/design/<slug>/` with `README.md` + `NN-<section>.md` when split |
 | Frontmatter | Optional. Recommended: `status`, `last-updated` |
 | Required sections | H1, `## Problem`, `## Goals / non-goals`, `## Proposed design`, `## Alternatives considered` |
-| Optional sections | `## Open questions`, `## Implementation plan`, `## Testing`, `## Risks` |
+| Optional sections | `## Open questions`, `## Implementation plan`, `## Testing`, `## Risks`, and the security, privacy, internationalization and storage subsections the Google guidance expects |
 | Section order | Loose |
 | Length budget | 500–2000 lines |
-| Validation | Goals/non-goals section is mandatory; every alternative gets a one-paragraph dismissal |
-| Source | Generic design-doc pattern; "Design Practice Repository" (Leanpub) |
+| Validation | Goals/non-goals section is mandatory; every alternative gets a one-paragraph dismissal; security, privacy, internationalization and storage are each answered |
+| Template | [`assets/templates/design-doc.md`](../assets/templates/design-doc.md) |
+| Source | [Software Engineering at Google, ch.10 — Documentation](https://abseil.io/resources/swe-book/html/ch10.html); [Kubernetes KEP template](https://raw.githubusercontent.com/kubernetes/enhancements/master/keps/NNNN-kep-template/README.md) |
 
 ---
 
@@ -287,9 +310,10 @@ without it?". Cut otherwise.
 | Frontmatter | None |
 | Required sections | Title, intro referencing Keep a Changelog and SemVer, `[Unreleased]` section at top |
 | Optional sections | `[YANKED]` markers; per-version subsections grouped by type |
-| Section order | **Fixed**: latest version first; within a version, groups appear in this order: `Added` → `Changed` → `Deprecated` → `Removed` → `Fixed` → `Security` |
+| Section order | Latest version first. Within a version, the house order is `Added` → `Changed` → `Deprecated` → `Removed` → `Fixed` → `Security`. Keep a Changelog only asks for same-type grouping, so the fixed order is house policy. |
 | Length budget | Unbounded; oldest at bottom, newest at top |
-| Validation | Each version has an ISO date `## [X.Y.Z] - YYYY-MM-DD`; yanked releases tagged `[YANKED]`; `Unreleased` section accumulates pending changes |
+| Validation | Each version has an ISO date `## [X.Y.Z] - YYYY-MM-DD` (the spec calls this format recommended, not required); yanked releases tagged `[YANKED]`; `Unreleased` section accumulates pending changes |
+| Template | [`assets/templates/changelog.md`](../assets/templates/changelog.md) |
 | Source | [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) |
 
 ---
@@ -305,7 +329,8 @@ without it?". Cut otherwise.
 | Section order | Loose |
 | Length budget | < 200 lines |
 | Validation | CoC linked (Contributor Covenant recommended) |
-| Source | Standard contributing pattern; GitHub's "Setting up your project for healthy contributions" |
+| Template | [`assets/templates/contributing.md`](../assets/templates/contributing.md) |
+| Source | No published CONTRIBUTING.md template exists. [opensource.guide — contributing guidelines](https://opensource.guide/starting-a-project/#writing-your-contributing-guidelines); [GitHub — Setting guidelines for repository contributors](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions) |
 
 ---
 
@@ -343,20 +368,24 @@ without it?". Cut otherwise.
 
 ## Diátaxis quadrants
 
-Diátaxis is **orthogonal** to filename. A single file (e.g.
+Diátaxis is **orthogonal** to filename. A single file (for example
 `docs/how-to/foo.md`) can be misclassified as a tutorial. The matrix
 below is a sanity check — what *quadrant* is your doc serving?
 
 | Quadrant | Purpose | Length | Tone | Anti-quadrant |
 |---|---|---|---|---|
-| **Tutorial** | Learning by doing | As long as needed; must be end-to-end | Friendly, second-person, "we will…" | Don't explain *why*; don't offer alternatives |
+| **Tutorial** | Learning by doing | As long as needed; must be end-to-end | Friendly, first-person plural ("we will…") | Don't explain *why*; don't offer alternatives |
 | **How-to guide** | Solving a real-world problem | Short, focused on the goal | Imperative, conditional ("if you want X, do Y") | Don't teach; don't be exhaustive |
-| **Reference** | Describing the machinery | Encyclopaedic, dense, neutral | Austere, factual | Don't instruct; don't explain |
+| **Reference** | Describing the machinery | No length rule in Diátaxis | Austere, neutral, objective, factual | Don't instruct; don't explain |
 | **Explanation** | Discussing a topic | As long as needed; discursive | Reflective, opinionated, "about X…" | Don't instruct; don't provide reference tables |
 
-**Drift warning:** the most common misclassification is *tutorial that
-explains*. If your how-to has paragraphs of context, it is an
-explanation. If your reference has numbered steps, it is a how-to.
-Re-classify before publishing.
+Diátaxis publishes language rules, not templates, and asks for no imposed
+structure. No quadrant template ships with this skill.
 
-Source: [Diátaxis](https://diataxis.fr/); [Divio — Documentation System](https://docs.divio.com/documentation-system/).
+**Drift warning:** the most common misclassification is *tutorial that
+explains*. If your how-to has paragraphs of context, it is an explanation.
+If your reference contains numbered steps, it is a how-to. The other axis Diátaxis
+calls the most common conflation is study versus work: a tutorial is
+learning-oriented, a how-to is task-oriented. Re-classify before publishing.
+
+Source: [Diátaxis](https://diataxis.fr/). [Divio — Documentation System](https://docs.divio.com/documentation-system/).

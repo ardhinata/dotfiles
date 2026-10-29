@@ -44,8 +44,8 @@ exist on a fresh machine. The in-repo sources for the same facts are
 all of which this skill cites by line number.
 
 **Scope.** This skill documents the **machine's** zsh stack. The deployed
-artifacts (`~/.zshrc`, `~/.p10k.zsh`, `~/.shell/zgenom`) are machine-global;
-the `dot_*` paths below are where the source lives in this dotfiles repo. A
+artifacts (`~/.zshrc`, `~/.p10k.zsh`, `~/.shell/zgenom`) are machine-global.
+The `dot_*` paths below are where the source lives in this dotfiles repo. A
 task in another repo that touches the user's zsh still needs this skill.
 
 ---
@@ -79,26 +79,26 @@ Repo: `jandamm/zgenom` (commit `d99d5dc` cloned 2026-08-08).
 - `zgenom clean` — rm repos not in the current session's load set
 - `zgenom update [--no-reset]` — `git pull --ff-only` + submodule update, then reset
 - `zgenom selfupdate` — update zgenom itself
-- `zgenom compile <file|dir>` — `zcompile` target(s); file → selective, dir → recursive
+- `zgenom compile <file|dir>` — `zcompile` target(s). File → selective, dir → recursive
 - `zgenom list [--bin|--init]`, `zgenom help`, `zgenom api`
 
 ### Pitfalls (cite as needed)
 
-- **`.zwc` shadows fresh source.** zgenom auto-compiles sources + `.zshrc*.zwc` (`zgenom-save:128-147`); if `.zwc` is newer than the `.zsh`, zsh sources stale bytecode. Recompile is conditional (`__zgenom_compile:4`), so editing a file whose `.zwc` is older triggers it; otherwise the stale `.zwc` wins. **This is why the project refuses to recursively compile `$SHELL_TOOL_DIR`** (`dot_zshrc:65-72`).
+- **`.zwc` shadows fresh source.** zgenom auto-compiles sources + `.zshrc*.zwc` (`zgenom-save:128-147`). If `.zwc` is newer than the `.zsh`, zsh sources stale bytecode. Recompile is conditional (`__zgenom_compile:4`), so editing a file whose `.zwc` is older triggers it. Otherwise the stale `.zwc` wins. **This is why the project refuses to recursively compile `$SHELL_TOOL_DIR`** (`dot_zshrc:65-72`).
 - **`zgenom reset` does not clear plugins** — only `init.zsh`, `$ZGEN_CUSTOM_COMPDUMP`, bin dir (`zgenom-reset:6-18`). Use `zgenom clean` for physical removal.
-- **`zgenom compile <file>` is selective.** A dir arg compiles `"$file/**/*"` recursively (`zgenom-compile:24`); a file arg compiles just that file (`zgenom-compile:20-21`).
-- **Saved-cache ≠ recompile.** `zgenom saved` only sources generated `init.zsh`; editing the module list requires `zgenom reset` so the `! zgenom saved` branch runs.
-- **`autoupdate` × non-interactive regen** — autoupdate spawns `_ZGENOM_JUST_INIT=1 zsh -c '<source .zshrc>'` (`zgenom-autoupdate:80-89`); if a plugin assumes an interactive shell, pass `--no-background`.
+- **`zgenom compile <file>` is selective.** A dir arg compiles `"$file/**/*"` recursively (`zgenom-compile:24`). A file arg compiles just that file (`zgenom-compile:20-21`).
+- **Saved-cache ≠ recompile.** `zgenom saved` only sources generated `init.zsh`. Editing the module list requires `zgenom reset` so the `! zgenom saved` branch runs.
+- **`autoupdate` × non-interactive regen** — autoupdate spawns `_ZGENOM_JUST_INIT=1 zsh -c '<source .zshrc>'` (`zgenom-autoupdate:80-89`). If a plugin assumes an interactive shell, pass `--no-background`.
 - **`autoupdate` self-silences ohmyzsh** unless `--keep-ohmyzsh` (`zgenom-autoupdate:35-37`).
 - **`autoupdate` skips if `$USER` ≠ owner of `$ZGEN_DIR`** (`__zgenom_autoupdate:45`) — protects against root-owned leftovers.
 - **`compdef` only exists after compinit** — use `zgenom compdef` shim for plugins that call it too early.
-- **`__zgenom-*`** functions are private; treat `zgenom api` as the supported surface.
+- **`__zgenom-*`** functions are private. Treat `zgenom api` as the supported surface.
 
 ### Project quirks
 
-- **`ZGEN_PREZTO_LOAD_DEFAULT=0`** (`dot_zshrc:16`): prezto's defaults (including `environment`, `terminal`, `editor`, `spectrum`) are **not** auto-loaded; the project lists every module explicitly. The reason `environment` *must* be listed is in `dot_zshrc:44-48` (it sets `setopt INTERACTIVE_COMMENTS`, which makes `#` work at the prompt).
-- **`zgenom_refresh_cache`** (`dot_shell/zsh/15-zgenom-helper-func.zsh:1-11`): guarded on `${+functions[zgenom]}`, deletes top-level `*.zwc` in `$SHELL_TOOL_DIR`, `~/.z*.zwc`, `${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump`, then `zgenom reset`. Run this when completions or `.zwc` look stale; the next fresh shell rebuilds from `! zgenom saved`.
-- **`zgenom prezto '*' color "yes"`** (`dot_zshrc:41`): module `'*'` expands to `:prezto:module:*` (`__zgenom_prezto_option:10-19`); forces color on globally and is what **un-gates the syntax-highlighting module** (`syntax-highlighting/init.zsh:9-11`).
+- **`ZGEN_PREZTO_LOAD_DEFAULT=0`** (`dot_zshrc:16`): prezto's defaults (including `environment`, `terminal`, `editor`, `spectrum`) are **not** auto-loaded. The project lists every module explicitly. The reason `environment` *must* be listed is in `dot_zshrc:44-48` (it sets `setopt INTERACTIVE_COMMENTS`, which makes `#` work at the prompt).
+- **`zgenom_refresh_cache`** (`dot_shell/zsh/15-zgenom-helper-func.zsh:1-11`): guarded on `${+functions[zgenom]}`, deletes top-level `*.zwc` in `$SHELL_TOOL_DIR`, `~/.z*.zwc`, `${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump`, then `zgenom reset`. Run this when completions or `.zwc` look stale. The next fresh shell rebuilds from `! zgenom saved`.
+- **`zgenom prezto '*' color "yes"`** (`dot_zshrc:41`): module `'*'` expands to `:prezto:module:*` (`__zgenom_prezto_option:10-19`). It forces color on globally and is what **un-gates the syntax-highlighting module** (`syntax-highlighting/init.zsh:9-11`).
 
 ---
 
@@ -108,11 +108,11 @@ Repo: `sorin-ionescu/prezto` (commit `cff2d018` cloned 2026-08-08).
 
 ### Bootstrap (`init.zsh:74-158`)
 
-`pmodload` iterates `$pmodules` (init.zsh:96) in the order passed; **load order = `zgenom prezto <m1> <m2> …` call order in `dot_zshrc:49-61`**. Each module:
+`pmodload` iterates `$pmodules` (init.zsh:96) in the order passed. **Load order = `zgenom prezto <m1> <m2> …` call order in `dot_zshrc:49-61`**. Each module:
 
 1. Locates its dir via `$^pmodule_dirs/$pmodule(-/FN)` (init.zsh:100)
 2. Prepends `$module/functions` to `$fpath` (init.zsh:115)
-3. Autoloads `^([_.]*|prompt_*_setup|README*|*~)(-.N:t)` (init.zsh:80, 124-126) — note `prompt_*_setup` is **excluded**; prompt themes are autoloaded on demand by `promptinit`
+3. Autoloads `^([_.]*|prompt_*_setup|README*|*~)(-.N:t)` (init.zsh:80, 124-126) — note `prompt_*_setup` is **excluded**. Prompt themes are autoloaded on demand by `promptinit`
 4. Sources `init.zsh` or `$name.plugin.zsh` (init.zsh:129-133)
 5. Marks `:prezto:module:<name> loaded yes|no` (init.zsh:136/154)
 
@@ -136,25 +136,25 @@ The key table is in `references/prezto-zstyle-api.md`. Read it when you need the
 
 ### Per-module notes (only what this project loads)
 
-- **environment** — sets `INTERACTIVE_COMMENTS`, `COMBINING_CHARS`, `RC_QUOTES`; `unsetopt MAIL_WARNING`; `stty -ixon`; jobs opts; termcap colors when `environment:termcap color`. **Source of `setopt INTERACTIVE_COMMENTS` (`environment/init.zsh:35`)** — the load-bearing reason `dot_zshrc:49` re-loads it explicitly when `ZGEN_PREZTO_LOAD_DEFAULT=0`.
-- **archive** — no `init.zsh`; only autoloaded `archive/lsarchive/unarchive` functions.
+- **environment** — sets `INTERACTIVE_COMMENTS`, `COMBINING_CHARS`, `RC_QUOTES`. `unsetopt MAIL_WARNING`. `stty -ixon`. Jobs opts. Termcap colors when `environment:termcap color`. **Source of `setopt INTERACTIVE_COMMENTS` (`environment/init.zsh:35`)** — the load-bearing reason `dot_zshrc:49` re-loads it explicitly when `ZGEN_PREZTO_LOAD_DEFAULT=0`.
+- **archive** — no `init.zsh`. Only autoloaded `archive/lsarchive/unarchive` functions.
 - **directory** — `AUTO_CD AUTOPUSHD PUSHD_*`, `CDABLE_VARS MULTIOS EXTENDED_GLOB`. Alias set skipped here (`dot_zshrc:33`).
-- **git** — loads `helper`, autoloads `run-help-git`, sources `alias.zsh`. Alias set skipped here (`dot_zshrc:34`); `git:log:*` and `git:status:*` format zstyles still apply.
+- **git** — loads `helper`, autoloads `run-help-git`, sources `alias.zsh`. Alias set skipped here (`dot_zshrc:34`). `git:log:*` and `git:status:*` format zstyles still apply.
 - **history** — `BANG_HIST EXTENDED_HISTORY SHARE_HISTORY HIST_*`. `histsize 1048576` here (`dot_zshrc:36`) → both `HISTSIZE` and `SAVEHIST`=1048576. Alias `history-stat` skipped (`dot_zshrc:35`).
-- **pacman** — guarded by `commands[pacman]`; no-op on non-Arch hosts. Aliases + `aurget`.
-- **rsync** — guarded by `commands[rsync]`; aliases `rsync-copy/-move/-update/-synchronize`.
-- **utility** — `pmodload helper spectrum`; `correct`, `safe-ops`, ls/grep color, `o`/`pbcopy` platform; **`utility:download helper aria2c`** (`dot_zshrc:37`); `safe-ops "no"` (`dot_zshrc:38`).
-- **completion** — `$TERM != dumb` guard; prepends `external/src` (zsh-completions) + brew curl to fpath; runs `compinit -i` fresh or `compinit -C` when cache <20h, writing `${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump`. **This compdump is what `zgenom_refresh_cache` deletes** (`15-zgenom-helper-func.zsh:9`).
-- **syntax-highlighting** — **returns early unless `:prezto:module:syntax-highlighting color` is true** (`syntax-highlighting/init.zsh:9-11`); global `'*' color yes` (`dot_zshrc:41`) un-gates it.
-- **history-substring-search** — `pmodload editor`; binds Up/Down + Ctrl-P/N (emacs+viins) and vi `k/j` to its widgets.
-- **prompt** — `promptinit`, reads `:prezto:module:prompt theme` into `prompt_argv`; if no theme / dumb/linux/bsd → `prompt off`. The actual `prompt_powerlevel10k_setup` is a **symlink** into prezto's `external/powerlevel10k/powerlevel10k.zsh-theme` (per `.gitmodules`) — works only when the prezto submodule is initialized (zgenom clones `--recursive`).
+- **pacman** — guarded by `commands[pacman]`. No-op on non-Arch hosts. Aliases + `aurget`.
+- **rsync** — guarded by `commands[rsync]`. Aliases `rsync-copy/-move/-update/-synchronize`.
+- **utility** — `pmodload helper spectrum`. `correct`, `safe-ops`, ls/grep color, `o`/`pbcopy` platform. **`utility:download helper aria2c`** (`dot_zshrc:37`). `safe-ops "no"` (`dot_zshrc:38`).
+- **completion** — `$TERM != dumb` guard. Prepends `external/src` (zsh-completions) + brew curl to fpath. Runs `compinit -i` fresh or `compinit -C` when cache <20h, writing `${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump`. **This compdump is what `zgenom_refresh_cache` deletes** (`15-zgenom-helper-func.zsh:9`).
+- **syntax-highlighting** — **returns early unless `:prezto:module:syntax-highlighting color` is true** (`syntax-highlighting/init.zsh:9-11`). Global `'*' color yes` (`dot_zshrc:41`) un-gates it.
+- **history-substring-search** — `pmodload editor`. Binds Up/Down + Ctrl-P/N (emacs+viins) and vi `k/j` to its widgets.
+- **prompt** — `promptinit`, reads `:prezto:module:prompt theme` into `prompt_argv`. If no theme / dumb/linux/bsd → `prompt off`. The actual `prompt_powerlevel10k_setup` is a **symlink** into prezto's `external/powerlevel10k/powerlevel10k.zsh-theme` (per `.gitmodules`) — works only when the prezto submodule is initialized (zgenom clones `--recursive`).
 
 ### Pitfalls
 
 - **gpg module GPG_TTY race** — `modules/gpg/init.zsh:30` runs `export GPG_TTY=$TTY` at **pmodload time**, but `$TTY`/`$(tty)` during `.zshrc` source is the *previous* alacritty tab's pts. The stale value then leaks into `systemd --user import-environment` and points pinentry at the wrong tty on the next SSH sign. The module also auto-starts `gpg-agent --daemon` (gpg/init.zsh:21-27), installs the `UPDATESTARTUPTTY` preexec hook (43-47), `pmodload 'ssh'` on `enable-ssh-support` (33-41), and sets `PINENTRY_USER_DATA=USE_CURSES=1` when `$SSH_CONNECTION` (54-56). All **disabled here** via the `loaded` zstyle (`00-before-zgenom.zsh:17`) + reimplemented in `dot_shell/zsh/12-gpg.zsh` with a just-in-time preexec hook.
 - **`ZGEN_PREZTO_LOAD_DEFAULT=0` drops `INTERACTIVE_COMMENTS`** — must explicitly load `environment` first (`dot_zshrc:49`).
-- **syntax-highlighting → history-substring-search order** — syntax-highlighting must be sourced **before** HSS so HSS's key binds land on top of the wrapping (`dot_zshrc:59-60`). Also: syntax-highlighting is gated by `:prezto:* color yes`; HSS is not.
-- **completion compinit ordering vs fpath additions** — compinit snapshots `$fpath` at module-load (`completion/init.zsh:56-68`); user completions added after won't register until the 20h cache expires. **`00-before-zgenom.zsh:7` prepends `$SHELL_TOOL_DIR/zsh/completions` before zgenom/prezto init** precisely for this reason (`_runpriv` is the load-bearing completion there).
+- **syntax-highlighting → history-substring-search order** — syntax-highlighting must be sourced **before** HSS so HSS's key binds land on top of the wrapping (`dot_zshrc:59-60`). Also: syntax-highlighting is gated by `:prezto:* color yes`. HSS is not.
+- **completion compinit ordering vs fpath additions** — compinit snapshots `$fpath` at module-load (`completion/init.zsh:56-68`). User completions added after will not register until the 20h cache expires. **`00-before-zgenom.zsh:7` prepends `$SHELL_TOOL_DIR/zsh/completions` before zgenom/prezto init** precisely for this reason (`_runpriv` is the load-bearing completion there).
 - **`prompt_powerlevel10k_setup` is a submodule symlink** — verify `git submodule status` inside `$ZGEN_DIR/sources/prezto/` if p10k is broken.
 
 ### Project quirks (line-by-line)
@@ -200,38 +200,38 @@ The knob table is in `references/p10k-tunables.md`. Read it when you need a defa
 ### Pitfalls
 
 - **Instant-prompt silent corruption** — anything requiring console input (keyring password, `[y/n]`) sourced **after** the instant-prompt block (`dot_zshrc:1-7`) hangs or silently eats input because stdin is `/dev/null`. Move such lines **above** the block (README.md:1055-1078). The `12-gpg.zsh` `preexec` hook is instant-prompt-safe because it only fires on a real command (post-preamble).
-- **Console output mixing** — any stdout during init is captured and replayed uncolored; p10k prints `Console output during zsh initialization detected.` Fixes: move above, suppress output, or `POWERLEVEL9K_INSTANT_PROMPT=quiet` / `=off`.
-- **"must be loaded before the first prompt"** — if p10k's init runs after the first prompt was already drawn (e.g. a slow `compinit` in between), the cached snapshot is erased (`internal/p10k.zsh:9047, 6660-6664`).
+- **Console output mixing** — any stdout during init is captured and replayed uncolored. Then p10k prints `Console output during zsh initialization detected.` Fixes: move above, suppress output, or `POWERLEVEL9K_INSTANT_PROMPT=quiet` / `=off`.
+- **"must be loaded before the first prompt"** — a slow `compinit` in between can make p10k's init run after the first prompt was already drawn. The cached snapshot is erased (`internal/p10k.zsh:9047, 6660-6664`).
 - **`prompt_cr` clash** — if `setopt prompt_cr` is re-enabled after p10k unsets it, p10k prints the warning and recommends `p10k finalize` at the end of `.zshrc` (internal/p10k.zsh:6785-6807).
 - **`p10k configure` overwrites `~/.p10k.zsh`** — the wizard writes `${POWERLEVEL9K_CONFIG_FILE:-${ZDOTDIR:-~}/.p10k.zsh}` (`configure.zsh:16`). **In this project that file is `dot_p10k.zsh` (~87 KB, chezmoi-managed) — DO NOT run `p10k configure`** or it desyncs from source state. To regenerate: re-run the wizard in a temp file, then patch `dot_p10k.zsh` via chezmoi.
 - **Wizard auto-runs** on first load unless `POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true` (`wizard.zsh:268, 2065`).
 - **gitstatus build on first run** — missing C toolchain or read-only cache dir disables instant prompt (`internal/p10k.zsh:8850`).
-- **Cache path collision** — only the username folds into the path; p10k guards per-file via embedded `ZSH_VERSION`/`ZSH_PATCHLEVEL`, `TERM`/screen/tmux, `VTE_VERSION`, gitstatus `install.info`, terminfo colors (6210-6247).
+- **Cache path collision** — only the username folds into the path. p10k then guards per-file via embedded `ZSH_VERSION`/`ZSH_PATCHLEVEL`, `TERM`/screen/tmux, `VTE_VERSION`, gitstatus `install.info`, terminfo colors (6210-6247).
 
 ### Project quirks
 
-- `dot_zshrc:1-7` instant-prompt block is the canonical README verbatim; the `[[ -r ... ]]` guard skips sourcing when the cache is absent (harmless before first run).
-- The instant-prompt preamble **must stay at the top** — anything before it that prints to stdout will be lost; anything after it that needs stdin must be guarded.
-- `~/.p10k.zsh` is `dot_p10k.zsh` (chezmoi); sourced dead-last (`dot_zshrc:82`) **after** everything else, including `12-gpg.zsh`, so `GPG_TTY` exports inside it are seen by the prompt renderer.
-- See the `pinentry.vscode_tunnel_no_gui` constraint — inside a VSCode tunnel (or any session with no locally visible GUI window) pinentry-qt and other GUI pinentry frontends are unusable; prefer pinentry-curses or pinentry-tty there. p10k segments referencing remote/gpg info degrade gracefully but the machine's gpg lifecycle is owned by `12-gpg.zsh`, not by p10k.
+- `dot_zshrc:1-7` instant-prompt block is the canonical README verbatim. The `[[ -r ... ]]` guard skips sourcing when the cache is absent (harmless before first run).
+- The instant-prompt preamble **must stay at the top** — anything before it that prints to stdout will be lost. Anything after it that needs stdin must be guarded.
+- `~/.p10k.zsh` is `dot_p10k.zsh` (chezmoi). Sourced dead-last (`dot_zshrc:82`) **after** everything else, including `12-gpg.zsh`, so `GPG_TTY` exports inside it are seen by the prompt renderer.
+- See the `pinentry.vscode_tunnel_no_gui` constraint — inside a VSCode tunnel (or any session with no locally visible GUI window) pinentry-qt and other GUI pinentry frontends are unusable. Prefer pinentry-curses or pinentry-tty there. p10k segments referencing remote/gpg info degrade gracefully but the machine's gpg lifecycle is owned by `12-gpg.zsh`, not by p10k.
 
 ---
 
 ## Cross-Cutting Pitfalls
 
 1. **`.zwc` bytecode is the single biggest zsh footgun.** If a `.zsh` file is edited but its `.zwc` is newer, zsh sources the stale compiled bytecode. Fixes: `zgenom_refresh_cache` (project helper), or `rm ~/.z*.zwc ${SHELL_TOOL_DIR}/*.zwc` manually. Recursive `zgenom compile <dir>` makes this worse — that is why `dot_zshrc:71-73` is selective.
-2. **Two completion dumps coexist:** prezto's `${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump` and zgenom's default `$ZGEN_DIR/zcompdump_$ZSH_VERSION`. They serve different consumers; clearing only one half-fixes.
+2. **Two completion dumps coexist:** prezto's `${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump` and zgenom's default `$ZGEN_DIR/zcompdump_$ZSH_VERSION`. They serve different consumers. Clearing only one half-fixes.
 3. **Compinit snapshots `$fpath`** at module load — user completions must be in `$fpath` before `completion` module loads (`00-before-zgenom.zsh:7`).
 4. **`pmodload` order matters.** `environment` first (for `INTERACTIVE_COMMENTS`), then core utilities, then `completion` (so compinit sees all completions), then `syntax-highlighting` (must be sourced before HSS), then `history-substring-search`, then `prompt` last (so all setup is done before the theme installs). The order in `dot_zshrc:49-61` is intentional — do not "tidy" it.
-5. **The `loaded` zstyle gate** is the *only* prezto-blessed way to disable a module. Don't just drop gpg from the module list; the project's `00-before-zgenom.zsh:17` zstyle is what actually disables it.
-6. **Anything that needs `tty`/`$TTY`/`systemctl --user import-environment` must be re-run just-in-time** in a preexec hook, not at `.zshrc` source time — the controlling-tty value at source time is stale on alacritty (see `dot_shell/zsh/12-gpg.zsh`). For SSH/GPG signing from a non-default terminal (e.g. a VSCode tunnel), the canonical fix is `Match host * exec "gpg-connect-agent updatestartuptty /bye"` in `dot_ssh/config`, so the gpg-agent's TTY view is refreshed before each SSH invocation.
+5. **The `loaded` zstyle gate** is the *only* prezto-blessed way to disable a module. Do not just drop gpg from the module list. The project's `00-before-zgenom.zsh:17` zstyle is what actually disables it.
+6. **Anything that needs `tty`/`$TTY`/`systemctl --user import-environment` must be re-run just-in-time** in a preexec hook, not at `.zshrc` source time. The controlling-tty value at source time is stale on alacritty (see `dot_shell/zsh/12-gpg.zsh`). For SSH/GPG signing from a non-default terminal (for example a VSCode tunnel), the canonical fix is `Match host * exec "gpg-connect-agent updatestartuptty /bye"` in `dot_ssh/config`. This refreshes the gpg-agent's TTY view before each SSH invocation.
 7. **p10k's `~/.p10k.zsh` is chezmoi-managed.** Edit via `chezmoi edit ~/dot_p10k.zsh` (after `chezmoi add`) — never `p10k configure`.
 8. **Tunables are set at three different layers** with three different mechanisms:
    - zgenom: env vars `ZGEN_*` set before sourcing `zgenom.zsh`, or function calls after.
    - prezto: `zstyle ':prezto:module:<m>' <key> <value>` (or `zgenom prezto <m> <key> <value>` in this project).
    - p10k: `typeset -g POWERLEVEL9K_*` (set in `~/.p10k.zsh`).
 
-   Confusing these is the #1 cause of "I set the option but it didn't take" debug sessions.
+   Confusing these is the #1 cause of "I set the option but it did not take" debug sessions.
 
 ---
 
@@ -264,13 +264,13 @@ The knob table is in `references/p10k-tunables.md`. Read it when you need a defa
   invocation.
 - **Pinentry backend ownership.** The pinentry backend is owned by
   `~/.shell/helper/pinentry-wrapper`, not by prezto's gpg module. Flag
-  design was locked 2026-08-05: the default mode keeps pinentry-qt with a
-  shim fallback to `/usr/bin/pinentry` (warning logged); `--path <abs>`
-  writes a custom binary verbatim into `gpg-agent.conf`; `--strict` opts
+  design was locked 2026-08-05. The default mode keeps pinentry-qt with a
+  shim fallback to `/usr/bin/pinentry` (warning logged). `--path <abs>`
+  writes a custom binary verbatim into `gpg-agent.conf`. `--strict` opts
   out of the shim fallback.
 - **Pinentry testing is interactive-only.** Tests or scripts that exercise
   pinentry or gpg-agent TTY behavior must be handed to the user to run in a
-  real interactive terminal — a non-interactive shell cannot reproduce the
+  real interactive terminal. A non-interactive shell cannot reproduce the
   TTY/curses rendering context needed to validate them.
 
 ## Validation

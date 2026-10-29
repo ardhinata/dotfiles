@@ -1,4 +1,4 @@
-<!-- Template only — copy verbatim into the project root as `AGENTS.md`. Target ~40–80 lines; allow up to 150 when keeping guidance co-located helps the project. Past 150, split per-package (see SKILL.md → Monorepos). -->
+<!-- Template only — copy verbatim into the project root as `AGENTS.md`. Target ~40–80 lines. Allow up to 150 when keeping guidance co-located helps the project. Past 150, split per-package (see SKILL.md → Monorepos). -->
 
 # AGENTS.md
 
@@ -6,10 +6,10 @@
 <one sentence: what the project is>
 
 ## Stack
-- Language / runtime: <e.g. TypeScript 5.7, Node 22>
-- Framework: <e.g. Next.js 15 App Router>
-- Package manager: <e.g. pnpm only — never npm/yarn>
-- Lockfile: <e.g. pnpm-lock.yaml>
+- Language / runtime: <for example, TypeScript 5.7, Node 22>
+- Framework: <for example, Next.js 15 App Router>
+- Package manager: <for example, pnpm only — never npm/yarn>
+- Lockfile: <for example, pnpm-lock.yaml>
 
 ## Commands
 - Install: `pnpm install`
@@ -23,33 +23,33 @@
 
 ## Code style
 [one real code snippet from this codebase that exemplifies the dominant style — beats three paragraphs describing it]
-- <e.g. named exports only, no defaults>
-- <e.g. files under 300 lines>
+- <for example, named exports only, no defaults>
+- <for example, files under 300 lines>
 
 ## Testing rules
-- <e.g. unit tests for every new function>
-- <e.g. mock external services at the boundary>
+- <for example, unit tests for every new function>
+- <for example, mock external services at the boundary>
 
 ## Boundaries
 ### ✅ Always
-- <e.g. run lint + typecheck before commit>
-- <e.g. list only human authors in git commits>
-- **Recreate vendor symlinks if missing on a fresh clone**, e.g. `ln -s .agents/<vendor> .<vendor>` — vendor tool directories at the root are symlinks into `.agents/`. If `ls <vendor>/` fails, fix the link before reading vendor config.
+- <for example, run lint + typecheck before commit>
+- <for example, list only human authors in git commits>
+- **Recreate vendor symlinks if missing on a fresh clone**, for example, `ln -s .agents/<vendor> .<vendor>` — vendor tool directories at the root are symlinks into `.agents/`. If `ls <vendor>/` fails, fix the link before reading vendor config.
 
 ### ⚠️ Ask first
-- <e.g. database schema changes>
-- <e.g. new top-level dependencies>
-- <e.g. deleting files>
+- <for example, database schema changes>
+- <for example, new top-level dependencies>
+- <for example, deleting files>
 
 ### 🚫 Never
-- <e.g. commit secrets, `.env`, credentials>
-- <e.g. force-push to main>
-- <e.g. modify `vendor/`, `dist/`, `build/`>
+- <for example, commit secrets, `.env`, credentials>
+- <for example, force-push to main>
+- <for example, modify `vendor/`, `dist/`, `build/`>
 
 ## Pointers
 - **`README.md`** — required. The project's human-facing narrative (problem, audience, getting started). `AGENTS.md` complements but never duplicates the README.
 - Deeper docs: `docs/README.md` index, or `<relative/path/to/ARCHITECTURE.md>`
 - Conventions: `<relative/path/to/CONTRIBUTING.md>`
-- Knowledge cache: see the project's cache index (placement convention in the `project-layout` skill; date-tagged web-learned facts; see the `web-verification` rule and `references/knowledge-cache.md`)
-- Vendor config: `.agents/<vendor>/` (e.g. `.agents/<vendor>/`) — `<vendor-name>/` at the root is a symlink to it (mechanics in the `project-layout` skill)
+- Knowledge cache: see the project's cache index (placement convention in the `project-layout` skill, date-tagged web-learned facts). See the `web-verification` rule and `references/knowledge-cache.md`
+- Vendor config: `.agents/<vendor>/` (for example, `.agents/<vendor>/`) — `<vendor-name>/` at the root is a symlink to it (mechanics in the `project-layout` skill)
 - `.gitignore` workflow: see the project's gitignore reference (template, Toptal API, OS/IDE/framework catalog).

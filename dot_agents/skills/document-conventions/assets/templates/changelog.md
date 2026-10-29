@@ -1,7 +1,7 @@
 # CHANGELOG.md Template
 
 Per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
-Plain Markdown. Sections in fixed order; latest version first.
+Plain Markdown. Sections in fixed order. Latest version first.
 
 ```markdown
 # Changelog
@@ -51,10 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 file grows huge.
 
 **Section order within a version:** Added → Changed → Deprecated →
-Removed → Fixed → Security. Always.
+Removed → Fixed → Security. Keep a Changelog asks only for same-type
+grouping, so this fixed order is a house rule.
 
-**ISO date format:** `## [X.Y.Z] - YYYY-MM-DD`. Yanked releases add
-`[YANKED]`: `## [0.0.5] - 2014-12-13 [YANKED]`.
+**ISO date format:** `## [X.Y.Z] - YYYY-MM-DD`. Keep a Changelog calls
+this format recommended. Yanked releases add `[YANKED]`:
+`## [0.0.5] - 2014-12-13 [YANKED]`.
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md).
 Check date format and section order.

@@ -36,14 +36,14 @@ Spawn teammates only for independent, verifiable work. A good Ensemble team has 
 
 1. Decide whether parallelism is justified.
 2. Create a team with `team_create`.
-3. Add tasks with `team_tasks_add`; use `depends_on` for sequencing.
+3. Add tasks with `team_tasks_add`. Use `depends_on` for sequencing.
 4. Spawn teammates one at a time with `team_spawn`.
 5. Use `worktree: false` for read-only `explore` teammates.
 6. Use `plan_approval: true` for risky implementation work.
 7. Wait for teammate messages instead of polling status repeatedly.
 8. Read full results with `team_results` when messages are truncated or consequential.
-9. Shut down completed teammates with `team_shutdown`.
-10. Merge branches with `team_merge`; inspect the diff before trusting it.
+9. Stop completed teammates with `team_shutdown`.
+10. Merge branches with `team_merge`. Inspect the diff before trusting it.
 11. Run project verification before `team_cleanup` and before claiming done.
 
 ## Role Defaults
@@ -69,14 +69,14 @@ Start with two or three teammates. Add more only when the work has more independ
 
 ## Hard Rules
 
-- Do not invent task IDs. `team_tasks_add` generates IDs; use the IDs returned by earlier calls when setting `depends_on` or `claim_task`.
+- Do not invent task IDs. `team_tasks_add` generates IDs. Use the IDs returned by earlier calls when setting `depends_on` or `claim_task`.
 - Keep teammate prompts short. The plugin already injects team role, allowed tools, worktree context, and the required task-result format.
 - Do not give teammates vague prompts like "fix the bug" or "work on tests".
 - Do not ask teammates to use lead-only tools such as `team_spawn`, `team_shutdown`, `team_merge`, or `team_cleanup`.
 - Do not tell teammates to report only in plain text. They must use `team_message`.
 - Do not merge a teammate branch without reading its result and inspecting the diff.
 - Do not call the work complete until the repository's verification commands pass or you have clearly reported the blocker.
-- On OpenCode v2, teammate reports and notifications arrive as persistent synthetic system lines in the transcript, `team_view` switches the TUI only when passed `navigate: true` (never unprompted — that hijacks the user's client), and `team_cleanup` purge needs human approval of the preview before confirmation.
+- On OpenCode v2, teammate reports and notifications arrive as persistent synthetic system lines in the transcript. `team_view` switches the TUI only when passed `navigate: true` (never unprompted — that hijacks the user's client). The `team_cleanup` purge needs human approval of the preview before confirmation.
 
 ## Minimal Example
 

@@ -9,7 +9,7 @@ otherwise.
 - [ ] Filename follows `references/title-and-filename.md`
 - [ ] One H1, matching (or near-matching) the filename slug
 - [ ] Sections in the order required by the doc type
-- [ ] Length under target; under hard ceiling
+- [ ] Length under target, under hard ceiling
 - [ ] All links resolve (no broken anchors, no 404s)
 - [ ] All cross-repo links are relative paths, not absolute URLs
 - [ ] All code blocks have a language identifier
@@ -46,7 +46,7 @@ otherwise.
 
 - [ ] Plain Markdown (no frontmatter)
 - [ ] `Pointers` section references `README.md`
-- [ ] 40–80 lines target; hard ceiling 150
+- [ ] 40–80 lines target, hard ceiling 150
 - [ ] Every line answers "would an agent get this wrong without it?"
 - [ ] `Boundaries` section uses 3-tier pattern if used
 - [ ] No architecture overview or file tree
@@ -55,10 +55,12 @@ otherwise.
 
 - [ ] Plain Markdown (no frontmatter)
 - [ ] Sections in Standard Readme order
-- [ ] Short Description ≤ 120 chars, on its own line, no `>`
-- [ ] Required sections present: Install, Usage, Contributing, License
+- [ ] Short Description is less than 120 characters, on its own line, no `>`
+- [ ] Required sections present: Table of Contents (unless the README is
+      under 100 lines), Install, Usage, Contributing, License
+- [ ] No broken links
 - [ ] License full name + SPDX identifier
-- [ ] `standard-readme-preset` passes (if available)
+- [ ] `npx standard-readme` passes (if available)
 
 ## Topic README.md
 
@@ -101,12 +103,16 @@ Applies when a doc passed its hard ceiling and was split into a directory.
 - [ ] Sections: Goal, Scope, Steps, Status
 - [ ] Committed to the project repo
 - [ ] Updated in place at every checkpoint (not via new file)
-- [ ] Length under 300 lines; split into a directory if longer
+- [ ] Length under 300 lines. Split into a directory if longer
 
 ## Postmortem (`docs/post-mortem/`)
 
-- [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`)
-- [ ] Sections: Summary, Timeline, Root cause, Impact, Action items
+- [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`), the incident date
+- [ ] Sections: Summary, Impact, Root cause, Timeline, Action items
+- [ ] Blameless. Systems are named, not people
+- [ ] One owner for the follow-up
+- [ ] Every action item has an owner, a priority, and a tracking issue
+- [ ] Impact is measured, not described
 - [ ] Action items linked or moved into a durable tracker
 - [ ] Committed to the project repo
 
@@ -115,7 +121,7 @@ Applies when a doc passed its hard ceiling and was split into a directory.
 - [ ] Filename: `docs/adr/NNNN-<slug>.md`, NNNN 4-digit zero-padded
 - [ ] Sections in MADR order
 - [ ] At least one alternative considered beyond the chosen option
-- [ ] Status field set (`proposed` / `accepted` / `rejected` / etc.)
+- [ ] Status field set (for example `proposed` / `accepted` / `rejected`)
 - [ ] If superseded, successor ADR number referenced
 - [ ] Decision date in frontmatter or section
 
@@ -125,7 +131,7 @@ Applies when a doc passed its hard ceiling and was split into a directory.
 - [ ] Reviewers listed in frontmatter
 - [ ] Deadline set in frontmatter
 - [ ] Summary at top, ≤ 1 paragraph
-- [ ] Drawbacks section non-empty (don't hide costs)
+- [ ] Drawbacks section non-empty (do not hide costs)
 - [ ] Open / unresolved questions explicit
 
 ## Design doc
@@ -133,6 +139,7 @@ Applies when a doc passed its hard ceiling and was split into a directory.
 - [ ] Goals AND non-goals stated (non-goals often missing)
 - [ ] Each alternative gets a one-paragraph dismissal
 - [ ] Proposed design walks through the user-visible change
+- [ ] Security, privacy, internationalization, and storage each answered
 - [ ] Links to related ADRs / RFCs
 
 ## CHANGELOG.md
@@ -142,8 +149,8 @@ Applies when a doc passed its hard ceiling and was split into a directory.
 - [ ] `[Unreleased]` section at top
 - [ ] Latest version first
 - [ ] Per-version ISO date `## [X.Y.Z] - YYYY-MM-DD`
-- [ ] Sections within a version in this order: Added → Changed →
-      Deprecated → Removed → → Failed → Security
+- [ ] Same-type changes grouped. The house order is Added → Changed →
+      Deprecated → Removed → Fixed → Security
 - [ ] Yanked releases marked `[YANKED]`
 
 ## CONTRIBUTING.md

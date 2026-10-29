@@ -1,11 +1,10 @@
-# Bash Tool — zsh Emulation Fallback
+# Shell Tool — zsh Emulation Fallback
 
-The shell tool runs each command as `<shell> -c "<command>"`: a fresh,
-non-interactive, non-login shell. It loads no rc file. There are no aliases,
-no `setopt`, and no `shopt` from the interactive session.
+The harness's shell tool usually runs each command as `<shell> -c "<command>"`:
+a fresh, non-interactive, non-login shell. It loads no rc file. There are no
+aliases, no `setopt`, and no `shopt` from the interactive session.
 
-This host pins `"shell": "/usr/bin/bash"`, so tool commands run in bash. Check
-with one call when it matters:
+Check what the tool shell actually is with one call when it matters:
 
 ```sh
 echo "$0"; echo "${BASH_VERSION:-no-bash}${ZSH_VERSION:-no-zsh}"

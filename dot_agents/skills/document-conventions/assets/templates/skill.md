@@ -9,6 +9,9 @@ Validate with `skills-ref validate ./<skill-dir>` before publishing.
 name: <skill-slug>
 description: <what the skill does>. Use when <triggers>. <key terms agents will search for>.
 license: <optional, e.g. Apache-2.0>
+compatibility: <optional, max 500 chars, environment requirements>
+metadata: <optional, string keys to string values>
+allowed-tools: <optional, space-separated, e.g. Bash(git:*) Read>
 ---
 
 # <Skill Name>
@@ -62,9 +65,13 @@ the body grows.
 
 **Frontmatter requirements:**
 
-- `name` — matches parent dir; lowercase + hyphens; ≤ 64 chars
-- `description` — third person; ≤ 1024 chars; names both *what* and
-  *when*; includes specific keywords
+- `name` — matches parent dir, lowercase + hyphens, 1–64 chars, no `--`
+- `description` — third person, 1–1024 chars, names both *what* and
+  *when*, includes the keywords agents search for
+- `metadata` — a map from string keys to string values
+- `allowed-tools` — a space-separated string of tool names
+- No XML tags in `name` or `description`, and no reserved words
+  `anthropic` or `claude` in `name` (Claude's rules, the spec is silent)
 
 **Skill directory layout:**
 

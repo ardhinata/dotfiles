@@ -1,6 +1,8 @@
 # Prompt Recipes
 
-Good teammate prompts are short, scoped, and verifiable. Include the task, boundaries, and task-specific verification needs. Do not paste a tool list or full reporting format into the prompt; the plugin already injects role context, allowed tools, worktree context, commit/report instructions, and blocker handling.
+Good teammate prompts are short, scoped, and verifiable. Include the task, boundaries, and task-specific verification needs. Do not paste a tool list or full reporting format into the prompt. The plugin
+already injects role context, allowed tools, worktree context, commit/report
+instructions, and blocker handling.
 
 ## Scout Prompt
 

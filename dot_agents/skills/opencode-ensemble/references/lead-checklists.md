@@ -35,7 +35,7 @@ If more than two items are unknown, spawn one scout first.
 ## Merge Checklist
 
 - Read the teammate's task result.
-- Shut down the teammate with `team_shutdown`.
+- Stop the teammate with `team_shutdown`.
 - If shutdown warns about uncommitted changes, resolve that before merging.
 - Merge with `team_merge`, not manual git commands.
 - Inspect `git diff` after each merge.
@@ -43,10 +43,10 @@ If more than two items are unknown, spawn one scout first.
 
 ## Cleanup Checklist
 
-- All active teammates are complete, shut down, or intentionally force-stopped.
-- Relevant teammate branches have been merged or deliberately left out.
-- Verification commands have passed or blockers are clearly reported.
-- `team_cleanup` has run after review and verification.
+- All active teammates are complete, stopped, or intentionally force-stopped.
+- The team merged the relevant teammate branches or deliberately left them out.
+- The verification commands passed, or the team clearly reported the blockers.
+- The lead ran `team_cleanup` after review and verification.
 - Final user summary includes what changed, tests run, and any residual risks.
 
 ## Verification Checklist

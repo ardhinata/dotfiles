@@ -24,7 +24,7 @@ These are original examples built for this skill's actual use case: rewriting AI
 
 **Violations flagged:**
 - Two instructions in one sentence (sync + resolve/surface).
-- Present perfect in the relative clauses ("have been configured", "has been set").
+- Present perfect in the relative clauses (`have been configured`, `has been set`).
 - 55 words, far over the 25-word descriptive cap.
 
 Note what is *not* flagged: "will attempt to" and "may resolve". Those are hedges, not violations. The tool is not promised to succeed, and the rewrite must not promise it either.
@@ -40,17 +40,17 @@ The last sentence branches on whether the conflict was resolved, not on what the
 > An error may have occurred while processing your request due to a possible mismatch in the expected data format, which could be caused by an outdated client version.
 
 **Violations flagged:**
-- One sentence carrying three separate claims (an error occurred; a format mismatch; a client version).
+- One sentence carrying three separate claims (an error occurred, a format mismatch, and a client version).
 - 28 words, over the descriptive cap.
 
-Not flagged: "may have occurred" and "could be caused by". The message is written by a system that does not know what went wrong. Both hedges are accurate reporting of that ignorance.
+Not flagged: `may have occurred` and `could be caused by`. The message is written by a system that does not know what went wrong. Both hedges are accurate reporting of that ignorance.
 
 **After:**
 > Your request may have failed. The cause may be a data format that does not match what the server expects. An outdated client can cause this mismatch. Check your client version.
 
-**This example is the reason the modality rule exists.** An earlier version of this file rewrote the first sentence as "The request failed", and the third as "an outdated client **is the most common cause**". Both read better. Both are wrong: the first asserts a failure the system only suspects, and the second invents a frequency claim that appears nowhere in the input. A rewrite that supplies a cause, a frequency, or a mechanism has stopped being a rewrite.
+**This example is the reason the modality rule exists.** An earlier version of this file rewrote the first sentence as "The request failed". It also rewrote the third as "an outdated client **is the most common cause**". Both read better. Both are wrong: the first asserts a failure the system only suspects, and the second invents a frequency claim that appears nowhere in the input. A rewrite that supplies a cause, a frequency, or a mechanism stops being a rewrite.
 
-Note also that "may have failed" keeps a compound verb form that the simple-tense rule would otherwise remove. **When the tense rule and the modality rule conflict, modality wins** — dropping the auxiliary here would delete the uncertainty along with the tense.
+Note also that `may have failed` keeps a compound verb form that the simple-tense rule would otherwise remove. **When the tense rule and the modality rule conflict, modality wins** — dropping the auxiliary here would delete the uncertainty along with the tense.
 
 ### Example C — Inter-agent instruction
 
@@ -58,7 +58,7 @@ Note also that "may have failed" keeps a compound verb form that the simple-tens
 > Once the upstream job has completed and assuming no errors were raised, the downstream agent should proceed to consume the output artifact, though it is worth noting that partial artifacts are sometimes produced under timeout conditions.
 
 **Violations flagged:**
-- Present perfect ("has completed") and subordinate-clause stacking ("assuming...", "though it is worth noting...").
+- Present perfect (`has completed`) and subordinate-clause stacking ("assuming...", "though it is worth noting...").
 - One sentence, three separate facts (completion condition, next action, edge-case warning).
 - 42 words, over the 20-word instruction cap.
 
@@ -87,4 +87,10 @@ Flavored mode kept the explanatory rhythm and did not force one fixed term per c
 
 ## How to Read These Examples
 
-Part 1 shows the actual rules this skill is built on. Part 2 shows the transfer: the same discipline — one meaning per word, active voice, simple tense, one instruction per sentence, explicit conditions instead of buried subordinate clauses — makes machine-to-machine and cross-language text safer to parse, not just aircraft manuals.
+Part 1 shows the actual rules this skill is built on. Part 2 shows the transfer. The same discipline makes machine-to-machine and cross-language text safer to parse, not just aircraft manuals. It applies these rules:
+
+- one meaning per word
+- active voice
+- simple tense
+- one instruction per sentence
+- explicit conditions instead of buried subordinate clauses

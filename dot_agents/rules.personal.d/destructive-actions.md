@@ -9,7 +9,6 @@ command in your reply so the user can run it themselves.
 - `git reset --hard`, `git clean -fd`, `git push --force`, `git push -f`
 - `chezmoi apply`, `chezmoi re-encrypt`, `chezmoi update`
 - `chmod`, `chown`, or `mv` on a path outside the working directory
-- Any privilege escalation, including `sudo`, `pkexec`, and `doas`
 
 A project instruction to apply chezmoi changes does not override this gate.
 

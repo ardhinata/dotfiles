@@ -16,7 +16,7 @@ Read the project's local docs before any external research, then read the
 project knowledge-cache `README.md` index. The canonical cache path is
 `.agents/docs/cache/`. **If the cache directory or index is missing, create
 it** as described by
-`~/.agents/skills/project-context/references/knowledge-cache.md` — the index
+`~/.agents/skills/project-context/references/knowledge-cache.md`. The index
 is a precondition for writing the first entry, not something to ask about
 first. Do not create it when project rules prohibit writes. Write a cache
 entry only in a repository that already has `.agents/docs/cache/`. Otherwise
@@ -37,12 +37,6 @@ not `.tmp/`.
 - CLI tool or framework API released less than 6 months ago? Always
   re-verify with a fresh external lookup, even when the cache has an entry.
 
-## Tool notes
-
-`websearch` and `webfetch` are the web tools on this host. `websearch` takes
-no per-call parameters. The `firecrawl_*`, `context7_*`, and `tavily_*` tools
-do not exist here.
-
 ## Knowledge Staleness
 
 Your training has a cutoff. When the gap to now is large relative to the
@@ -61,6 +55,6 @@ knowledge. When unsure, fetch rather than guess.
 ## Knowledge Caching
 
 After any lookup that produces information reusable on this machine or likely
-to go stale, write a date-tagged cache entry and update the index — placement
-and authoring rules per the referenced skills. The cache is tracked in git, so
+to go stale, write a date-tagged cache entry and update the index. Placement
+and authoring rules are per the referenced skills. The cache is tracked in git, so
 a fresh clone inherits the entries.

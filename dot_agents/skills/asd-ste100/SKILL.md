@@ -8,13 +8,13 @@ description: >-
   messages, and safety text. Use to audit text and report each rule violation. Not for creative or
   marketing copy.
 license: MIT. LICENSE has the complete terms.
-compatibility: The checker script needs Python 3.9 or later. It uses the standard library only.
+compatibility: The checker script needs Python 3.9 or later. It uses the standard library only. The optional second pass needs the ste100 CLI.
 metadata:
   standard: ASD-STE100 Issue 9 (January 2025)
   rules: 53 rules in 9 sections
-  dictionary-included: "no"
-  version: "1.0.0"
-allowed-tools: Read Write Bash(python3:*)
+  dictionary-included: "no for the built-in script. The optional ste100 pass includes one."
+  version: "1.1.0"
+allowed-tools: Read Write Bash(python3:*) Bash(ste100:*) Bash(uv:*)
 ---
 
 # ASD-STE100 Simplified Technical English
@@ -25,10 +25,10 @@ standard removes the two biggest sources of misreading: words with more than one
 sentences with more than one possible structure.
 
 This skill borrows that discipline for a different reader: an **AI agent or a downstream system**
-that has to parse an English string — an error message, a tool description, an inter-agent
-instruction, a status report — without a human in the loop to resolve ambiguity. If a maintenance
-technician can misread "close the valve" as an adjective ("the valve that is near") instead of a
-command, so can a language model.
+that has to parse an English string without a human in the loop to resolve ambiguity. The string can
+be an error message, a tool description, an inter-agent instruction, or a status report. If a
+maintenance technician can misread "close the valve" as an adjective ("the valve that is near")
+instead of a command, so can a language model.
 
 ## What the standard contains
 
@@ -57,7 +57,7 @@ and one-word-one-meaning discipline.
 **STE-flavored** — READMEs, PR descriptions, changelogs, explanatory prose. Apply the structural
 rules in full and treat the lexical rules as advisory (see Core Rewrite Rules for that split). In
 practice that means keeping the sentence length caps, active voice, simple tenses, no phrasal
-verbs, no semicolons, no nominalization and no marketing adjectives, while dropping the
+verbs, no semicolons, no nominalization and no marketing adjectives. The mode drops the
 one-word-one-meaning lockdown: prose needs some range, and a strict rewrite of prose reads as a
 personality transplant rather than a clarification.
 
@@ -143,14 +143,14 @@ say so in your output rather than implying dictionary compliance you cannot veri
 ### Simple tenses — apply with one exception
 
 STE permits infinitive, imperative, simple present, simple past, simple future, and past participle
-as adjective. It excludes present perfect and other compound forms: "we received the report", not
-"we have received the report".
+as adjective. It excludes present perfect and other compound forms: `we received the report`, not
+`we have received the report`.
 
 Aircraft manuals never need present perfect, so the exclusion costs the standard nothing. Other text
-is not always so lucky. "The job has completed" (and its output is available now) and "the job
-completed" (at some past point) are different statements, and status text frequently needs the
+is not always so lucky. `The job has completed` (and its output is available now) and `the job
+completed` (at some past point) are different statements, and status text frequently needs the
 first. **Where the compound form carries information the simple form cannot — current relevance, or
-a hedge as in "may have failed" — keep it and flag the departure.** Elsewhere, follow the rule.
+a hedge as in `may have failed` — keep it and flag the departure.** Elsewhere, follow the rule.
 
 ## Scan checklist
 
@@ -171,7 +171,7 @@ judgment call. Scan for all six before you rewrite anything.
    that earns the claim.
 5. **Run-on sentences** — several ideas joined by semicolons or em dashes. Fix: one idea per
    sentence.
-6. **Soft phrasal verbs** — spin up, reach out, dive into, kick off. Fix: use the single plain verb
+6. **Soft phrasal verbs** — `spin up`, `reach out`, `dive into`, `kick off`. Fix: use the single plain verb
    (start, contact, read, begin).
 
 ## Step 3 — rewrite, do not substitute word for word
@@ -198,7 +198,7 @@ well-intentioned STE rewrite goes wrong, because hedges are exactly what a lengt
 cut. When the tense rule and the modality rule conflict, modality wins.
 
 Never add a fact the source did not state. A rewrite that reads better because it supplies a cause,
-a frequency, or a mechanism has stopped being a rewrite.
+a frequency, or a mechanism stops being a rewrite.
 
 ## Step 4 — check the result
 
@@ -228,6 +228,37 @@ The script reports these problems:
 The script cannot check the dictionary. It has no part-of-speech analysis. Read the output as help,
 not as proof of conformance.
 
+### Optional second pass — the dictionary and the part of speech
+
+The script above has no dictionary. Install the `ste100` CLI from
+`github.com/sourdough-bread/asd-ste100-checker` to add a second pass. It checks the lexical rules and
+the part of speech:
+
+```bash
+python3 ~/.agents/skills/asd-ste100/scripts/ste_check.py --print-prose path/to/file.md | ste100 check --text-type description
+```
+
+`--print-prose` removes the markup and prints the prose only. `ste100` does not read Markdown, so it
+needs that step. Use `--text-type procedure` for a procedure.
+
+Install it once:
+
+```bash
+uv tool install "asd-ste100-checker @ git+https://github.com/sourdough-bread/asd-ste100-checker@e193ecdd66b09ce81b7c611f1c841efd8ba84cc7"
+uv pip install --python ~/.local/share/uv/tools/asd-ste100-checker/bin/python \
+  "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+```
+
+`ste100 setup` does not work under `uv tool install`, and the spaCy model is not on PyPI. Check the
+installation with `ste100 doctor`.
+
+Read the output with care. Most `STE-VOCAB-UNAPPROVED` results use the status `not_in_dictionary`.
+That status means the word is not in the STE word list. It is not a rule violation. The status
+`unapproved` means the word is in the list and is not approved. That is a real violation.
+
+Use the local script for the sentence length. It counts words by the rules 8.5 to 8.7. `ste100` counts
+words in its own way, so the two disagree.
+
 ## Step 5 — report the limits of your work
 
 Always tell the user two things:
@@ -240,11 +271,11 @@ Always tell the user two things:
 **Default: the rewritten text, and nothing else.** Most callers want a result they can paste
 straight into a tool description, an error string, or a prompt. Print the simplified text on its
 own. Do not add a preamble about this skill, a mode announcement, a violation count, a summary of
-what changed, a rule table, or a closing offer to explain further.
+what changed, or a rule table. Do not add a closing offer to explain further.
 
 The one permitted addition: if a longer phrasing was kept on purpose, add a single line after the
-text, prefixed `Kept as-is:`, naming the phrase and the precision that would have been lost. Omit
-the line when there is nothing to report.
+text. Prefix the line with `Kept as-is:`. Name the phrase and the precision that a shorter wording
+would lose. Omit the line when there is nothing to report.
 
 **On request: the rule table.** When the user asks to see the reasoning — "show the diff", "which
 rules did it break", "explain the changes", "before/after" — output this table instead:
@@ -311,20 +342,20 @@ the source text says nothing, tell the user.
 - Suggest a one-line glossary entry for domain terms that must stay.
 
 **Will not:**
-- Reproduce ASD's official ~900-word dictionary as if it were memorized verbatim — always treat the
+- Reproduce ASD's official ~900-word dictionary as if it were memorized verbatim. Always treat the
   official download as the source of truth for exact approved wording.
 - Simplify creative, marketing, or persuasive copy where voice and nuance are the point.
 - Silently drop a safety condition, exception, or scope qualifier to shorten a sentence — it will
   flag the trade-off instead.
-- Convert "may have failed" into "failed", or "could be caused by X" into "X is the cause" — losing
+- Convert `may have failed` into `failed`, or `could be caused by X` into `X is the cause` — losing
   a hedge changes the claim.
-- Guarantee an aerospace/defense-grade STE-compliant document; this is a general-purpose clarity
+- Guarantee an aerospace/defense-grade STE-compliant document. This is a general-purpose clarity
   tool inspired by STE, not a certified STE authoring tool.
 - Make weak content true or useful. STE fixes the *form* of a text, not its substance. A hollow
   paragraph rewritten under these rules becomes a clean, short, well-punctuated hollow paragraph.
   If the text has nothing to say, no rewrite fixes that — say so instead of polishing it.
-- Shorten past the point of clarity. Cutting words is not the goal; removing ambiguity is. Past a
-  certain point compression starts costing the reader time rather than saving it, so stop when the
+- Shorten past the point of clarity. Cutting words is not the goal. Removing ambiguity is. Past a
+  certain point compression starts costing the reader time rather than saving it. So stop when the
   sentence is unambiguous, not when it is shortest.
 
 ## References

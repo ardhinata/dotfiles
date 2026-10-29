@@ -43,7 +43,8 @@ a key". Report the absolute path and the fingerprint together.
 `/run/user/1000/gnupg/S.gpg-agent.ssh`. "The agent" means gpg-agent.
 "Load a key" means `ssh-add` against that socket, with no flag change.
 
-Ask the agent about a usable identity. Never read the key file to find out:
+Ask the agent about a usable identity. Never read the key file to learn the
+identity:
 
 | Question | Command |
 |---|---|
@@ -76,8 +77,29 @@ non-zero TTL in `sshcontrol` overrides the global default set by
 maximum is 86400.
 
 Do not set a TTL and assume the key expires at that moment. A key in the
-agent cache can be re-read from the private key store, so the practical
-effect is on the agent cache, not on the key.
+agent cache can be re-read from the private key store. The practical effect is
+on the agent cache, not on the key.
+
+## Which key is tried first
+
+`ssh -G` shows the config order, but that is not the try order. If the
+intended key is in the agent, the agent's order decides: `pubkey_prepare()`
+orders the agent-resident keys by the agent's list and puts that group ahead
+of the config-only keys. `ssh-add -l` shows the deciding order.
+
+`IdentityFile none` does not reset the list. `IdentityFile` is additive, so
+`none` only skips its own entry.
+
+To force one key for one host, negate that host in the catch-all block that
+lists the defaults:
+
+```
+Host * !some.host.example
+    IdentityFile ~/.ssh/keys/default.key.pub
+```
+
+Full write-up with the source references and the other options:
+`.agents/docs/cache/ssh/2026-10-29-ssh-identity-try-order.md`.
 
 ## Reading keys safely
 

@@ -7,8 +7,8 @@ tool shell does not: it runs a fresh non-interactive bash. In a project with a
 `fnm use --install-if-missing` before the first `node`, `npm`, `npx`, `pnpm`,
 or `yarn` command. Outside such a project the shell default applies.
 
-Use the project's own package manager. Do not run `fnm install` yourself;
-offer the command to the user.
+Use the project's own package manager. Do not run `fnm install` yourself.
+Offer the command to the user.
 
 ```bash
 fnm install --lts          # install latest LTS

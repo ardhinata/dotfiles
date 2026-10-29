@@ -7,9 +7,9 @@ Plain Markdown only — no frontmatter.
 ```markdown
 # <Project name> (<package-name>)
 
-<Short description: one line, ≤ 120 chars, no `>`, no leading/trailing
-punctuation, matches the package manager's `description` field and
-the GitHub repo description.>
+<Short description: one line, less than 120 characters, no `>`, no
+leading/trailing punctuation, matches the package manager's `description`
+field and the GitHub repo description.>
 
 <long description — motivation, problem the project solves, audience.
 Move to docs/ if it grows past a few paragraphs.>
@@ -74,22 +74,25 @@ spec.
 <SPDX-License-Identifier> © [Year] [Owner]
 ```
 
-**Length:** < 200 lines target; 500 hard ceiling. Move detail to
+**Length:** < 200 lines target, 500 hard ceiling. Move detail to
 `docs/`.
 
 **Hard rules:**
 
 - File must be `README.md` (uppercase, exactly)
-- Short description ≤ 120 chars
+- Short description is less than 120 characters
 - Sections in the order specified by Standard Readme
+- Table of Contents present, unless the README is shorter than 100 lines
+- No broken links
+- Code examples are linted the way the rest of the project lints code
 - License last
-- English README must be `README.md`; translations use
+- English README must be `README.md`. Translations use
   `README.<lang>.md` (BCP 47)
 
 **Verification:**
 
 ```sh
-npx standard-readme-preset check
+npx standard-readme
 ```
 
 Or manual review against [`../checklists.md`](../checklists.md).

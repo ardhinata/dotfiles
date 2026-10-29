@@ -20,11 +20,11 @@ Concretely:
 
 - Files under 100 lines → read whole, no ToC needed
 - 100–300 lines → optional ToC if navigation helps
-- 300–500 lines → required ToC; consider splitting
+- 300–500 lines → required ToC, consider splitting
 - 500+ lines → split into a directory
 
-(Gloaguen et al., arXiv:2602.11988: even human-curated context files
-raise inference cost > 20 %; LLM-generated ones measurably *reduce*
+(Gloaguen and others, [arXiv:2602.11988](https://arxiv.org/abs/2602.11988): even human-curated context files
+raise inference cost > 20 %. LLM-generated ones measurably *reduce*
 task success. Curate ruthlessly.)
 
 ### Per-type length budgets
@@ -108,7 +108,7 @@ tooling and reader expectation.
   Long Description → ToC → Security → Background → Install → Usage →
   Extra → API → Maintainers → Thanks → Contributing → License
 - **Keep a Changelog**: Title → Intro → `[Unreleased]` → `## [X.Y.Z] -
-  YYYY-MM-DD` (latest first; within each version: Added → Changed →
+  YYYY-MM-DD` (latest first. Within each version: Added → Changed →
   Deprecated → Removed → Fixed → Security)
 - **MADR ADR**: Title → Context → Decision Drivers → Considered Options
   → Decision Outcome → Consequences → Confirmation → Pros/Cons of
@@ -124,7 +124,7 @@ For docs without a fixed spec, this order works well for agent-readable
 Markdown:
 
 1. **H1** (matching filename slug)
-2. **One-line summary** (no heading; under the H1)
+2. **One-line summary** (no heading, under the H1)
 3. **`## When to load`** (skills, rules, references)
 4. **`## Quick start`** or **`## TL;DR`** (long docs)
 5. **`## Body`** — the actual content, broken into H2s
@@ -188,7 +188,7 @@ Every doc needs:
   any number.
 - **Headings describe a section, not a sentence.** Prefer noun phrases
   over gerunds ("Captured sources" beats "Where this came from").
-- **Heading levels are sequential.** Don't skip from H2 to H4.
+- **Heading levels are sequential.** Do not skip from H2 to H4.
 - **No H1 in the body.** The H1 lives at the top.
 
 ## Inline structure rules
@@ -200,7 +200,7 @@ Every doc needs:
   plain text that should not be highlighted.
 - **Tables for parameter docs and status matrices.** Markdown tables
   render well in every renderer.
-- **Blockquotes for callouts.** `> Note: ...` for tips; `> ⚠️ Warning`
+- **Blockquotes for callouts.** `> Note: ...` for tips, `> ⚠️ Warning`
   for cautions.
 - **Inline code for identifiers.** File names, function names, command
   names — wrap in backticks.

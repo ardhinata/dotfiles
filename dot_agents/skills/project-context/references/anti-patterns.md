@@ -4,7 +4,7 @@ Avoid all of the following when drafting, reviewing, or updating an `AGENTS.md`.
 
 ## Do not auto-generate
 
-Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20% and tend to reduce task success vs no context; LLM-generated files reduce it further (Gloaguen et al., arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
+Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20%. They tend to reduce task success vs no context. LLM-generated files reduce it further (Gloaguen and others, arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
 
 ## Do not duplicate README.md or `docs/`
 
@@ -12,7 +12,7 @@ Do not run `/init` or any equivalent and commit the output blind. Repository con
 
 ## Do not add a Project structure or Architecture overview section
 
-Agents navigate the tree themselves; restating it costs tokens without helping. ETH Zurich found codebase overviews did not help agents find files faster.
+Agents navigate the tree themselves. Restating it costs tokens without helping. ETH Zurich found codebase overviews did not help agents find files faster.
 
 ## Do not append rules reactively
 
@@ -20,11 +20,11 @@ Agents navigate the tree themselves; restating it costs tokens without helping. 
 
 ## Stay under 150 lines in the root AGENTS.md
 
-Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found a mean of 142 lines — 150 is the empirical boundary between "monolithic works fine" and "start fragmenting." Allow growth up to 150 when the project genuinely benefits from keeping guidance co-located rather than splitting it into supplemental files. Past 150, split into nested per-package files (see `Monorepos` in `SKILL.md`). Augment Code's real-world upper bound for monolithic files is ~200 lines; HumanLayer's outer cap is ~300; both flag that beyond ~200, modular organization becomes necessary for token-budget reasons (Gloaguen et al., arXiv:2602.11988; Lulla et al., arXiv:2601.20404).
+Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found a mean of 142 lines — 150 is the empirical boundary between "monolithic works fine" and "start fragmenting." Allow growth up to 150 when the project genuinely benefits from keeping guidance co-located rather than splitting it into supplemental files. Past 150, split into nested per-package files (see `Monorepos` in `SKILL.md`). Augment Code's real-world upper bound for monolithic files is ~200 lines. HumanLayer's outer cap is ~300. Both flag that beyond ~200, modular organization becomes necessary for token-budget reasons (Gloaguen and others, arXiv:2602.11988, Lulla and others, arXiv:2601.20404).
 
 ## Do not rely on vendor-specific agent files
 
-`CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`, `.github/copilot-instructions.md` are vendor lock-in. Put universal content in `AGENTS.md` and have the vendor file import it (e.g. `@AGENTS.md`). Vendor-specific overrides belong in `.agents/<vendor>/`, not at the root.
+`CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`, `.github/copilot-instructions.md` are vendor lock-in. Put universal content in `AGENTS.md` and have the vendor file import it (for example, `@AGENTS.md`). Vendor-specific overrides belong in `.agents/<vendor>/`, not at the root.
 
 ## Do not write agent content into public `docs/`
 
@@ -32,7 +32,7 @@ Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found a mean of 14
 
 ## Do not commit vendor symlinks
 
-After unifying `.cursor/` → `.agents/<vendor>/` (or any vendor), the root-level symlink must be in `.gitignore` so it is recreated locally on each clone — not committed as a checked-in symlink.
+After unifying `.cursor/` → `.agents/<vendor>/` (or any vendor), the root-level symlink must be in `.gitignore` so it is recreated locally on each clone. Do not commit it as a checked-in symlink.
 
 ## Do not skip the `✅ Always` vendor-symlink rule
 

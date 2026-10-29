@@ -1,7 +1,13 @@
 # RFC Template
 
-Copy to `docs/rfcs/NNNN-<slug>.md`. Heavier than an ADR; for design
+Copy to `docs/rfcs/NNNN-<slug>.md`. Heavier than an ADR, for design
 proposals that need formal review.
+
+The section list is house style, modelled on the
+[Rust RFC template](https://raw.githubusercontent.com/rust-lang/rfcs/master/0000-template.md)
+and the [React RFC template](https://raw.githubusercontent.com/reactjs/rfcs/main/0000-template.md).
+IETF RFC 2119 and 8174 govern requirement-keyword casing only, not document
+structure.
 
 ```markdown
 ---
@@ -45,13 +51,13 @@ diagrams, sequence flows as needed.>
 
 ## Open questions
 
+<!-- optional -->
 - <question 1>
 - <question 2>
 
 ## Unresolved questions
 
 <Things the team must decide before this RFC can be accepted.>
-
 ## Prior art
 
 <What other projects did similar work. Links.>
@@ -70,7 +76,7 @@ rollout is large.>
 <Optional.>
 ```
 
-**Length:** 200–1000 lines target; up to 2000 for heavyweight
+**Length:** 200–1000 lines target, up to 2000 for heavyweight
 proposals.
 
 **Filename:** `NNNN-<slug>.md`. 4-digit zero-padded, append-only.

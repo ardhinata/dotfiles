@@ -9,7 +9,7 @@ This rule owns the **priority order of local sources**.
 
 ## Priority
 
-In roughly this order — read what exists, skip what doesn't:
+In roughly this order, read what exists and skip what does not:
 
 1. **`README.md`** — setup, intent, structure, conventions in one pass.
 2. **Agent-instruction file** — `AGENTS.md`. Ignore vendor-specific files
@@ -37,10 +37,20 @@ before you read harness source.
 To answer from a specific revision, `git show <tag>:<path>` is the correct
 read. It is a shell fact, not a source search.
 
+## When local is not enough
+
+Local-first orders the local sources. It does not forbid an external lookup.
+Go to the web when:
+
+- the local copy is a snapshot of an older version
+- the question is about a release newer than the local copy
+- the local sources do not answer it
+
+The `web-verification.md` rule owns that lookup policy and its staleness table.
+
 ## Anti-Patterns
 
 - Assuming project structure from filenames alone.
 - Jumping to web search for a question the project's own docs resolve.
 - Asking the user something stated in `README.md` or `AGENTS.md`.
-- Reading `docs/` end-to-end upfront.
 - Trusting a README's "how to build" over the actual `package.json` scripts.

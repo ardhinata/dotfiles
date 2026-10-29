@@ -30,7 +30,7 @@ the topic. Plain Markdown — no frontmatter.
 
 - Every entry file in this directory appears in the table
 - Date column is ISO
-- Source column is short (a domain is enough; link is in the entry)
+- Source column is short (a domain is enough, link is in the entry)
 - Freshness column matches the entry's `freshness` field
 
 **Verification:** manual review against [`../checklists.md`](../checklists.md).

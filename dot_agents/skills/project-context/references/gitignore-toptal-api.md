@@ -11,8 +11,8 @@ Base URL: `https://www.toptal.com/developers/gitignore/api/`
 | `/api/list` | Comma-delimited list of every supported template name | `text/plain` |
 | `/api/<t1,t2,…>` | Returns a `.gitignore` body composed of all named templates, concatenated with `### <Name> ###` section headers and a `# Created by …` comment block | `text/plain` |
 
-- **Comma-delimited, no spaces.** `/api/node,python` is valid; `/api/node, python` is not.
-- **Order is preserved** in the output. Put OS / editor templates first so they don't get overridden by later patterns.
+- **Comma-delimited, no spaces.** `/api/node,python` is valid. `/api/node, python` is not.
+- **Order is preserved** in the output. Put OS / editor templates first so they do not get overridden by later patterns.
 - **Forgiving on partial invalidity.** A single unknown name does *not* abort the call — the valid templates are still emitted and the unknown one is surfaced as a `#!! ERROR: <name> is undefined. Use list command to see defined gitignore types !!#` comment. Verify the response body contains only `### <Name> ###` sections for the templates you requested.
 - **HEAD is blocked.** `curl -I` returns HTTP 403. Use GET only.
 - **Referer header is required by some CDNs.** Prefer `webfetch` / `firecrawl_scrape` / `curl -s` over `curl -I`. If the response is empty, add a `Referer: https://www.toptal.com/developers/gitignore` header (or retry with `webfetch`).
@@ -21,16 +21,93 @@ Fetch the list once per session with `webfetch` and cache the names in this file
 
 ## Pre-seeded template catalog
 
-Names are grouped by role. This is a curated subset of the full `/api/list` for fast lookup — the full list is reproduced at the bottom of this file as a fallback. If a name is missing here, check the full list or hit `/api/list`.
+Names are grouped by role. This is a curated subset of the full `/api/list` for fast lookup. The full list is reproduced at the bottom of this file as a fallback. If a name is missing here, check the full list or hit `/api/list`.
 
 ### Operating systems
 `macos`, `osx` *(alias for macos)*, `windows`, `linux`
 
 ### Editors and IDEs
-`visualstudiocode`, `jetbrains` *(umbrella for all JetBrains IDEs)*, `intellij`, `intellij+all`, `intellij+iml`, `pycharm`, `pycharm+all`, `pycharm+iml`, `webstorm`, `webstorm+all`, `webstorm+iml`, `phpstorm`, `phpstorm+all`, `phpstorm+iml`, `rubymine`, `rubymine+all`, `rubymine+iml`, `goland`, `goland+all`, `goland+iml`, `clion`, `clion+all`, `clion+iml`, `rider`, `appcode`, `appcode+all`, `appcode+iml`, `androidstudio`, `eclipse`, `netbeans`, `sublimetext`, `vim`, `emacs`, `xcode`, `xcodeinjection`, `notepadpp`, `atom` *(deprecated but still in list)*, `nova`, `textmate`
+
+- `visualstudiocode`
+- `jetbrains` *(umbrella for all JetBrains IDEs)*
+- `intellij`
+- `intellij+all`
+- `intellij+iml`
+- `pycharm`
+- `pycharm+all`
+- `pycharm+iml`
+- `webstorm`
+- `webstorm+all`
+- `webstorm+iml`
+- `phpstorm`
+- `phpstorm+all`
+- `phpstorm+iml`
+- `rubymine`
+- `rubymine+all`
+- `rubymine+iml`
+- `goland`
+- `goland+all`
+- `goland+iml`
+- `clion`
+- `clion+all`
+- `clion+iml`
+- `rider`
+- `appcode`
+- `appcode+all`
+- `appcode+iml`
+- `androidstudio`
+- `eclipse`
+- `netbeans`
+- `sublimetext`
+- `vim`
+- `emacs`
+- `xcode`
+- `xcodeinjection`
+- `notepadpp`
+- `atom` *(deprecated but still in list)*
+- `nova`
+- `textmate`
 
 ### Languages and runtimes
-`node`, `python`, `pythonvanilla`, `go`, `rust`, `java`, `kotlin`, `scala`, `groovy`, `clojure`, `ruby`, `php`, `c`, `c++`, `csharp`, `dotnetcore`, `aspnetcore`, `fsharp`, `swift`, `objective-c`, `dart`, `flutter`, `elixir`, `erlang`, `haskell`, `scala`, `lua`, `perl`, `r`, `julia`, `crystal`, `nim`, `zig`, `ocaml`, `fsharp`, `fortran`, `pascal` *(via `delphi`, `lazarus`, `freepascal`)*, `cobol` *(not in list)*
+
+- `node`
+- `python`
+- `pythonvanilla`
+- `go`
+- `rust`
+- `java`
+- `kotlin`
+- `scala`
+- `groovy`
+- `clojure`
+- `ruby`
+- `php`
+- `c`
+- `c++`
+- `csharp`
+- `dotnetcore`
+- `aspnetcore`
+- `fsharp`
+- `swift`
+- `objective-c`
+- `dart`
+- `flutter`
+- `elixir`
+- `erlang`
+- `haskell`
+- `scala`
+- `lua`
+- `perl`
+- `r`
+- `julia`
+- `crystal`
+- `nim`
+- `zig`
+- `ocaml`
+- `fsharp`
+- `fortran`
+- `pascal` *(via `delphi`, `lazarus`, `freepascal`)*
+- `cobol` *(not in list)*
 
 ### Frontend frameworks and tooling
 `react`, `reactnative`, `nextjs`, `nuxtjs`, `vuejs`, `vue`, `angular`, `svelte`, `astro`, `gatsby`, `docusaurus`, `remix`, `remix+arc`, `remix+cloudflarepages`, `remix+cloudflareworkers`, `remix+netlify`, `remix+vercel`, `storybookjs`, `cypressio`, `jupyternotebooks`, `ionic3`, `nwjs`, `cordova`, `electron` *(not in list — covered by `node`)*
@@ -54,7 +131,7 @@ Templates suffixed `+all`, `+iml`, `+strict` add the IDE's "all files" or "iml f
 
 When asked to create, fix, or review a `.gitignore`:
 
-1. **Read the current `.gitignore`** if one exists. Note what is already covered so the agent doesn't propose duplicates or contradict established rules. Honor any project-specific conventions (e.g. team-policy ignores for `.env*`, license headers).
+1. **Read the current `.gitignore`** if one exists. Note what is already covered so the agent does not propose duplicates or contradict established rules. Honor any project-specific conventions (for example, team-policy ignores for `.env*`, license headers).
 2. **Identify the stack** from executable sources of truth, in priority order:
    - Root manifests: `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `go.mod`, `requirements.txt` / `pyproject.toml` / `Pipfile`, `Gemfile`, `composer.json`, `pom.xml`, `build.gradle*`, `*.csproj`
    - Tooling configs: `.nvmrc`, `.python-version`, `.tool-versions`, `.ruby-version`, `.rust-toolchain`, `tsconfig.json`, `vite.config.*`, `next.config.*`
@@ -69,22 +146,22 @@ When asked to create, fix, or review a `.gitignore`:
    - Editor/IDE section.
    - Language/runtime section.
    - Framework/build section.
-   - **Project-specific entries** last. These come from inspecting the actual project, not from the API: lockfile decisions, monorepo workspace globs, generated dirs, vendored deps, environment files, IDE config the team does/doesn't commit, large data files.
-   - The Toptal `# Created by …` / `# End of …` banner comments are optional; remove them if the team prefers a clean file.
+   - **Project-specific entries** last. These come from inspecting the actual project, not from the API: lockfile decisions, monorepo workspace globs, generated dirs, vendored deps, environment files, IDE config the team commits or does not commit, large data files.
+   - The Toptal `# Created by …` / `# End of …` banner comments are optional. Remove them if the team prefers a clean file.
 7. **De-duplicate and reconcile**:
-   - If a project-specific entry overlaps an API entry (e.g. both ignore `/dist`), keep one.
-   - If the API ignores something the project *commits* intentionally (e.g. a tracked `dist/` for a static-site repo), strip the conflicting pattern.
+   - If a project-specific entry overlaps an API entry (for example, both ignore `/dist`), keep one.
+   - If the API ignores something the project *commits* intentionally (for example, a tracked `dist/` for a static-site repo), strip the conflicting pattern.
    - If the API is silent on something obvious in the project (lockfile, generated client, monorepo outputs), add it manually and mark with a short `# project-specific` comment.
 8. **Validate**: `git check-ignore -v <candidate-path>` for any non-obvious entry, against actual project files, before committing.
 9. **Show diff** to the user and ask before writing, unless the user explicitly said "create" / "fix" without preview.
 
 ## What NOT to do
 
-- **Don't paste the API body verbatim.** It is a *reference*, not the final file. The API bundles too much (every framework, every patch, every commented-out option). A real `.gitignore` should be tight and project-specific.
-- **Don't fetch every plausible template.** Two to five templates is the typical sweet spot. More means more noise.
-- **Don't ignore the current `.gitignore`.** It often encodes team policy (e.g. which `.env*` to allow, which IDE files to commit). Preserve it unless the user says otherwise.
-- **Don't add patterns "just in case".** Every line costs a `git status` scan on every file. Keep the file under ~50 lines for most repos; past ~80 lines it stops being a checklist and becomes noise.
-- **Don't commit secrets or `.env`.** The API templates cover this, but verify — `python` and `node` ignore `.env` while `dotnetcore` does not. Always end with an explicit `.env*` / `!.env.example` block unless the project intentionally commits env files.
+- **Do not paste the API body verbatim.** It is a *reference*, not the final file. The API bundles too much (every framework, every patch, every commented-out option). A real `.gitignore` should be tight and project-specific.
+- **Do not fetch every plausible template.** Two to five templates is the typical sweet spot. More means more noise.
+- **Do not ignore the current `.gitignore`.** It often encodes team policy (for example, which `.env*` to allow, which IDE files to commit). Preserve it unless the user says otherwise.
+- **Do not add patterns "just in case".** Every line costs a `git status` scan on every file. Keep the file under ~50 lines for most repos. Past ~80 lines it stops being a checklist and becomes noise.
+- **Do not commit secrets or `.env`.** The API templates cover this, but verify — `python` and `node` ignore `.env` while `dotnetcore` does not. Always end with an explicit `.env*` / `!.env.example` block unless the project intentionally commits env files.
 
 ## Quick command snippets
 

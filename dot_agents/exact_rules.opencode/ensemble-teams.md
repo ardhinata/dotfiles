@@ -28,10 +28,10 @@ injects the commit and merge steps. These rules cover what it does not inject.
 
 - Never use `sleep` to wait for a teammate. A sleep does not wait.
 - Teammates report when they finish. End your turn and let the message arrive.
-- The plugin sends a stall notice after `stallThresholdMs` of silence. The
-  default is 5 minutes. The notice means the teammate is quiet. It does not
-  mean the teammate failed. Message the teammate first. Stop the teammate only
-  after it reports that it is stuck.
+- The plugin sends a stall notice after `stallThresholdMs` of silence. This host
+  sets it to 5 minutes in `~/.config/opencode/ensemble.json`. The notice means
+  the teammate is quiet. It does not mean the teammate failed. Message the
+  teammate first. Stop the teammate only after it reports that it is stuck.
 - `team_shutdown` without `force` lets the teammate finish and keeps its
   branch. Use `force` only when the teammate ignores a shutdown request.
 
@@ -40,9 +40,3 @@ injects the commit and merge steps. These rules cover what it does not inject.
 - Do not stop a teammate because a stall notice arrived.
 - Do not paste a full report into the body of a `team_message`.
 - Do not wait on a teammate with `sleep` or with a poll loop.
-
-## References
-
-- `~/.agents/skills/opencode-ensemble/SKILL.md` — team shapes and prompts.
-- `~/.config/opencode/ensemble.json` — `stallThresholdMs`, `timeoutMs`,
-  `modelPool`.

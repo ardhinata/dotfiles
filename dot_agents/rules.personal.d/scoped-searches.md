@@ -7,10 +7,10 @@ noisy, and likely to trip secret-file rules.
 
 ## When
 
-About to run `grep -r`, `rg`, `find`, `fd`, or any tree walk. Use the dedicated
-tools first: `aft_search`, `aft_outline`, `aft_zoom`, `glob`, `grep`, `read`.
-They are token-aware and already scoped to the workspace. This rule applies
-when those tools cannot answer the question.
+About to run `grep -r`, `rg`, `find`, `fd`, or any tree walk. Use the harness's
+dedicated search and read tools first. They are token-aware and already scoped
+to the workspace. This rule applies when those tools cannot answer the
+question.
 
 ## Default scope
 
@@ -23,8 +23,7 @@ Target a known global location by its exact path, never its parent:
 
 | Looking for | Target |
 |---|---|
-| Global agent config, rules, skills | `~/.config/opencode/`, `~/.agents/` |
-| Global chezmoi source | `~/.local/share/chezmoi/` |
+| Global agent config, rules, skills | `~/.agents/` and the harness config directory |
 | gpg-agent config | `~/.gnupg/gpg-agent.conf`, `~/.gnupg/gpg.conf` (files, not the directory) |
 | SSH config | `~/.ssh/config`, `~/.ssh/config.d/` |
 | Shell history | `~/.zsh_history` |
