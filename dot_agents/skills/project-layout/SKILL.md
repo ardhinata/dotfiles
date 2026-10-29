@@ -16,12 +16,16 @@ lives in `document-conventions`.
 
 | Element | Source |
 |---|---|
-| Root `AGENTS.md` plus nested per-package files, closest wins | agents.md (AAIF, Linux Foundation) |
-| `docs/` at the repo root | docs-as-code practice |
+| Root `AGENTS.md` plus nested per-package files, closest wins | [agents.md](https://agents.md/#faq) (AAIF, Linux Foundation) |
+| `docs/` at the repo root | docs-as-code practice. No published standard prescribes the path |
 | `docs/adr/` | MADR-style ADR collections (MADR itself prescribes `docs/decisions/`) |
-| `docs/rfcs/` | Rust RFC, Kubernetes enhancement, IETF RFC 2223 |
+| `docs/rfcs/` | Rust RFC, Kubernetes enhancement, IETF RFC 7322 |
 | `docs/how-to/` and `docs/reference/` | Diátaxis quadrants |
-| `postmortem` spelled as one word | Merriam-Webster headword, Google SRE Book |
+| `postmortem` spelled as one word | American Heritage Dictionary headword, Google SRE Book |
+
+Two notes on that table. RFC 2223 "Instructions to RFC Authors" was obsoleted
+by RFC 7322 in 2014, so cite 7322. Kubernetes keeps its proposals in `keps/`,
+not `rfcs/`, so it backs the practice rather than the directory name.
 
 **House style.** No external standard covers these — they are this project's
 layout, and they should be described as such:
