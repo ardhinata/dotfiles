@@ -1,6 +1,6 @@
 ---
 name: github
-description: GitHub work via the official `gh` CLI. Load for any GitHub-related action — opening/closing/listing issues and PRs, viewing repos, releases, Actions runs, code/repo/issue/PR search, clones, gists, secrets, and arbitrary GitHub REST/GraphQL calls. Always prefer `gh` over `curl`, `git`, or webfetch for github.com / GitHub Enterprise targets.
+description: GitHub work via the official `gh` CLI. Load for any GitHub-related action — opening/closing/listing issues and PRs, viewing repos, releases, Actions runs, code/repo/issue/PR search, clones, gists, secrets, and arbitrary GitHub REST/GraphQL calls. Always prefer `gh` over `curl`, `git`, or a web-fetch tool for github.com / GitHub Enterprise targets.
 ---
 
 # GitHub CLI (`gh`)
@@ -9,7 +9,7 @@ Use `gh` for every GitHub-related action. It is authenticated, handles paginatio
 
 ## When to Load
 
-Any task that touches GitHub: issues, PRs, repos, releases, Actions, gists, code/issue/PR search, secrets, variables, deploy keys, repo metadata, or arbitrary REST/GraphQL. If you would otherwise reach for `curl`, `webfetch`, or `git` against `github.com`, use `gh` first.
+Any task that touches GitHub: issues, PRs, repos, releases, Actions, gists, code/issue/PR search, secrets, variables, deploy keys, repo metadata, or arbitrary REST/GraphQL. If you would otherwise reach for `curl`, your harness's web-fetch tool, or `git` against `github.com`, use `gh` first.
 
 ## Auth Check
 
@@ -59,29 +59,24 @@ gh api repos/owner/repo/issues --paginate --slurp \
 
 ## Common Tasks
 
+Each block keeps the commands whose flags are not obvious. Run
+`gh <noun> --help` for the rest.
+
 ### Issues
 
 ```bash
-gh issue list --state open --limit 50
 gh issue view 123 --comments
 gh issue create --title "..." --body "..." --label bug --assignee @me
-gh issue close 123 --comment "fixed by #124"
 gh issue develop 123 --name fix/123 --base main     # create a branch linked to the issue
-gh search issues "is:open is:issue label:bug repo:owner/repo"
 ```
 
 ### Pull Requests
 
 ```bash
-gh pr list --author @me --state open
-gh pr view 42 --json files,reviewDecision,statusCheckRollup
-gh pr checkout 42                                    # co is an alias
 gh pr create --fill --base main --reviewer @me --label ready
-gh pr create --draft --title "WIP" --body "..."
+gh pr view 42 --json files,reviewDecision,statusCheckRollup
 gh pr merge 42 --squash --delete-branch
 gh pr checks 42 --watch
-gh pr diff 42
-gh search prs "is:open review-requested:@me"
 ```
 
 ### Repos
@@ -89,19 +84,12 @@ gh search prs "is:open review-requested:@me"
 ```bash
 gh repo view owner/repo --json nameWithOwner,defaultBranchRef,isPrivate,description
 gh repo clone owner/repo
-gh repo fork owner/repo --clone
 gh repo sync                                       # mirror upstream
-gh repo set-default owner/repo                      # set this checkout as default
-gh browse                                          # open current repo in browser
-gh browse 42                                        # open issue/PR #42
-gh browse path/to/file -b main -n                   # print URL only (no browser)
 ```
 
 ### Releases
 
 ```bash
-gh release list --limit 10
-gh release view v1.2.3
 gh release create v1.2.3 ./dist/* --title "v1.2.3" --notes-file RELEASE.md
 gh release download v1.2.3 -p "*.tar.gz" -D ./out
 ```
@@ -109,30 +97,25 @@ gh release download v1.2.3 -p "*.tar.gz" -D ./out
 ### Actions
 
 ```bash
-gh run list --workflow ci.yml --limit 20
 gh run view 12345 --log
 gh run watch 12345                                 # blocks until done
-gh run rerun 12345 --failed
 gh workflow run ci.yml -f ref=main
-gh cache list --sort size --limit 20
 ```
 
 ### Secrets, Variables, Deploy Keys
 
 ```bash
-gh secret list
 gh secret set MY_SECRET --body "$VALUE"            # or --env-file
 gh variable set MY_VAR --body "value"
-gh repo deploy-key add ~/.ssh/id_ed25519.pub --title "ci-key" --read-only
+gh repo deploy-key add ~/.ssh/id_ed25519.pub --title "ci-key"   # read-only unless --allow-write
 ```
 
 ### Search across GitHub
 
 ```bash
-gh search repos "language:rust stars:>1000"
-gh search code "TODO owner/repo" --limit 20
+gh search code "TODO" --repo owner/repo --limit 20
 gh search commits "fix race condition" --author @me
-gh search prs "is:merged author:@me" --json number,title,repository --limit 50
+gh search issues "is:open label:bug" --repo owner/repo
 ```
 
 ### Raw REST / GraphQL via `gh api`
@@ -142,7 +125,6 @@ Use `gh api` whenever the high-level command does not cover the call (for exampl
 ```bash
 # REST — path templating is brace-expanded
 gh api repos/{owner}/{repo}/rulesets
-gh api -X POST repos/owner/repo/issues -f title='...' -f body='...'
 
 # GraphQL — query via -f
 gh api graphql -f query='{ viewer { login } }' --jq '.data.viewer.login'
@@ -167,7 +149,7 @@ gh api repos/owner/repo/rulesets --input rulesets.json --method PUT
 ## Anti-Patterns
 
 - ❌ `curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/...` — use `gh api` instead.
-- ❌ `webfetch` against `api.github.com` — the GitHub API rarely returns readable markdown. Use `gh api` or `gh <noun> view`.
+- ❌ Your harness's web-fetch tool against `api.github.com` — the GitHub API rarely returns readable markdown. Use `gh api` or `gh <noun> view`.
 - ❌ `git ls-remote` to discover PR/issue refs — use `gh pr/issue list`.
 - ❌ Building JSON by string concatenation — pipe `--input file.json` or `-f key=value` to `gh api`.
 - ❌ Echoing `gh auth token` in logs or responses — it is a credential.
@@ -180,8 +162,8 @@ gh api repos/owner/repo/rulesets --input rulesets.json --method PUT
 | Goal | Command |
 |---|---|
 | Open repo / issue / PR in browser | `gh browse [path\|#]` |
-| Read a single file from a repo | `gh repo read-file path/to/file --repo owner/repo` (no clone) |
-| List a repo's directory | `gh repo read-dir --repo owner/repo path/to/dir` |
+| Read a single file from a repo | `gh repo read-file path/to/file --repo owner/repo` (preview, no clone) |
+| List a repo's directory | `gh repo read-dir --repo owner/repo path/to/dir` (preview) |
 | Find a PR by branch | `gh pr list --head <branch> --json number,title,url` |
 | Find an issue by text | `gh issue list --search "in:title <phrase>"` |
 | Get the current PR's CI status | `gh pr checks --json name,conclusion,state` |
