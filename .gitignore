@@ -157,9 +157,9 @@ tags
 .tmp/
 
 # Knowledge cache — date-tagged web research entries (see .agents/docs/cache/README.md).
-# Only the cache subtree is gitignored; the README.md index stays tracked so future
-# agents can discover entries without web re-fetch.
-.agents/docs/cache/
+# Tracked: the entries are curated, small, and let a fresh clone answer a question
+# without a web fetch. The cache is never deployed, so a tracked entry cannot leak
+# into $HOME through chezmoi.
 
 # Vendor symlinks — recreate locally on a fresh clone (see AGENTS.md → Boundaries)
 # Tracked content lives under .agents/<vendor>/; the root symlink is untracked.

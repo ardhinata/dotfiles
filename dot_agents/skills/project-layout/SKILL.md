@@ -60,7 +60,7 @@ docs/                              ← human-facing, hand-written (Standard Read
                                      instructions glob)
   agents/                          ← house convention for subagent definitions
   docs/                            ← agent-only docs (fetched references, canonical notes)
-    cache/                         ← knowledge cache (date-tagged, gitignored)
+    cache/                         ← knowledge cache (date-tagged, tracked, curated)
       README.md                    ← required index
       <topic>/
         README.md
@@ -125,7 +125,7 @@ The cache lives at `.agents/docs/cache/` (sibling of `.agents/docs/` for non-cac
 .agents/docs/cache/<topic>/YYYY-MM-DD-<short-slug>.md
 ```
 
-A `README.md` index is **required** at `.agents/docs/cache/README.md` (and recommended per topic), with relative links listing every entry (topic, source, capture date, freshness note). Cache entries are gitignored — they are scratch space, not documentation. See `references/knowledge-cache.md` in the `project-context` skill for authoring rules (date tag, source, freshness note).
+A `README.md` index is **required** at `.agents/docs/cache/README.md` (and recommended per topic), with relative links listing every entry (topic, source, capture date, freshness note). Cache entries are tracked in git so a fresh clone inherits them, and the cache is never deployed — the repo-root `.agents/` tree does not reach `$HOME`. See `references/knowledge-cache.md` in the `project-context` skill for authoring rules (date tag, source, freshness note).
 
 ## Generated content
 
@@ -136,7 +136,7 @@ be read later, by a human or by a future session?
 |---|---|---|
 | A decision, or a plan that was executed | `docs/adr/`, `docs/plans/` | Committed, dated, reviewable |
 | A procedure the agent should reuse | `.agents/skills/<name>/SKILL.md` | Committed, agentskills.io format |
-| A web-learned fact worth recalling | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Gitignored, per machine |
+| A web-learned fact worth recalling | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Tracked, curated |
 | Work still in flight | `.tmp/scratch/` | Gitignored, dies with the worktree |
 
 `.agents/` holds machine-consumed context. `docs/` holds human-reviewed

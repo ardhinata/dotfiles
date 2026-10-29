@@ -62,5 +62,5 @@ knowledge. When unsure, fetch rather than guess.
 
 After any lookup that produces information reusable on this machine or likely
 to go stale, write a date-tagged cache entry and update the index — placement
-and authoring rules per the referenced skills. The cache is gitignored, so it
-survives a worktree but not a machine loss.
+and authoring rules per the referenced skills. The cache is tracked in git, so
+a fresh clone inherits the entries.
