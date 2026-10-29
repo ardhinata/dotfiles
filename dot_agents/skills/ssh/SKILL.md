@@ -1,12 +1,27 @@
 ---
 name: ssh
-description: SSH key handling on this host. Load before creating an SSH keypair, adding or selecting a key for the agent, changing which keys the agent exposes, checking which identity is loaded, reading anything under ~/.ssh/, or running a streaming command over ssh. Covers the gpg-agent as the SSH agent, the Use-for-ssh attribute, key lifetimes, and live remote output.
+description: SSH key handling with gpg-agent as the SSH agent. Load before creating an SSH keypair, adding or selecting a key for the agent, changing which keys the agent exposes, checking which identity is loaded, reading anything under ~/.ssh/, or running a streaming command over ssh. Covers the gpg-agent as the SSH agent, the Use-for-ssh attribute, key lifetimes, and live remote output.
 ---
 
 # SSH
 
 This host keeps all SSH credentials in `gpg-agent --enable-ssh-support`. The
 OpenSSH `ssh-agent` holds nothing.
+
+## Scope
+
+The gpg-agent procedure works on any Linux or macOS host that runs GnuPG with
+SSH support. Three values in this file belong to one host. Read them on the
+host before you use them.
+
+| Value | Where it comes from | This host |
+|---|---|---|
+| The agent socket path | `gpgconf --list-dirs agent-ssh-socket` | `/run/user/1000/gnupg/S.gpg-agent.ssh` |
+| The cache TTL limits | `~/.gnupg/gpg-agent.conf` | 7200 s default, 86400 s maximum |
+| The key directory | The house rule below | `~/.ssh/agent-keys/` |
+
+The key directory is a rule for this setup. It is not a general OpenSSH
+practice.
 
 ## When to load
 
@@ -39,9 +54,11 @@ a key". Report the absolute path and the fingerprint together.
 
 ## The agent is gpg-agent
 
-`SSH_AUTH_SOCK` points at the gpg-agent socket, here
-`/run/user/1000/gnupg/S.gpg-agent.ssh`. "The agent" means gpg-agent.
-"Load a key" means `ssh-add` against that socket, with no flag change.
+`SSH_AUTH_SOCK` points at the gpg-agent socket. Read the path with
+`gpgconf --list-dirs agent-ssh-socket`. Do not hardcode it, because the path
+holds the user ID and it changes per user and per host. "The agent" means
+gpg-agent. "Load a key" means `ssh-add` against that socket, with no flag
+change.
 
 Ask the agent about a usable identity. Never read the key file to learn the
 identity:
@@ -53,6 +70,9 @@ identity:
 | The agent socket path | `gpgconf --list-dirs agent-ssh-socket` |
 
 Smartcard keys are added implicitly. Do not list them.
+
+If `SSH_AUTH_SOCK` points at an OpenSSH agent, this file does not apply. The
+`gpg` and `gpgconf` commands have no effect on that host.
 
 ## Key selection
 
@@ -73,8 +93,9 @@ you must support a client older than 2.3.7.
 
 `ssh-add -t <seconds>` sets a per-key lifetime. The GnuPG 2.4.9 manual says a
 non-zero TTL in `sshcontrol` overrides the global default set by
-`--default-cache-ttl-ssh`. On this host the default is 7200 seconds and the
-maximum is 86400.
+`--default-cache-ttl-ssh`. The values come from `~/.gnupg/gpg-agent.conf`, in
+`default-cache-ttl-ssh` and `max-cache-ttl-ssh`. On this host the default is
+7200 seconds and the maximum is 86400. Read the file before you rely on them.
 
 Do not set a TTL and assume the key expires at that moment. A key in the
 agent cache can be re-read from the private key store. The practical effect is
@@ -98,7 +119,9 @@ Host * !some.host.example
     IdentityFile ~/.ssh/keys/default.key.pub
 ```
 
-Full write-up with the source references and the other options:
+Full write-up with the source references and the other options. The path is
+relative to the dotfiles repository, so it does not exist on a host without a
+clone:
 `.agents/docs/cache/ssh/2026-10-29-ssh-identity-try-order.md`.
 
 ## Reading keys safely
