@@ -25,6 +25,15 @@
     "write": false,
   },
 
+  // AFT runs the language servers itself. It installs the npm ones into its
+  // own cache, so no manual install is needed. `diagnostics_on_edit` makes
+  // every write, edit, and patch wait for the language server and return
+  // fresh diagnostics with the result. The default is false, so diagnostics
+  // arrive only when the agent asks for them.
+  "lsp": {
+    "diagnostics_on_edit": true
+  },
+
   "semantic": {
     "backend": "openai_compatible",
     "model": "qwen/qwen3-embedding-8b",
