@@ -89,7 +89,7 @@ not from the specification. Cite them as Claude rules.
 ## OpenCode does not expand `@file` in AGENTS.md
 
 Verified in the [OpenCode rules docs](https://opencode.ai/docs/rules/): "While
-opencode doesn't automatically parse file references in `AGENTS.md`". The
+opencode does not automatically parse file references in `AGENTS.md`". The
 documented workarounds are the `instructions` array in `opencode.json`, and
 teaching the agent in `AGENTS.md` to read the referenced file on demand. The
 `instructions` field takes a path or a glob. `~` expansion works in practice

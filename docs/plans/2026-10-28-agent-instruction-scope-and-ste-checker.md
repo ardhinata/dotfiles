@@ -9,10 +9,19 @@ last-updated: 2026-10-29
 
 ## Status
 
-The work is applied to `$HOME` and verified. Two source files are pending:
-the `asd-ste100` skill and its checker script. The change is not committed,
-because it alters the source directory layout and AGENTS.md asks first in that
-case.
+Committed in four commits on 2026-10-29. The whole review is applied to
+`$HOME` except the 40 files queued by `chezmoi diff`, which waits for one
+`chezmoi apply --force`.
+
+| Commit | Subject |
+|---|---|
+| `69d58ad` | `refactor(agents)` — the scope split, the document-conventions standards work, the checker fix, the STE campaign |
+| `ad13c1d` | `feat(cortexkit)` — `diagnostics_on_edit` and the encrypted work SSH key |
+| `e1b30e6` | `refactor(skills)` — the `gh` catalogue trim and its fact fixes |
+| `ca2254c` | `refactor(agents)` — the agent-context verification and the duplicate skill removal |
+
+The commit hashes changed when the last two were rebuilt. Read the subject
+lines, not the hashes.
 
 ## What changed
 
@@ -24,7 +33,12 @@ case.
 | `dot_agents/exact_rules/` | 4 rules generalised to drop tool names | applied |
 | `dot_agents/rules.personal.d/` | 5 rules changed: 4 generalised, 1 de-duplicated | applied |
 | `dot_config/opencode/private_opencode.jsonc` | `rules.opencode` glob added, `websearch` provider unpinned | applied |
-| `dot_agents/skills/asd-ste100/` | `--print-prose` added, inline-code split bug fixed, second-pass section added | **pending** |
+| `dot_agents/skills/asd-ste100/` | `--print-prose` added, inline-code split bug fixed, second-pass section added | applied |
+| `dot_agents/skills/github/` | catalogue cut from 46 commands to 20, four facts fixed | pending |
+| `dot_agents/skills/project-context/` | citation claims corrected, harness scan table fixed | pending |
+| `dot_agents/skills/project-layout/` | harness scan table corrected, duplicated text removed | pending |
+| `dot_agents/skills/document-conventions/` | `skill-authoring.md` added, frontmatter rules corrected | pending |
+| `.agents/skills/agent-context/` | deleted, its unique content moved into `document-conventions` | pending |
 
 ## The scope split
 
@@ -185,6 +199,51 @@ What was not touched:
 The remaining 1373 warnings are advisory: "-ing" verb forms, noun clusters,
 passive voice with an unknown actor, and words the checker cannot judge
 without the official dictionary.
+
+## The project-context verification (2026-10-29)
+
+The `project-context` skill is load-bearing: it decides what every
+`AGENTS.md` in every project looks like. Two research subagents checked every
+claim in it against the primary sources.
+
+**Harness support.** The skill said every harness finds `.agents/skills/`
+natively, with Claude Code as the only exception. Wrong in three places.
+Copilot's VS Code harness does not scan it. Factory Droid treats it as a
+compatibility path. Warp supports it and was missing from the list. The
+Claude Code advice was also imprecise: the documented mechanism is a symlinked
+skill folder, not a symlinked `.claude/skills` directory.
+
+**Citations.** The "30+ agents" figure comes from a third-party blog. The
+spec site lists 23. Claude Code reads `AGENTS.md` natively since v2.1.277,
+so the `@AGENTS.md` import is a bridge, not the only way in. The two arXiv
+papers measure different things, and the skill never said so: one measures
+efficiency, the other measures task success. The Matt Nigh post analysed
+Copilot custom-agent personas in `.github/agents/`, not repository-root
+`AGENTS.md` files.
+
+**One claim of ours was an overstatement.** The skill said LLM-generated
+context files "reduce task success". The paper found no significant effect
+(p = 0.87 and p = 0.37). What it did find, and what we now state, is that
+developer-written files beat generated ones by 7%.
+
+**One claim of ours was right and I nearly dropped it.** The MSR '26 survey
+figure — 466 OSS projects, `AGENTS.md` averaging 142 lines — is accurate
+(arXiv:2510.21413). It was rewritten during the pass and restored with the
+correct citation.
+
+**The duplicate skill.** The project-tree `agent-context` skill taught the
+same AGENTS.md rules as `project-context`, and taught the SKILL.md spec less
+precisely than `document-conventions` already did. It was deleted. Its unique
+playbook moved to `document-conventions/references/skill-authoring.md`, which
+is global like every other skill.
+
+**A bug in the root `AGENTS.md`.** Its Boundaries section said to edit
+`dot_agents/rules/`. That directory does not exist. The shared rules live in
+`dot_agents/exact_rules/`, and a harness-specific rule goes in
+`dot_agents/exact_rules.<vendor>/`.
+
+Evidence: `.agents/docs/cache/agent-context/` and
+`.agents/docs/cache/agent-skills/`.
 
 ## See also
 

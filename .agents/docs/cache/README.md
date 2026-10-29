@@ -8,7 +8,7 @@ fetched again.
 
 - **Path:** `.agents/docs/cache/<topic>/YYYY-MM-DD-<short-slug>.md` — one
   topic per file, ISO date prefix sorts chronologically.
-- **Index:** this file links every topic; each topic's `README.md` links every
+- **Index:** this file links every topic. Each topic's `README.md` links every
   entry with its date, source, and freshness note.
 - **Scope:** only persistent, reusable, volatile facts belong here. One-off
   answers, scratchpads, and transient work go in `.tmp/`.
@@ -39,6 +39,7 @@ skill or rule file, with the cache entry as the evidence behind it.
 | Topic | Description | Entries |
 |---|---|---|
 | [agent-instructions](agent-instructions/README.md) | Cost and load-path facts about the always-on instruction files | 2 |
+| [agent-context](agent-context/README.md) | The AGENTS.md standard, the evidence behind it, and what was corrected | 1 |
 | [agent-skills](agent-skills/README.md) | Where each harness looks for skills, and what the Agent Skills spec says | 1 |
 | [asd-ste100](asd-ste100/README.md) | The upstream ASD-STE100 checker: capabilities and install path | 1 |
 | [document-conventions](document-conventions/README.md) | Which document rules are standard, and which citations were wrong | 1 |

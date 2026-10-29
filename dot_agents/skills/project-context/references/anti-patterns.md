@@ -4,11 +4,11 @@ Avoid all of the following when drafting, reviewing, or updating an `AGENTS.md`.
 
 ## Do not auto-generate
 
-Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20%. They tend to reduce task success vs no context. LLM-generated files reduce it further (Gloaguen and others, arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
+Do not run `/init` or any equivalent and commit the output blind. Repository context files — human- or LLM-written — raise inference cost by over 20%. They do not reliably improve task success either: the paper found no significant gain, and developer-written files beat generated ones by 7% (Gloaguen and others, arXiv:2602.11988). Human-curated, verified, minimal content is the only thing that earns the cost.
 
 ## Do not duplicate README.md or `docs/`
 
-`AGENTS.md` complements, it does not restate. Re-stating the README's why or duplicating `docs/` content measurably reduces task success (the Gloaguen paper showed LLM-generated files only helped when *all* other docs were removed). Use pointers, not copies.
+`AGENTS.md` complements, it does not restate. Re-stating the README's why or duplicating `docs/` content adds cost without gain. The Gloaguen paper found no significant task-success effect from LLM-generated files. They helped by 2.7% only when *all* other documentation was removed. Use pointers, not copies.
 
 ## Do not add a Project structure or Architecture overview section
 
@@ -20,7 +20,7 @@ Agents navigate the tree themselves. Restating it costs tokens without helping. 
 
 ## Stay under 150 lines in the root AGENTS.md
 
-Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found a mean of 142 lines — 150 is the empirical boundary between "monolithic works fine" and "start fragmenting." Allow growth up to 150 when the project genuinely benefits from keeping guidance co-located rather than splitting it into supplemental files. Past 150, split into nested per-package files (see `Monorepos` in `SKILL.md`). Augment Code's real-world upper bound for monolithic files is ~200 lines. HumanLayer's outer cap is ~300. Both flag that beyond ~200, modular organization becomes necessary for token-budget reasons (Gloaguen and others, arXiv:2602.11988, Lulla and others, arXiv:2601.20404).
+Target ~40–80 lines. The MSR '26 survey of 466 OSS projects found `AGENTS.md` files averaging 142 lines. The standard deviation was 231, and the survey found no settled content structure (Context Engineering for AI Agents in Open-Source Software, arXiv:2510.21413). The 150 ceiling is a house boundary, not a published one. Allow growth up to 150 when the project genuinely benefits from keeping guidance co-located rather than splitting it into supplemental files. Past 150, split into nested per-package files (see `Monorepos` in `SKILL.md`). Augment Code's real-world upper bound for monolithic files is ~200 lines. HumanLayer reports a general consensus of under 300 lines. Both flag that beyond ~200, modular organization becomes necessary for token-budget reasons (Gloaguen and others, arXiv:2602.11988, Lulla and others, arXiv:2601.20404).
 
 ## Do not rely on vendor-specific agent files
 

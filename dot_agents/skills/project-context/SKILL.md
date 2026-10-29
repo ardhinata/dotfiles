@@ -17,9 +17,11 @@ After any web lookup that produces reusable or volatile information, write a dat
 
 ## AGENTS.md as the canonical standard
 
-`AGENTS.md` is the open format stewarded by the [Agentic AI Foundation](https://aaif.io/projects/agents-md/) under the Linux Foundation (Dec 2025). It works across 30+ agents (Codex, Claude Code via `@AGENTS.md`, Cursor, Copilot, Aider, opencode, Zed, Warp, and others). **Treat `AGENTS.md` as the canonical agent instruction standard.**
+`AGENTS.md` is the open format stewarded by the [Agentic AI Foundation](https://aaif.io/projects/agents-md/) under the Linux Foundation (Dec 2025). The [agents.md site](https://agents.md/) lists 23 agents that read it, including Codex, Cursor, Copilot, Aider, opencode, Zed, Warp and Claude Code. The site also reports the format in use across more than 60,000 open-source projects. **Treat `AGENTS.md` as the canonical agent instruction standard.**
 
-Do not *duplicate* guidance into `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurfrules`, or `GEMINI.md`. Those files are vendor-owned, and several tools still read them. Copilot reads `CLAUDE.md` and `GEMINI.md` alongside `AGENTS.md`, so a stale copy there still reaches the agent. When one exists, point it at `AGENTS.md` via an import (`@AGENTS.md`) so one canonical file drives every tool. New work goes in `AGENTS.md`. Vendor-specific overrides belong in `.agents/<vendor>/`.
+Claude Code reads `AGENTS.md` natively since v2.1.277. When a `CLAUDE.md` exists next to it, or a session cannot load `AGENTS.md`, the documented bridge is an `@AGENTS.md` import inside `CLAUDE.md`.
+
+Do not *duplicate* guidance into `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurfrules`, or `GEMINI.md`. Those files are vendor-owned, and several tools still read them. Copilot reads `CLAUDE.md` or `GEMINI.md` as an alternative to `AGENTS.md`, so a stale copy there still reaches the agent. When one exists, point it at `AGENTS.md` via an import (`@AGENTS.md`) so one canonical file drives every tool. New work goes in `AGENTS.md`. Vendor-specific overrides belong in `.agents/<vendor>/`.
 
 Note: OpenCode does not expand `@file` references inside `AGENTS.md`. Use the `instructions` array in `opencode.json` for that, or tell the agent in `AGENTS.md` to read the referenced file on demand.
 
@@ -30,21 +32,23 @@ Note: OpenCode does not expand `@file` references inside `AGENTS.md`. Use the `i
 | Rule | Source |
 |---|---|
 | `AGENTS.md` as the cross-tool instruction file | agents.md (AAIF, Linux Foundation) |
-| Nested `AGENTS.md`, closest-to-the-file wins | agents.md FAQ, Codex discovery order |
+| Nested `AGENTS.md`, closest-to-the-file wins | [agents.md FAQ section](https://agents.md/#faq), [Codex discovery order](https://developers.openai.com/codex/guides/agents-md/) |
 | `README.md` for humans, `AGENTS.md` for agents | agents.md spec |
-| 3-tier Boundaries (`Always` / `Ask first` / `Never`) | GitHub analysis of 2,500+ `agents.md` files (Matt Nigh, Nov 2025) |
-| Context files raise inference cost without reliably improving task success | Gloaguen et al., arXiv:2602.11988 |
-| AGENTS.md cuts agent runtime and output tokens at equal task completion | Lulla et al., arXiv:2601.20404 |
+| 3-tier Boundaries (`Always` / `Ask first` / `Never`) | GitHub analysis of 2,500+ Copilot custom-agent files (Matt Nigh, Nov 2025) |
+| Context files raise inference cost without reliably improving task success | Gloaguen and others, arXiv:2602.11988 |
+| AGENTS.md cuts agent runtime and output tokens at equal task completion | Lulla and others, arXiv:2601.20404 |
 
-The two studies measure different things, so they do not conflict. Lulla and others measured efficiency: runtime and output tokens. Gloaguen and others measured task success and cost: the files did not improve success, and they raised inference cost by over 20%. A context file can make an agent faster without making it more correct.
+The two studies measure different things, so they do not conflict. Lulla and others measured efficiency for Codex: curated `AGENTS.md` cut the median runtime by 28.64% and the output tokens by 16.58%. They did not measure task success at all. Gloaguen and others measured task success and cost across four agents: the files produced no significant gain, and they raised inference cost by over 20%. Developer-written files beat generated ones by 7%. A context file can make an agent faster without making it more correct.
+
+The Matt Nigh analysis covered Copilot custom-agent personas in `.github/agents/`, not repository-root `AGENTS.md` context files. The transfer to a root `AGENTS.md` is reasonable, but the post is not a study of that file.
 
 **House style.** No external standard covers these — cite them as this
 project's conventions:
 
 - The `~40–80` line target and `150` hard ceiling. Real published guidance
-  differs: Cursor suggests under 500 lines, Claude Code under 200, Codex caps
-  `AGENTS.md` at 32 KiB combined. The numbers here are stricter than any of
-  them.
+  differs: Cursor suggests under 500 lines, Claude Code under 200, Codex stops
+  loading instruction files at a combined 32 KiB by default. The numbers here
+  are stricter than any of them.
 - The `.agents/<vendor>/` unification recipe (see the `project-layout`
   skill).
 - The knowledge-cache convention.
@@ -127,7 +131,7 @@ Per the [agents.md spec](https://agents.md): `README.md` is for humans (quick st
 
 **Required pointer**: every `AGENTS.md` must include `README.md` in its `Pointers` section. The README carries the *why* (problem, audience, project intent) and the *how* for humans. The `AGENTS.md` carries the *how* for agents and the *boundaries* (always / ask first / never). Without the pointer, the agent works with only half the picture and risks duplicating or contradicting the README.
 
-README scope, per [GitHub Docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) and the [jehna template](https://github.com/jehna/readme-best-practices): what the project does, why it is useful, how to get started, where to get help, who maintains and contributes, license, and links. Recommended sections: Getting started, Installing, Developing, Features, Configuration, Contributing, Links, Licensing. Keep it concise — longer material belongs in `docs/` or a wiki, not the README.
+README scope, per [GitHub Docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes): what the project does, why it is useful, how users get started, where users get help, and who maintains and contributes. The [jehna template](https://github.com/jehna/readme-best-practices) adds license, links, and the section set: Installing, Initial Configuration, Developing, Building, Deploying, Features, Configuration, Contributing, Links, Licensing. Keep it concise — longer material belongs in `docs/` or a wiki, not the README.
 
 If `README.md` is missing, suggest the GitHub five-question template (`what / why / how / help / maintainers`) plus a license pointer. Never duplicate README content into `AGENTS.md`. Reference it instead, and use relative Markdown links so the relationship survives clones.
 
@@ -178,16 +182,15 @@ This skill owns *what to include and what to omit*. `asd-ste100` owns *how the i
 
 ## External references
 
-Load these before drafting a new `AGENTS.md` from the template — they justify the template's structure and the writing rules above. Prefer your harness's web-fetch tool over recall. The AGENTS.md-impact paper in particular informs the "every line must earn its place" stance.
+Load these before drafting a new `AGENTS.md` from the template. They justify the template's structure and the writing rules above. Prefer your harness's web-fetch tool over recall. The two arXiv papers are separate studies with different questions, so read them as a pair.
 
-- [AGENTS.md spec](https://agents.md/) — open format, LF/AAIF, 30+ agents
-- [A Complete Guide to AGENTS.md](https://gist.github.com/skyzyx/c91d9be9e5050c85e81ccbcca022ff6b) (full guide)
-- [Writing a good CLAUDE.md (also applicable to AGENTS.md)](https://www.humanlayer.dev/blog/writing-a-good-claude-md) — progressive disclosure, <60 lines, linters over instructions
+- [AGENTS.md spec](https://agents.md/) — open format, LF/AAIF, 23 agents listed- [A Complete Guide to AGENTS.md](https://gist.github.com/skyzyx/c91d9be9e5050c85e81ccbcca022ff6b) (full guide)
+- [Writing a good CLAUDE.md (also applicable to AGENTS.md)](https://www.humanlayer.dev/blog/writing-a-good-claude-md) — progressive disclosure, linters over instructions, under 300 lines as the general consensus and under 60 lines as HumanLayer's own file
 - [Writing a Good AGENTS.md](https://www.philschmid.de/writing-good-agents) — ETH Zurich paper summary, what to include vs not
-- [What Goes in AGENTS.md](https://ro14nd.de/what-goes-in-agents-md/) — empirical checklist, redundant docs hurt more than help
-- [On the Impact of AGENTS.md Files on the Efficiency of AI Coding Agents](https://arxiv.org/html/2601.20404v2) — AGENTS.md presence was associated with a 28.6% lower median runtime and 16.6% fewer output tokens, at comparable task completion
-- [How to Build AGENTS.md (2026) — Augment Code](https://www.augmentcode.com/guides/how-to-build-agents-md) — write only what agents cannot discover independently
-- [Evaluating AGENTS.md — ETH Zurich, arXiv:2602.11988](https://arxiv.org/abs/2602.11988) — Gloaguen and others. The cost caveat (the effect holds for human-written and LLM-generated files alike)
+- [`What Goes in AGENTS.md (and What Doesn't)`](https://ro14nd.de/what-goes-in-agents-md/) — empirical checklist, redundant docs hurt more than help. It still says Claude Code cannot read `AGENTS.md` natively, which stopped being true in v2.1.277
+- [On the Impact of AGENTS.md Files on the Efficiency of AI Coding Agents](https://arxiv.org/html/2601.20404v2) — curated `AGENTS.md` gave Codex a 28.64% lower median runtime and 16.58% fewer output tokens. Median total tokens rose 1.29%, and task success was not measured
+- [How to Build AGENTS.md (2026) — Augment Code](https://www.augmentcode.com/guides/how-to-build-agents-md) — write only what agents cannot discover independently. It also predates Claude Code's native `AGENTS.md` support
+- [Evaluating AGENTS.md — ETH Zurich, arXiv:2602.11988](https://arxiv.org/abs/2602.11988) — Gloaguen and others. The cost caveat: context files raised inference cost by over 20% with no significant task-success gain. Developer-written files beat generated ones by 7%
 
 ## Monorepos: nested AGENTS.md
 
