@@ -19,7 +19,7 @@ These rules govern **how to write and use** knowledge-cache entries. For **where
 
 ## Git hygiene
 
-If the cache is transient (default), add the cache directory to `.gitignore`. If entries are intended to be shared across clones, keep them tracked but document that decision in the cache `README.md`.
+The cache is **tracked** in this repo, so a fresh clone inherits the entries. Keep it that way unless the project decides otherwise. If the cache is transient, add the cache directory to `.gitignore` instead, and say so in the cache `README.md`.
 
 ## Reference
 

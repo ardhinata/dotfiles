@@ -88,9 +88,8 @@ directory to avoid writing a second doc.
 
 ### Knowledge-cache entry vs. rule file
 
-- A **knowledge-cache entry** (`.agents/docs/cache/`) is gitignored (per the
-  project-layout skill) but durable within the working tree. It indexes into
-  a topic `README.md` so future sessions can re-discover it.
+- A **knowledge-cache entry** (`.agents/docs/cache/`) is durable in the
+  project. This repo tracks it in git, so a fresh clone inherits it.
 - A **rule file** (`~/.agents/rules/`) loads every session and is global, not
   project-scoped.
 - If the finding is reusable beyond the current session, cache it. Promote
@@ -142,6 +141,6 @@ directory to avoid writing a second doc.
   promote it.
 - Cross-worktree compared to cross-machine: nothing in the agent layer is
   cross-worktree by default any more. A finding that must survive a
-  machine loss belongs in the project repo (`docs/`). The knowledge cache
-  is gitignored, so it survives a worktree but not a machine loss. A
-  per-worktree scratch directory survives neither.
+  machine loss belongs in the project repo (`docs/`) or in the tracked
+  knowledge cache (`.agents/docs/cache/`). The scratch directory survives
+  neither.
