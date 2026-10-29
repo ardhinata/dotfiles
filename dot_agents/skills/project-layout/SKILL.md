@@ -35,7 +35,8 @@ layout, and they should be described as such:
   "Vendor unification" below)
 - `.agents/docs/cache/` with per-topic directories and README indexes
 - The `.tmp/{scratch,migration}` role split
-- `docs/design/`, `docs/plans/`, and `docs/reference/` as separate trees
+- `docs/design/`, `docs/plans/`, `docs/reports/`, `docs/reference/` and
+  `docs/how-to/` as separate trees
 - The date-prefixed filename convention
 - A split doc as a directory next to its single-file form
   (`docs/plans/<slug>.md` and `docs/plans/<slug>/` are the same doc)
@@ -56,15 +57,19 @@ AGENTS.md                          ← required pointer target (see project-cont
 README.md                          ← required pointer target (see project-context)
 docs/                              ← human-facing, hand-written (Standard Readme / Diátaxis)
   plans/                           ← dated plans for work that was executed (committed)
+  reports/                         ← dated reports to hand to the team (committed)
+  reference/                       ← material to consult later, by a human (Diátaxis reference)
+  how-to/                          ← step-by-step guides for one task (Diátaxis how-to)
 .agents/                           ← unified agent root
   skills/                          ← agent skills, shared by every harness
     <name>/SKILL.md                ← cross-client discovery path: OpenCode, Codex, Cursor,
                                       Gemini CLI, Zed, goose, Amp, Warp, GitHub Copilot
   rules/                           ← shared rule files (house convention — not a discovery
-                                     location; each harness loads them through its own
-                                     instructions glob)
+                                      location; each harness loads them through its own
+                                      instructions glob)
   agents/                          ← house convention for subagent definitions
-  docs/                            ← agent-only docs (fetched references, canonical notes)
+  docs/                            ← agent-only docs (canonical notes, fetched references)
+    <slug>.md                      ← one note per file, no date prefix
     cache/                         ← knowledge cache (date-tagged, tracked, curated)
       README.md                    ← required index
       <topic>/
@@ -143,6 +148,9 @@ be read later, by a human or by a future session?
 | Content | Home | Commit? |
 |---|---|---|
 | A decision, or a plan that was executed | `docs/adr/`, `docs/plans/` | Committed, dated, reviewable |
+| A report of a problem, to hand to the team | `docs/reports/` | Committed, dated, shareable |
+| Material to consult later, by a human | `docs/reference/`, `docs/how-to/` | Committed |
+| Material to consult later, by an agent | `.agents/docs/<slug>.md` | Committed |
 | A procedure the agent should reuse | `.agents/skills/<name>/SKILL.md` | Committed, agentskills.io format |
 | A web-learned fact worth recalling | `.agents/docs/cache/<topic>/YYYY-MM-DD-<slug>.md` | Tracked, curated |
 | Work still in flight | `.tmp/scratch/` | Gitignored, dies with the worktree |

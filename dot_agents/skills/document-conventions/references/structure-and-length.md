@@ -44,6 +44,10 @@ file of 150 words.
 | Knowledge-cache topic README | < 100 | 200 | Index, not content |
 | Knowledge-cache root README | < 100 | 200 | Index, not content |
 | Postmortem | 50–300 | 600 | Tends to grow with timeline detail |
+| Report | 40–200 | 400 | One problem per file |
+| Reference doc | < 300 | 600 | Consulted by topic, not read end to end |
+| How-to guide | < 300 | 600 | One task per file |
+| Agent-only note | < 200 | 400 | Read on demand |
 | Persistent plan | < 300 | 500 | Link out to design docs for depth |
 | Transient plan | none | none | Delete when done, or promote to `docs/plans/` |
 | ADR (MADR) | 50–200 | 400 | One decision per ADR |
@@ -90,8 +94,12 @@ its ADR into a directory loses the ADR's stable numbering.
 |---|---|
 | Persistent plan | Yes |
 | Postmortem | Yes |
+| Report | Yes |
 | RFC | Yes |
 | Design doc | Yes |
+| Reference doc | **No.** One topic per file. A second topic gets its own file |
+| How-to guide | **No.** One task per file |
+| Agent-only note | **No.** One subject per note |
 | ADR | **No.** One decision per ADR. A second decision gets its own number |
 | Rule file | **No.** The 150-line ceiling means cut it or move the detail to a skill |
 | Knowledge-cache entry | **No.** One finding per file. Already atomic |
@@ -170,6 +178,10 @@ Every doc needs:
 | Knowledge-cache topic README | Topic intro; Entries table |
 | Knowledge-cache root README | Cache intro; Topics table |
 | Postmortem (`docs/post-mortem/`) | Summary; Timeline; Root cause; Impact; Action items |
+| Report (`docs/reports/`) | Summary; Steps to reproduce; Expected; Actual; Environment |
+| Reference doc (`docs/reference/`) | H1; body |
+| How-to guide (`docs/how-to/`) | H1; body |
+| Agent-only note (`.agents/docs/`) | H1; body |
 | Persistent plan | Goal; Scope; Steps; Status |
 | ADR (MADR) | Title; Context and Problem Statement; Considered Options; Decision Outcome |
 | RFC | Summary; Motivation; Detailed design; Drawbacks; Alternatives; Open questions |

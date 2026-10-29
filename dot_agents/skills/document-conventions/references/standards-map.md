@@ -49,6 +49,10 @@ a field limit or a command name. The agent-spec sources move fast.
 | `.tmp/scratch` | none | `house-style` | none | — |
 | `.tmp/migration` | none | `house-style` | none | — |
 | Diátaxis quadrants | [diataxis.fr](https://diataxis.fr/) | `close-to-standard` | none | Diátaxis publishes language rules, not templates, and asks for no imposed structure |
+| Report | none | `house-style` | `report.md` | the section set follows the shape of a bug report |
+| Reference doc | [Diátaxis](https://diataxis.fr/reference/) | `house-style` | none | the quadrant is standard, the path and the no-date filename rule are house style |
+| How-to guide | [Diátaxis](https://diataxis.fr/how-to-guides/) | `house-style` | none | the quadrant is standard, the path and the no-date filename rule are house style |
+| Agent-only note | none | `house-style` | none | — |
 
 ## Per-template verdicts
 
@@ -67,6 +71,7 @@ a field limit or a command name. The agent-spec sources move fast.
 | `rule.md` | none | `house-style` | — |
 | `skill.md` | agentskills.io + Claude best practices | `close-to-standard` | the frontmatter fields and limits match; Claude's no-XML-tags and no-reserved-words rules were missing |
 | `split-doc-directory.md` | none | `house-style` | — |
+| `report.md` | none | `house-style` | the section set follows the shape of a bug report: summary, steps to reproduce, expected, actual, environment |
 
 ## Citation defects and their live replacements
 
@@ -95,6 +100,8 @@ Found 2026-10-29. Each row was wrong in the shipped skill.
 | Topic README.md, cache root README.md | the cache-topic template is the worked example of the same shape |
 | Transient plan, `.tmp/scratch`, `.tmp/migration` | scratch files are never committed and have no required sections |
 | Diátaxis quadrants | diataxis.fr says to impose no structure: "Don't do that. It's horrible." |
+| Reference doc, how-to guide | they are Diátaxis quadrants, and diataxis.fr asks for no imposed structure |
+| Agent-only note | a canonical note is free-form house knowledge |
 | AGENTS.md | the template lives in the `project-context` skill, at `assets/templates/agents.md` |
 
 ## Sources checked

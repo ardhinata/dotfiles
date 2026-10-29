@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Use when starting a new document, authoring or revising a SKILL.md, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document. Gives the filename rules, frontmatter policy, section order, length budget, decision matrix, templates, and checklists for each doc type. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
+description: Use when starting a new document, authoring or revising a SKILL.md, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill, report, reference doc, how-to guide), validating a filename or frontmatter against the project convention, or reviewing an existing document. Gives the filename rules, frontmatter policy, section order, length budget, decision matrix, templates, and checklists for each doc type. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions

@@ -107,7 +107,7 @@ otherwise:
 
 Three patterns appear, by doc type:
 
-### ISO date prefix — knowledge-cache entries, notes, plans, postmortems
+### ISO date prefix — knowledge-cache entries, notes, plans, postmortems, reports
 
 Pattern: `YYYY-MM-DD-<slug>.md`
 
@@ -117,8 +117,18 @@ Pattern: `YYYY-MM-DD-<slug>.md`
   `-`. The date *is* part of the filename, not the slug.
 - **Same-day collisions:** append a counter, for example
   `2026-07-27-foo-2.md`. Avoid this by scanning the target directory
-  (the cache topic dir, `docs/plans/`, `docs/post-mortem/`) before
-  writing.
+  (the cache topic dir, `docs/plans/`, `docs/post-mortem/`, `docs/reports/`)
+  before writing.
+
+### No date prefix — reference docs, how-to guides, agent-only notes
+
+Pattern: `<slug>.md`
+
+- A reference doc, a how-to guide and a canonical note describe something
+  that stays true. The date would suggest the content expires.
+- A knowledge-cache entry is the dated variant. It carries a capture date
+  because the fact may go stale.
+- A report is the opposite: it describes one occurrence, so it is dated.
 
 ### Numbered prefix — ADRs, RFCs
 

@@ -22,7 +22,7 @@ Each row covers one doc type. Columns:
 
 ## Template coverage
 
-Thirteen of the twenty types ship a starter in `assets/templates/`. The
+Fourteen of the twenty-four types ship a starter in `assets/templates/`. The
 rest are deliberately template-free:
 
 | Type | Why no template |
@@ -31,7 +31,8 @@ rest are deliberately template-free:
 | AGENTS.md | the template lives in the `project-context` skill |
 | Topic README.md, cache root README.md | the cache-topic template is the worked example of the same shape |
 | Transient plan, `.tmp/scratch`, `.tmp/migration` | scratch files are never committed and have no required sections |
-| Diátaxis quadrants | diataxis.fr asks for no imposed structure |
+| Reference doc, how-to guide, Diátaxis quadrants | diataxis.fr asks for no imposed structure |
+| Agent-only note | a canonical note is free-form house knowledge |
 
 Per-type verdicts — which rules are backed by a published standard and which
 are house style — are in
@@ -48,16 +49,20 @@ are house style — are in
 7. [Knowledge-cache entry](#knowledge-cache-entry)
 8. [Knowledge-cache topic README.md](#knowledge-cache-topic-readmemd)
 9. [Knowledge-cache root README.md](#knowledge-cache-root-readmemd)
-10. [Postmortem (docs/post-mortem/)](#postmortem)
-11. [Persistent plan](#persistent-plan)
-12. [Transient plan](#transient-plan)
-13. [ADR (MADR)](#adr-madr)
-14. [RFC](#rfc)
-15. [Design doc](#design-doc)
-16. [CHANGELOG.md](#changelogmd)
-17. [CONTRIBUTING.md](#contributingmd)
-18. [.tmp/scratch](#tmpscratch)
-19. [.tmp/migration](#tmpmigration)
+10. [Report (docs/reports/)](#report)
+11. [Reference doc (docs/reference/)](#reference-doc)
+12. [How-to guide (docs/how-to/)](#how-to-guide)
+13. [Agent-only note (.agents/docs/)](#agent-only-note)
+14. [Postmortem (docs/post-mortem/)](#postmortem)
+15. [Persistent plan](#persistent-plan)
+16. [Transient plan](#transient-plan)
+17. [ADR (MADR)](#adr-madr)
+18. [RFC](#rfc)
+19. [Design doc](#design-doc)
+20. [CHANGELOG.md](#changelogmd)
+21. [CONTRIBUTING.md](#contributingmd)
+22. [.tmp/scratch](#tmpscratch)
+23. [.tmp/migration](#tmpmigration)
 20. [Tutorial / how-to / reference / explanation (Diátaxis)](#diataxis-quadrants)
 
 ---
@@ -201,6 +206,78 @@ without it?". Cut otherwise.
 | Length budget | < 100 lines |
 | Validation | Every topic directory appears in the table |
 | Source | `project-context.md`; `web-verification.md` |
+
+---
+
+## Report
+
+| Field | Value |
+|---|---|
+| Path | `docs/reports/<YYYY-MM-DD>-<slug>.md`, or `docs/reports/<YYYY-MM-DD>-<slug>/` with `README.md` + `NN-<section>.md` when split |
+| Lifetime | Git-tracked in the project repo. |
+| Commit policy | Committed with the project repo. |
+| Frontmatter | Optional. Recommended: `status` (`draft`/`open`/`fixed`), `severity` (`blocker`/`major`/`minor`) |
+| Required sections | H1, `## Summary`, `## Steps to reproduce`, `## Expected`, `## Actual`, `## Environment` |
+| Optional sections | `## Impact`, `## Workaround`, `## Suspected cause`, `## Related` |
+| Section order | Loose; the above is conventional |
+| Length budget | 40–200 lines |
+| Validation | Another person reproduces the problem from this file alone. The error text is exact and the version is stated. A report does not need an owner or a tracking issue, unlike a postmortem |
+| Template | [`assets/templates/report.md`](../assets/templates/report.md) |
+| Source | House style. The section set follows the shape of a bug report. No published standard prescribes it |
+
+---
+
+## Reference doc
+
+| Field | Value |
+|---|---|
+| Path | `docs/reference/<slug>.md` |
+| Lifetime | Git-tracked in the project repo. |
+| Commit policy | Committed with the project repo. |
+| Frontmatter | None |
+| Required sections | H1, body |
+| Optional sections | `## Prerequisites`, `## Steps`, `## Verify`, `## Troubleshooting`, `## See also` |
+| Section order | Loose |
+| Length budget | < 300 lines |
+| Validation | Material to consult later, organised by topic rather than by task. A topic `README.md` is required once the directory holds more than one file. Linked from the doc that needs it |
+| Template | None. Diátaxis asks for no imposed structure on its quadrants, so the house ships the conventions and not a template |
+| Source | [Diátaxis — reference quadrant](https://diataxis.fr/reference/). The path and the filename rule are house style |
+
+---
+
+## How-to guide
+
+| Field | Value |
+|---|---|
+| Path | `docs/how-to/<slug>.md` |
+| Lifetime | Git-tracked in the project repo. |
+| Commit policy | Committed with the project repo. |
+| Frontmatter | None |
+| Required sections | H1, body |
+| Optional sections | `## Prerequisites`, `## Steps`, `## Verify`, `## Troubleshooting`, `## See also` |
+| Section order | Loose |
+| Length budget | < 300 lines |
+| Validation | The reader completes the task without guessing. A topic `README.md` is required once the directory holds more than one file |
+| Template | None. Diátaxis asks for no imposed structure on its quadrants, so the house ships the conventions and not a template |
+| Source | [Diátaxis — how-to quadrant](https://diataxis.fr/how-to-guides/). The path and the filename rule are house style |
+
+---
+
+## Agent-only note
+
+| Field | Value |
+|---|---|
+| Path | `.agents/docs/<slug>.md` |
+| Lifetime | Git-tracked in the project repo. The repo-root `.agents/` tree never reaches `$HOME`. |
+| Commit policy | Committed with the project repo. |
+| Frontmatter | None |
+| Required sections | H1, body |
+| Optional sections | `## Source`, `## See also` |
+| Section order | Loose |
+| Length budget | < 200 lines |
+| Validation | Only agent-facing content. When a human needs it, it belongs in `docs/`. No date prefix and no capture date, because a note is house knowledge rather than a dated finding |
+| Template | None |
+| Source | `project-layout` skill, which names `.agents/docs/` the home of agent-only docs and canonical notes |
 
 ---
 
@@ -381,6 +458,11 @@ below is a sanity check — what *quadrant* is your doc serving?
 
 Diátaxis publishes language rules, not templates, and asks for no imposed
 structure. No quadrant template ships with this skill.
+
+The house paths for two of the quadrants are defined above: the
+[reference doc](#reference-doc) at `docs/reference/` and the
+[how-to guide](#how-to-guide) at `docs/how-to/`. This section decides which
+quadrant a document serves. Those two sections decide where it lives.
 
 **Drift warning:** the most common misclassification is *tutorial that
 explains*. If your how-to has paragraphs of context, it is an explanation.

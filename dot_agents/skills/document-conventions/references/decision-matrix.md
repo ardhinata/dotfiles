@@ -9,7 +9,8 @@ first. Consult the per-type tables in
 1. Identify the *intent* of the doc you are writing. Common intents:
    capture finding, plan work, record decision, propose design, cache
    research, encode rule, package workflow, introduce project, document
-   release, document contribution.
+   release, document contribution. Also: report a problem, describe a
+   system, guide a task, keep a note.
 2. Find the row that matches intent **and** scope (task-only compared to
    repo-durable, internal compared to external).
 3. Use the column links to jump straight to the per-type rule.
@@ -38,6 +39,10 @@ may go stale.
 | Contribution workflow | Humans, contributors | **CONTRIBUTING.md** | root `CONTRIBUTING.md` |
 | Throwaway work in progress | This worktree, gitignored, never commit | **Scratch** | `.tmp/scratch/...` (no convention beyond "delete when done") |
 | Incident write-up | Repo, durable | **Postmortem** | `docs/post-mortem/<YYYY-MM-DD>-<slug>.md` |
+| Report of a bug or finding, to hand to the team | Repo, shareable | **Report** | `docs/reports/<YYYY-MM-DD>-<slug>.md` |
+| Material to consult later, organised by topic | Humans, consult | **Reference doc** | `docs/reference/<slug>.md` |
+| Step-by-step guide for one task | Humans, task-oriented | **How-to guide** | `docs/how-to/<slug>.md` |
+| Durable context only agents need | Agents, on demand | **Agent-only note** | `.agents/docs/<slug>.md` |
 
 ## Decision heuristics
 
@@ -86,6 +91,39 @@ directory to avoid writing a second doc.
 - If the content is "do these N steps in order", it is a plan. If it is
   "this tool has a quirk — here's why", it is a cache entry.
 
+### Report vs. postmortem
+
+- A **report** describes a problem that still needs attention, or a finding
+  to hand to someone else. It answers "what is wrong and how do I see it".
+- A **postmortem** describes an incident that is over. It answers "what
+  happened, what did we change, what did we learn".
+- If someone still has to act on it, write a report. If the incident is
+  closed and the follow-up is tracked, write a postmortem. A postmortem can
+  link back to the report that started it.
+
+### Reference doc vs. knowledge-cache entry
+
+- A **reference doc** is house knowledge that stays true: how this system
+  behaves, what this setting means. It has no capture date and no source.
+- A **knowledge-cache entry** is a dated finding, usually web-learned, that
+  may go stale. It carries a source and a freshness note.
+- If the sentence would start with "as of 2026-08-01", it is a cache entry.
+  If it would start with "this project does X because Y", it is a reference
+  doc.
+
+### Reference doc vs. agent-only note
+
+- A **reference doc** at `docs/reference/` is for humans. A **note** at
+  `.agents/docs/` is for agents.
+- If a human will read it, it belongs in `docs/`.
+
+### Reference doc vs. how-to guide
+
+- A **reference doc** describes the machinery. It does not instruct.
+- A **how-to guide** solves a task. It instructs.
+- If your reference doc contains numbered steps, it is a how-to. If your
+  how-to contains a table of settings, it is a reference.
+
 ### Knowledge-cache entry vs. rule file
 
 - A **knowledge-cache entry** (`.agents/docs/cache/`) is durable in the
@@ -94,6 +132,13 @@ directory to avoid writing a second doc.
   project-scoped.
 - If the finding is reusable beyond the current session, cache it. Promote
   it to a rule only when it must hold in every session.
+
+### Agent-only note vs. rule file
+
+- A **note** at `.agents/docs/` is read when something needs it. A **rule**
+  at `~/.agents/rules/` loads every session.
+- Use a note for reference material an agent may consult. Use a rule for
+  guidance that must hold on every task.
 
 ### ADR vs. design doc vs. RFC
 

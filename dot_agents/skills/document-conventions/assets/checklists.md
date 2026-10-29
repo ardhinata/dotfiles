@@ -105,6 +105,42 @@ Applies when a doc passed its hard ceiling and was split into a directory.
 - [ ] Updated in place at every checkpoint (not via new file)
 - [ ] Length under 300 lines. Split into a directory if longer
 
+## Report (`docs/reports/`)
+
+- [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`), the date the problem was found
+- [ ] Sections: Summary, Steps to reproduce, Expected, Actual, Environment
+- [ ] Another person can reproduce the problem from this file alone
+- [ ] The error text is exact, not paraphrased
+- [ ] The affected version is stated
+- [ ] Every claim about the cause is marked as a guess or as verified
+- [ ] Impact says who is blocked and how badly
+- [ ] Committed to the project repo
+
+## Reference doc (`docs/reference/`)
+
+- [ ] Filename: `docs/reference/<slug>.md`, kebab-case, no date prefix
+- [ ] Describes the machinery. It does not instruct the reader
+- [ ] No numbered steps. If it has steps, it is a how-to
+- [ ] A topic `README.md` exists once the directory holds more than one file
+- [ ] Linked from the doc that needs it
+- [ ] Under 300 lines
+
+## How-to guide (`docs/how-to/`)
+
+- [ ] Filename: `docs/how-to/<slug>.md`, kebab-case, no date prefix
+- [ ] Solves one task. The task is named in the title
+- [ ] Imperative voice, conditional on the goal. It does not teach
+- [ ] A topic `README.md` exists once the directory holds more than one file
+- [ ] Under 300 lines
+
+## Agent-only note (`.agents/docs/`)
+
+- [ ] Filename: `.agents/docs/<slug>.md`, kebab-case, no date prefix
+- [ ] Only agent-facing content. A human-facing note belongs in `docs/`
+- [ ] No capture date and no source. It is house knowledge, not a dated finding
+- [ ] One subject per note
+- [ ] Under 200 lines
+
 ## Postmortem (`docs/post-mortem/`)
 
 - [ ] Date-first filename (`YYYY-MM-DD-<slug>.md`), the incident date
