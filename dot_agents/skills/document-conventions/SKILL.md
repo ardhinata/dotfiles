@@ -1,6 +1,6 @@
 ---
 name: document-conventions
-description: Use when starting a new document, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document. Gives the filename rules, frontmatter policy, section order, length budget, decision matrix, templates, and checklists for each doc type. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
+description: Use when starting a new document, authoring or revising a SKILL.md, choosing between doc types (plan, ADR, RFC, README, CHANGELOG, knowledge-cache entry, rule file, skill), validating a filename or frontmatter against the project convention, or reviewing an existing document. Gives the filename rules, frontmatter policy, section order, length budget, decision matrix, templates, and checklists for each doc type. Does not own project-tree placement — for "where does this file live in a project", load the `project-layout` skill. For prose clarity in the body of the document (active voice, one idea per sentence, plain words), load the `asd-ste100` skill.
 ---
 
 # Document Conventions
@@ -57,10 +57,13 @@ industry practice:
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/opencode/` in OpenCode.
-Skills live in the shared home `~/.agents/skills/`, and harness-neutral rules
-live in the shared home `~/.agents/rules/` — both are read by every harness.
-Use `~/.agents/rules/` only for rules that name a harness-specific
-tool or feature. The `project-layout` skill owns the canonical tree.
+Skills live in the shared home `~/.agents/skills/`, which most harnesses read.
+Harness-neutral rules live in the shared home `~/.agents/rules/`. No harness
+discovers that directory on its own: each one loads it through its own
+`instructions` glob. A rule that names one harness's tool belongs in that
+harness's own rule tree, `dot_agents/exact_rules.<vendor>/`, deployed to
+`~/.agents/rules.<vendor>/`. The `project-layout` skill owns the canonical
+tree.
 
 ## When to load
 
@@ -95,6 +98,7 @@ disclosure).
 | [`references/structure-and-length.md`](references/structure-and-length.md) | Required sections, ordering, length budgets |
 | [`references/cross-references.md`](references/cross-references.md) | Linking style, anchors, path citations |
 | [`references/anti-patterns.md`](references/anti-patterns.md) | Do/don't checklist, common mistakes |
+| [`references/skill-authoring.md`](references/skill-authoring.md) | Writing a `SKILL.md` that earns its context budget |
 | [`references/standards-map.md`](references/standards-map.md) | Which rules are standard, which are house style, which citations were wrong |
 | [`assets/checklists.md`](assets/checklists.md) | Per-type pre-publish checklist |
 | [`assets/templates/`](assets/templates/) | Starter templates for each doc type, plus the split-doc directory index |

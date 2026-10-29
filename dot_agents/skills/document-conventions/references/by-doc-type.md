@@ -90,8 +90,8 @@ intent, not the filename (for example `fnm.md` not `node-version-management.md`)
 | Optional sections | `## When to load`, `## Quick start`, `## Workflow`, `## Anti-patterns`, `## References`, `## Captured …` |
 | Section order | Loose but progressive: orient → quick start → details → edge cases → anti-patterns → references |
 | Length budget | Target < 300 lines; hard ceiling 500 lines. Beyond this, split into `references/*.md` |
-| Validation | `skills-ref validate ./<skill-dir>` (if `skills-ref` on PATH). Manual review: frontmatter fields present, name matches dir, description in third person with key terms |
-| Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); the project's `agent-context` skill (`.agents/skills/agent-context/SKILL.md`, project-local — not installed globally). |
+| Validation | `skills-ref validate ./<skill-dir>` (if `skills-ref` on PATH — a Python package in the [agentskills repository](https://github.com/agentskills/agentskills/tree/main/skills-ref), for demonstration only). Manual review: frontmatter fields present, name matches dir, description in third person with key terms |
+| Source | [agentskills.io specification](https://agentskills.io/specification); [Claude — Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices); [Anthropic engineering blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills); [`skill-authoring.md`](skill-authoring.md) — the house playbook for writing a skill. |
 
 ---
 

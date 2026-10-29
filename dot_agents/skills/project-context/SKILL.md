@@ -21,7 +21,7 @@ After any web lookup that produces reusable or volatile information, write a dat
 
 Do not *duplicate* guidance into `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurfrules`, or `GEMINI.md`. Those files are vendor-owned, and several tools still read them. Copilot reads `CLAUDE.md` and `GEMINI.md` alongside `AGENTS.md`, so a stale copy there still reaches the agent. When one exists, point it at `AGENTS.md` via an import (`@AGENTS.md`) so one canonical file drives every tool. New work goes in `AGENTS.md`. Vendor-specific overrides belong in `.agents/<vendor>/`.
 
-Note: OpenCode does not expand `@file` references inside `AGENTS.md`. Use the `instructions` field in `opencode.json` for that.
+Note: OpenCode does not expand `@file` references inside `AGENTS.md`. Use the `instructions` array in `opencode.json` for that, or tell the agent in `AGENTS.md` to read the referenced file on demand.
 
 ## Standard vs house style
 
@@ -34,6 +34,9 @@ Note: OpenCode does not expand `@file` references inside `AGENTS.md`. Use the `i
 | `README.md` for humans, `AGENTS.md` for agents | agents.md spec |
 | 3-tier Boundaries (`Always` / `Ask first` / `Never`) | GitHub analysis of 2,500+ `agents.md` files (Matt Nigh, Nov 2025) |
 | Context files raise inference cost without reliably improving task success | Gloaguen et al., arXiv:2602.11988 |
+| AGENTS.md cuts agent runtime and output tokens at equal task completion | Lulla et al., arXiv:2601.20404 |
+
+The two studies measure different things, so they do not conflict. Lulla and others measured efficiency: runtime and output tokens. Gloaguen and others measured task success and cost: the files did not improve success, and they raised inference cost by over 20%. A context file can make an agent faster without making it more correct.
 
 **House style.** No external standard covers these — cite them as this
 project's conventions:
@@ -49,8 +52,8 @@ project's conventions:
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/opencode/` in OpenCode.
-Skills live in the shared home `~/.agents/skills/`, which every agent reads.
-The `project-layout` skill owns the canonical tree.
+Skills live in the shared home `~/.agents/skills/`, which most harnesses read.
+Claude Code is the exception. The `project-layout` skill owns the canonical tree.
 
 ## Trigger checklist
 
@@ -59,7 +62,7 @@ Surface a suggestion when any of the following is true:
 - `AGENTS.md` is missing
 - `README.md` is missing or lacks project-specific info (background, problem statement, tech stack)
 - No `docs/` directory (or similar) is listed from `README.md` / `AGENTS.md`
-- About to call `firecrawl_*` or `context7_*` for the first time in a project with no knowledge cache
+- About to make a web lookup in a project with no knowledge cache
 - Turn-1 discovery revealed non-obvious conventions an `AGENTS.md` would eliminate
 - Spent >2 turns explaining project-specific patterns
 - User asks to create, fix, or review a `.gitignore`
@@ -103,7 +106,7 @@ Good `AGENTS.md` content is usually hard-earned context that took reading multip
 
 ### When the repo can't answer
 
-If Phase 0 leaves gaps that affect correctness, surface them to the user with the `question` tool as one short batch. Such gaps are undocumented conventions, branch / release expectations, and missing test prerequisites. Do not ask trivia the repo already answers. Do not ask more than 2–3 facts up front. If the user declines, draft conservatively and mark the gap inline in the proposed `AGENTS.md`.
+If Phase 0 leaves gaps that affect correctness, surface them to the user with the harness's question tool, or in plain text. Such gaps are undocumented conventions, branch / release expectations, and missing test prerequisites. Do not ask trivia the repo already answers. Do not ask more than 2–3 facts up front. If the user declines, draft conservatively and mark the gap inline in the proposed `AGENTS.md`.
 
 This is the only place in the skill where clarification questions are encouraged. The cost caveat earlier in the file is the reason: every clarifying question must be high-signal, repo-specific, and unanswerable from `Phase 0` sources.
 
@@ -131,16 +134,16 @@ If `README.md` is missing, suggest the GitHub five-question template (`what / wh
 ### Phase 3: Vendor directory unification
 
 Trigger only. The procedure lives in the `project-layout` skill, which owns
-the canonical tree and the vendor-unification mechanics.
+the canonical tree and the vendor-unification mechanics. Do not repeat its
+steps here.
 
-**Shared skills** go in `.agents/skills/`. Every harness finds them there
-natively — no symlink, no copy, no config field. Claude Code is the
-exception: it reads nothing under `.agents/` and needs `.claude/skills/`, so
-give it one symlink to the same tree.
+Two rules matter at this phase:
 
-**Harness-specific assets** — rule files, custom commands, hooks — go in
-`.agents/<vendor-name>/` and are reached through the harness's own root
-directory.
+- **Shared skills** go in `.agents/skills/`. That is the only `.agents/`
+  subdirectory a shipped tool scans for skills. The scan list and its
+  exceptions live in the `project-layout` skill.
+- **Harness-specific assets** — rule files, custom commands, hooks — go in
+  `.agents/<vendor-name>/`, reached through the harness's own root directory.
 
 If the symlink is missing when you arrive, recreate it before reading the
 vendor config.
@@ -175,7 +178,7 @@ This skill owns *what to include and what to omit*. `asd-ste100` owns *how the i
 
 ## External references
 
-Load these before drafting a new `AGENTS.md` from the template — they justify the template's structure and the writing rules above. Prefer `webfetch` over memory. The AGENTS.md-impact paper in particular informs the "every line must earn its place" stance.
+Load these before drafting a new `AGENTS.md` from the template — they justify the template's structure and the writing rules above. Prefer your harness's web-fetch tool over recall. The AGENTS.md-impact paper in particular informs the "every line must earn its place" stance.
 
 - [AGENTS.md spec](https://agents.md/) — open format, LF/AAIF, 30+ agents
 - [A Complete Guide to AGENTS.md](https://gist.github.com/skyzyx/c91d9be9e5050c85e81ccbcca022ff6b) (full guide)

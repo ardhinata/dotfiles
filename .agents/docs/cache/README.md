@@ -39,6 +39,7 @@ skill or rule file, with the cache entry as the evidence behind it.
 | Topic | Description | Entries |
 |---|---|---|
 | [agent-instructions](agent-instructions/README.md) | Cost and load-path facts about the always-on instruction files | 2 |
+| [agent-skills](agent-skills/README.md) | Where each harness looks for skills, and what the Agent Skills spec says | 1 |
 | [asd-ste100](asd-ste100/README.md) | The upstream ASD-STE100 checker: capabilities and install path | 1 |
 | [document-conventions](document-conventions/README.md) | Which document rules are standard, and which citations were wrong | 1 |
 | [opencode-harness](opencode-harness/README.md) | How the OpenCode harness and its plugins behave | 2 |

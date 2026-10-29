@@ -10,7 +10,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **Agent tooling**: OpenCode (shared rules and skills under `dot_agents/`, deployed to `~/.agents/`)
 
 ## Commands
-- `chezmoi apply` — apply changes; add `--dry-run` to preview
+- `chezmoi apply` — apply changes, and add `--dry-run` to preview
 - `chezmoi diff` — show unapplied changes
 - `chezmoi edit ~/.<file>` — edit managed file in source dir
 - `chezmoi add ~/.<file>` — add new file to management
@@ -20,7 +20,8 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 
 ## Code style
 - For chezmoi templates: **load the `chezmoi` skill** — it covers prefix tables (`dot_`, `encrypted_`), source-state attributes, and template function guidelines. Validate assumptions against `.help/chezmoi-docs/` and `.help/QUIRKS.md`.
-- For agent-context files (`AGENTS.md`, `SKILL.md`): **load the `agent-context` skill** — it covers the agents.md open standard and the agentskills.io spec + best practices.
+- For `AGENTS.md`: **load the `project-context` skill** — it covers the agents.md open standard and the drafting workflow.
+- For `SKILL.md`: **load the `document-conventions` skill** — it covers the agentskills.io spec, the frontmatter policy, and the authoring playbook.
 
 ## Testing rules
 - Always run `chezmoi diff` before applying to verify expected output.
@@ -32,9 +33,9 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - Validate chezmoi behavior against `.help/chezmoi-docs/` or `.help/QUIRKS.md`
 - Run `bash .help/fetch_current_docs.sh` if `.help/chezmoi-docs/` is missing
 - After a refactor that does not change the source directory layout, run `git status --short`, stage, and commit the working tree before ending the session. If the refactor changes the layout, ask first and do not commit.
-- Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the one location OpenCode, Codex, Copilot, Cursor, Gemini CLI, Zed, goose, Amp, and Factory Droid all scan natively. Do not copy them into a per-harness directory.
-- **Add global rules and skills via `dot_agents/`, never via `chezmoi add ~/.agents/…`.** Both source trees target `~/.agents/`, and chezmoi resolves the collision by shadowing — `chezmoi add ~/.agents/rules/x.md` lands in the non-deploying `.agents/` tree, and the file never reaches `$HOME`. Edit `dot_agents/rules/` or `dot_agents/skills/` instead, then `chezmoi apply`.
-- **Put a rule that names one harness's tool under `dot_config/<vendor>/rules/`.** A shared rule in `dot_agents/rules/` reaches every harness, so it must not depend on a tool that only one harness has. Load the per-harness file with that harness's own `instructions` glob in `dot_config/<vendor>/private_*.jsonc`.
+- Put shared agent skills in `.agents/skills/<name>/SKILL.md` — the cross-client discovery path. OpenCode, Codex, Cursor, Gemini CLI, Zed, goose, Amp, Warp and GitHub Copilot read it. Claude Code does not, and neither does the Copilot VS Code harness. Do not copy skills into a per-harness directory.
+- **Add global rules and skills via `dot_agents/`, never via `chezmoi add ~/.agents/…`.** Both source trees target `~/.agents/`, and chezmoi resolves the collision by shadowing — `chezmoi add ~/.agents/rules/x.md` lands in the non-deploying `.agents/` tree, and the file never reaches `$HOME`. Edit `dot_agents/exact_rules/` or `dot_agents/skills/` instead, then `chezmoi apply`.
+- **Put a rule that names one harness's tool in that harness's own rule tree.** A shared rule in `dot_agents/exact_rules/` reaches every harness, so it must not depend on a tool that only one harness has. For OpenCode that means `dot_agents/exact_rules.opencode/` or `dot_config/opencode/rules/`. Load the per-harness file with that harness's own `instructions` glob in `dot_config/<vendor>/private_*.jsonc`.
 
 ### ⚠️ Ask first
 - Adding new encryption keys (triggers `chezmoi re-encrypt` across all files)
@@ -50,15 +51,17 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 
 ## Pointers
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
-- **Subagent fleet case study** (haru/natsu/aki/fuyu/shiki): `docs/agent-case-studies.md` (the fleet itself was retired with Kilo on 2026-10-24; the reusable lessons live here)
+- **Subagent fleet case study** (haru/natsu/aki/fuyu/shiki): `docs/agent-case-studies.md` (the fleet itself was retired with Kilo on 2026-10-24, and the reusable lessons live here)
 - **Embedding dimensions proxy deployment** (Linux systemd, macOS launchd, client config, multi-OS templating notes): `docs/how-to/embedding-dimensions-proxy-deployment.md`
 - **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`
 - **Project rules**: `.agents/rules/chezmoi-source-project.md` (loaded by every harness through its own `instructions` glob)
-- **Agent-context conventions (AGENTS.md, SKILL.md)**: `.agents/skills/agent-context/SKILL.md`
+- **AGENTS.md lifecycle** (drafting, README↔AGENTS separation, the vendoring trigger): `dot_agents/skills/project-context/SKILL.md` (deployed to `~/.agents/skills/project-context/`)
+- **Agent-context conventions** (`AGENTS.md` and `SKILL.md`): `dot_agents/skills/project-context/SKILL.md` and `dot_agents/skills/document-conventions/SKILL.md` (deployed to `~/.agents/skills/`)
 - **Knowledge cache convention + required `README.md` index**: `.agents/docs/cache/README.md` (full spec: `dot_agents/skills/project-context/references/knowledge-cache.md`)
 - **Canonical on-disk project layout** (`.agents/`, `.tmp/` subroles, knowledge cache, vendor unification): `dot_agents/skills/project-layout/SKILL.md` (deployed to `~/.agents/skills/project-layout/`)
 - **Document conventions** (filename, frontmatter, section order): `dot_agents/skills/document-conventions/SKILL.md` (deployed to `~/.agents/skills/document-conventions/`)
 - **Local chezmoi/sprig documentation**: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
+- **Shared rules** (web-verification, project-context, local-first, …): `dot_agents/exact_rules/` (deployed to `~/.agents/rules/`)
 - **Personal rules** (sudo-ask, ssh-read-allowlist, …): `dot_agents/rules.personal.d/` (deployed to `~/.agents/rules.personal.d/`)
 - **SSH keys, gpg-agent, and live output over ssh**: `dot_agents/skills/ssh/SKILL.md` (deployed to `~/.agents/skills/ssh/`)
-- **Harness-specific rules (OpenCode only)**: `dot_config/opencode/rules/` (deployed to `~/.config/opencode/rules/`, loaded by the `instructions` glob in `dot_config/opencode/private_opencode.jsonc`)
+- **Harness-specific rules (OpenCode only)**: `dot_agents/exact_rules.opencode/` (deployed to `~/.agents/rules.opencode/`) and `dot_config/opencode/rules/` (deployed to `~/.config/opencode/rules/`), both loaded by the `instructions` glob in `dot_config/opencode/private_opencode.jsonc`

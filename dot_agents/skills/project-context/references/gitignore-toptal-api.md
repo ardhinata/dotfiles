@@ -15,9 +15,9 @@ Base URL: `https://www.toptal.com/developers/gitignore/api/`
 - **Order is preserved** in the output. Put OS / editor templates first so they do not get overridden by later patterns.
 - **Forgiving on partial invalidity.** A single unknown name does *not* abort the call — the valid templates are still emitted and the unknown one is surfaced as a `#!! ERROR: <name> is undefined. Use list command to see defined gitignore types !!#` comment. Verify the response body contains only `### <Name> ###` sections for the templates you requested.
 - **HEAD is blocked.** `curl -I` returns HTTP 403. Use GET only.
-- **Referer header is required by some CDNs.** Prefer `webfetch` / `firecrawl_scrape` / `curl -s` over `curl -I`. If the response is empty, add a `Referer: https://www.toptal.com/developers/gitignore` header (or retry with `webfetch`).
+- **Referer header is required by some CDNs.** Prefer `curl -s` or your harness's web-fetch tool over `curl -I`. If the response is empty, add a `Referer: https://www.toptal.com/developers/gitignore` header.
 
-Fetch the list once per session with `webfetch` and cache the names in this file (already pre-seeded below). Fetch individual templates only when needed.
+Fetch the list once per session with your harness's web-fetch tool and cache the names in this file (already pre-seeded below). Fetch individual templates only when needed.
 
 ## Pre-seeded template catalog
 
@@ -138,7 +138,7 @@ When asked to create, fix, or review a `.gitignore`:
    - CI: `.github/workflows/*.yml`, `.gitlab-ci.yml`
    - Existing IDE dirs at root: `.vscode/`, `.idea/`, `*.iml`
 3. **Map stack → template names** using the catalog above. Choose at most one OS template (match the dominant dev machine), one or more editor templates, one language/runtime template, and one or more framework templates.
-4. **Fetch** each chosen template via `webfetch` against `https://www.toptal.com/developers/gitignore/api/<comma-list>`. Use a single comma-delimited call to avoid round-trips.
+4. **Fetch** each chosen template against `https://www.toptal.com/developers/gitignore/api/<comma-list>`. Use a single comma-delimited call to avoid round-trips.
 5. **Verify** the response. Reject any template whose response contains `#!! ERROR:`. If an error appears, drop that template and re-fetch with the remaining valid names.
 6. **Compose** the new `.gitignore`:
    - Header comment naming the project (one line, optional).
@@ -167,17 +167,17 @@ When asked to create, fix, or review a `.gitignore`:
 
 Fetch one template (preview):
 ```
-webfetch https://www.toptal.com/developers/gitignore/api/node
+curl -s https://www.toptal.com/developers/gitignore/api/node
 ```
 
 Fetch several at once:
 ```
-webfetch https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,node,nextjs
+curl -s https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,node,nextjs
 ```
 
 Refresh the full template list (only when the catalog below looks stale or missing a name):
 ```
-webfetch https://www.toptal.com/developers/gitignore/api/list
+curl -s https://www.toptal.com/developers/gitignore/api/list
 ```
 
 ## Full template list (verbatim from `/api/list`)

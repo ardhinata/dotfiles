@@ -37,7 +37,7 @@ deploys to `~/.agents/rules.opencode/`:
 `web-verification.md`, `zsh-emulate-fallback.md`.
 
 Each shared rule kept its concept and lost the tool name. "The harness's
-background-process facility" replaces `shell({ background: true })`; "the
+background-process facility" replaces `shell({ background: true })`. "The
 harness's dedicated search and read tools" replaces the list of AFT tool names.
 
 ### The byte result
@@ -66,7 +66,7 @@ clarity and cost decision, not a compatibility fix.
   table, and its description is always-on in the skill catalog. The rule kept
   the recipe without the reasons, which is what produced the reported failure:
   `stdbuf` works through `LD_PRELOAD`, so it cannot affect an application that
-  buffers on its own. The skill states that cause; the rule did not.
+  buffers on its own. The skill states that cause. The rule did not.
 
 ## The asd-ste100 work
 
@@ -79,10 +79,10 @@ part-of-speech rules.
 - The upstream CLI is installed at `~/.local/bin/ste100`, pinned to commit
   `e193ecdd66b09ce81b7c611f1c841efd8ba84cc7`, with `en_core_web_sm` 3.8.0 in the
   tool environment. The package is **not on PyPI**, and `ste100 setup` fails
-  under `uv tool install`, so the install commands in the skill are not the
-  ones in upstream's README.
+  under `uv tool install`. The install commands in the skill are therefore not
+  the ones in upstream's README.
 - `--print-prose` was added to the local script. It prints the prose of a
-  Markdown file without the markup, which is what upstream needs, because
+  Markdown file without the markup. That is what upstream needs, because
   upstream has no Markdown support and would read code fences and table pipes
   as prose.
 - A bug in the local script was fixed: it split sentences inside inline code,
@@ -93,35 +93,37 @@ part-of-speech rules.
 
 ## Open items
 
-1. **Apply the pending files.** `chezmoi diff` lists 39 files: the whole
+1. **Apply the pending files.** `chezmoi diff` lists 40 files: the whole
    review, the STE campaign, and your own edits of today. Run
    `chezmoi apply --force`, because chezmoi asks for a confirmation and the
    tool shell has no TTY.
-2. **Fix the `AGENTS.md` pointer.** It still names
-   `dot_config/opencode/rules/` as the OpenCode-only location, and its
-   Boundaries section says a harness-specific rule belongs under
-   `dot_config/<vendor>/rules/`. Neither matches the implemented
-   `~/.agents/rules.opencode/`. The written convention and the implemented
-   shape now disagree.
-3. **Fix `document-conventions/SKILL.md` line 62.** It says "Use
-   `~/.agents/rules/` only for rules that name a harness-specific tool". It is
-   missing a "not", and it now contradicts the implemented
-   `~/.agents/rules.opencode/` tree.
+2. ~~**Fix the `AGENTS.md` pointer.**~~ Done on 2026-10-29. The Boundaries
+   section named `dot_agents/rules/`, a directory that does not exist. The
+   shared rules live in `dot_agents/exact_rules/`, and a harness-specific
+   rule now goes in `dot_agents/exact_rules.<vendor>/` or
+   `dot_config/<vendor>/rules/`.
+3. ~~**Fix `document-conventions/SKILL.md` line 62.**~~ Done on 2026-10-29.
+   The rule now states that no harness discovers `~/.agents/rules/` on its
+   own. A rule naming one harness's tool belongs in that harness's own rule
+   tree.
 4. **Withdraw the 2026-10-25 review finding D-10.** It wanted more OpenCode
    names in the shared rules. This pass moved them out, so the finding points
    the other way now.
-5. **Decide about the tools the shared skills name.** `project-context`
-   names `firecrawl_*` and `context7_*`; its `knowledge-cache.md` reference
-   also names `tavily_*`; `github` and `gitignore-toptal-api` name
-   `webfetch`. The shared `web-verification.md` rule names no tool since
-   today's edit, and the OpenCode supplement lists only `websearch` and
-   `webfetch`. So the shared skills now point at tools that no harness on
-   this host has. Rewrite them as "your harness's web tool", or move the
-   guidance to the OpenCode tree.
+5. ~~**Decide about the tools the shared skills name.**~~ Done on 2026-10-29.
+   The `github`, `project-context`, `project-layout` and
+   `gitignore-toptal-api` files no longer name a harness tool. The shared
+   `web-verification.md` rule names no tool, and the OpenCode supplement
+   lists only `websearch` and `webfetch`.
 6. **Decide where a host-tool bootstrap belongs.** The `ste100` install is
    host state that nothing in this repo reproduces.
 7. **Optional.** The `ste100` MCP and LSP servers were not evaluated. The CLI
    is what this setup uses.
+8. **The STE campaign had a narrower scope than it claimed.** It covered
+   `dot_agents/` only. Still open: the live `openrouter-api` skill has 59
+   errors, `.agents/skills/chezmoi/SKILL.md` has 4, and the project tree
+   `.agents/docs/cache/` has 21. The `docs/` tree has 214 more, mostly in
+   dated post-mortems and case studies. Rewriting a dated record is wrong,
+   so treat those as exempt by design. Fix the live skills.
 
 ## Commits
 
@@ -166,10 +168,10 @@ python3 dot_agents/skills/asd-ste100/scripts/ste_check.py --mode descriptive --e
 ```
 
 About 320 errors across 42 files, paid with four parallel subagents on
-disjoint file sets. What was fixed: semicolons split into two sentences,
-contractions expanded, over-long sentences split, compound verb forms
-replaced with simple ones, passive voice made active where the actor is
-known, and Latin abbreviations expanded.
+disjoint file sets. What was fixed: semicolons split into two sentences.
+Contractions expanded. Over-long sentences split. Compound verb forms
+replaced with simple ones. Passive voice made active where the actor is
+known. Latin abbreviations expanded.
 
 What was not touched:
 
@@ -177,8 +179,8 @@ What was not touched:
   explanatory prose is now clean, but the examples stay.
 - `asd-ste100/NOTICE` and `LICENSE` are verbatim legal text.
 - The quotes in `document-conventions/references/title-and-filename.md` are
-  now blockquotes, so the quoted words are unchanged and the checker no
-  longer reads them as the file's own prose.
+  now blockquotes. The quoted words are unchanged, and the checker no longer
+  reads them as the file's own prose.
 
 The remaining 1373 warnings are advisory: "-ing" verb forms, noun clusters,
 passive voice with an unknown actor, and words the checker cannot judge

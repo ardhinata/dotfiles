@@ -13,7 +13,7 @@ These rules govern **how to write and use** knowledge-cache entries. For **where
 ## When to act on the cache
 
 - If external research may be needed, locate the project cache and read its `README.md` during initial discovery.
-- About to call `tavily_*`, `firecrawl_*`, or `context7_*` for the first time in this project → check the cache index first. If the index is missing or empty, create it and surface the cache convention in `AGENTS.md` → `Pointers` before burning web-tool credits.
+- About to make a web lookup in this project → check the cache index first. If the index is missing or empty, create it and surface the cache convention in `AGENTS.md` → `Pointers` before spending web-tool credits.
 - A cache hit is a prior fetch tagged with a date — re-verify if the domain is volatile (CLI tool or framework API released less than 6 months ago).
 - Entry naming follows the canonical pattern from the `project-layout` skill: `<cache-dir>/<topic>/YYYY-MM-DD-<short-slug>.md` — one topic per file, with an ISO date prefix so the tree sorts chronologically.
 

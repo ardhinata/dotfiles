@@ -42,7 +42,8 @@ describe this tree as "Diátaxis".
 
 **Harness config directory.** Paths written `~/.config/<vendor>/…` below mean the
 harness's user-level config directory: `~/.config/opencode/` in OpenCode.
-Skills live in the shared home `~/.agents/skills/`, which every agent reads.
+Skills live in the shared home `~/.agents/skills/`, which most harnesses read.
+Claude Code is the exception.
 
 ## Canonical layout
 
@@ -53,8 +54,8 @@ docs/                              ← human-facing, hand-written (Standard Read
   plans/                           ← dated plans for work that was executed (committed)
 .agents/                           ← unified agent root
   skills/                          ← agent skills, shared by every harness
-    <name>/SKILL.md                ← discovered natively by OpenCode, Codex, Copilot,
-                                     Cursor, Gemini CLI, Zed, goose, Amp, Factory Droid
+    <name>/SKILL.md                ← cross-client discovery path: OpenCode, Codex, Cursor,
+                                      Gemini CLI, Zed, goose, Amp, Warp, GitHub Copilot
   rules/                           ← shared rule files (house convention — not a discovery
                                      location; each harness loads them through its own
                                      instructions glob)
@@ -94,12 +95,15 @@ Pick the one that matches the intent.
 
 Two different jobs, two different mechanisms. Do not confuse them.
 
-**Shared skills** go in `.agents/skills/`. Every harness finds them there
-natively — no symlink, no copy, no config field. This is the only `.agents/`
-subdirectory that a shipped tool scans (OpenCode, Codex, Copilot, Cursor,
-Gemini CLI, Zed, goose, Amp, Factory Droid). Claude Code is the exception: it
-reads nothing under `.agents/` and needs `.claude/skills/`, so give it one
-symlink to the same tree.
+**Shared skills** go in `.agents/skills/`. It is a cross-client convention,
+not a requirement of the skill specification. It is also the only `.agents/`
+subdirectory that a shipped tool scans for skills. OpenCode, Codex, Cursor,
+Gemini CLI, Zed, goose, Amp, Warp and GitHub Copilot read it at both the
+project level and the user level. Factory Droid treats it as a compatibility
+path, and its native personal path is `~/.factory/skills/`. GitHub Copilot
+reads it in the CLI, the app and the cloud agent, but not in the VS Code
+harness. Claude Code is the exception: it reads nothing under `.agents/`, so
+it needs `.claude/skills/` with one symlink per skill folder.
 
 **Harness-specific assets** — rule files, custom commands, hooks, MCP
 fragments — go in `.agents/<vendor>/` and are reached through the harness's
@@ -115,7 +119,7 @@ own root directory. When the project root has a vendor directory
 **Know what the vendor subdirectory does and does not buy you.** No tool
 scans `.agents/<vendor>/` for discovery. The root symlink is not a
 cross-harness bridge — it is how *one* harness reaches *its own* files. The
-cross-harness bridge is `.agents/skills/`, which every tool scans directly.
+cross-harness bridge is `.agents/skills/`.
 
 ## Knowledge cache
 
@@ -167,7 +171,7 @@ The canonical tree is a default, not a rule. Acceptable deviations include:
 - **Monorepo** — each package may carry its own `AGENTS.md` (closest-to-file wins) but the top-level `.agents/` is shared.
 - **Polyglot tooling** — extra vendor directories are fine if they have their own root symlink back to `.agents/<vendor>/`.
 
-When the deviation is structural (a path that contradicts the tree), surface it to the user via the `question` tool — do not silently leave the layout half-canonical.
+When the deviation is structural (a path that contradicts the tree), surface it to the user. Use the harness's question tool, or plain text. Do not silently leave the layout half-canonical.
 
 ## References
 

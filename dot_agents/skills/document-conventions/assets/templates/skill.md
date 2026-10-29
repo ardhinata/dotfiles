@@ -65,7 +65,8 @@ the body grows.
 
 **Frontmatter requirements:**
 
-- `name` — matches parent dir, lowercase + hyphens, 1–64 chars, no `--`
+- `name` — matches the parent dir. Lowercase letters, digits and hyphens,
+  1–64 chars, no `--`, no leading or trailing hyphen
 - `description` — third person, 1–1024 chars, names both *what* and
   *when*, includes the keywords agents search for
 - `metadata` — a map from string keys to string values
@@ -92,6 +93,12 @@ the body grows.
 ```bash
 skills-ref validate ./<skill-slug>
 ```
+
+`skills-ref` is a Python package in the
+[agentskills repository](https://github.com/agentskills/agentskills/tree/main/skills-ref).
+Install it with `pip install -e .` or `uv sync` from a clone of that
+repository. Its own README says it is for demonstration only, so treat a
+clean run as a floor, not a proof.
 
 Manual review against [`../checklists.md`](../checklists.md) and
 [`../../references/anti-patterns.md`](../../references/anti-patterns.md).
