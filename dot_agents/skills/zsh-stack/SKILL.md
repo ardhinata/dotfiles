@@ -38,15 +38,17 @@ Three layers, loaded in this order:
 
 Authoritative evidence: the 2026-08-08 research notes
 `~/Playground/backup/2026-10-24-kilo-teardown/shared-context-worktree/notes/2026-08-08-zsh-stack-research-{zgenom,prezto,p10k}.md`.
-Those notes live outside this repo and outside version control, so they do not
-exist on a fresh machine. The in-repo sources for the same facts are
-`dot_zshrc`, `dot_shell/zsh/00-before-zgenom.zsh`, and `dot_shell/zsh/12-gpg.zsh`,
-all of which this skill cites by line number.
+Those notes live outside the dotfiles repository and outside version control,
+so they do not exist on a fresh machine. The in-repository sources for the
+same facts are `dot_zshrc`, `dot_shell/zsh/00-before-zgenom.zsh`, and
+`dot_shell/zsh/12-gpg.zsh`, all of which this skill cites by content.
 
 **Scope.** This skill documents the **machine's** zsh stack. The deployed
 artifacts (`~/.zshrc`, `~/.p10k.zsh`, `~/.shell/zgenom`) are machine-global.
-The `dot_*` paths below are where the source lives in this dotfiles repo. A
-task in another repo that touches the user's zsh still needs this skill.
+The `dot_*` paths below are where the source lives in this dotfiles repository.
+In this skill, *the project* always means that repository. The `dot_*` paths do
+not resolve outside it. A task in another repo that touches the user's zsh
+still needs this skill.
 
 ---
 
@@ -54,7 +56,7 @@ task in another repo that touches the user's zsh still needs this skill.
 
 Repo: `jandamm/zgenom` (commit `d99d5dc` cloned 2026-08-08).
 
-### Project-current config (where set)
+### Project config (where set)
 
 | Knob | Value | Where | Purpose |
 |---|---|---|---|
@@ -157,7 +159,7 @@ The key table is in `references/prezto-zstyle-api.md`. Read it when you need the
 - **completion compinit ordering vs fpath additions** — compinit snapshots `$fpath` at module-load (`completion/init.zsh:56-68`). User completions added after will not register until the 20h cache expires. **`00-before-zgenom.zsh:7` prepends `$SHELL_TOOL_DIR/zsh/completions` before zgenom/prezto init** precisely for this reason (`_runpriv` is the load-bearing completion there).
 - **`prompt_powerlevel10k_setup` is a submodule symlink** — verify `git submodule status` inside `$ZGEN_DIR/sources/prezto/` if p10k is broken.
 
-### Project quirks (line-by-line)
+### Project wiring (line-by-line)
 
 | `dot_zshrc` line | Prezto concept |
 |---|---|
@@ -225,7 +227,10 @@ The knob table is in `references/p10k-tunables.md`. Read it when you need a defa
 4. **`pmodload` order matters.** `environment` first (for `INTERACTIVE_COMMENTS`), then core utilities, then `completion` (so compinit sees all completions), then `syntax-highlighting` (must be sourced before HSS), then `history-substring-search`, then `prompt` last (so all setup is done before the theme installs). The order in `dot_zshrc:49-61` is intentional — do not "tidy" it.
 5. **The `loaded` zstyle gate** is the *only* prezto-blessed way to disable a module. Do not just drop gpg from the module list. The project's `00-before-zgenom.zsh:17` zstyle is what actually disables it.
 6. **Anything that needs `tty`/`$TTY`/`systemctl --user import-environment` must be re-run just-in-time** in a preexec hook, not at `.zshrc` source time. The controlling-tty value at source time is stale on alacritty (see `dot_shell/zsh/12-gpg.zsh`). For SSH/GPG signing from a non-default terminal (for example a VSCode tunnel), the canonical fix is `Match host * exec "gpg-connect-agent updatestartuptty /bye"` in `dot_ssh/config`. This refreshes the gpg-agent's TTY view before each SSH invocation.
-7. **p10k's `~/.p10k.zsh` is chezmoi-managed.** Edit via `chezmoi edit ~/dot_p10k.zsh` (after `chezmoi add`) — never `p10k configure`.
+7. **p10k's `~/.p10k.zsh` is chezmoi-managed.** Edit it with
+   `chezmoi edit ~/.p10k.zsh`, or `chezmoi edit --apply ~/.p10k.zsh` to apply
+   on save. The argument is the target path, and chezmoi opens the source file
+   `dot_p10k.zsh`. Never `p10k configure`.
 8. **Tunables are set at three different layers** with three different mechanisms:
    - zgenom: env vars `ZGEN_*` set before sourcing `zgenom.zsh`, or function calls after.
    - prezto: `zstyle ':prezto:module:<m>' <key> <value>` (or `zgenom prezto <m> <key> <value>` in this project).
@@ -236,6 +241,12 @@ The knob table is in `references/p10k-tunables.md`. Read it when you need a defa
 ---
 
 ## Cross-References
+
+**Line numbers are a snapshot from 2026-10-29.** They rot when the file
+changes, and this skill points you at the same files you are about to edit.
+Find each anchor by content. The pmodload list is the run of
+`zgenom prezto <module>` lines that starts with `zgenom prezto environment`,
+not line 49.
 
 | Project file | Layer | Notes |
 |---|---|---|
