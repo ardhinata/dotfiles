@@ -12,9 +12,13 @@ includes the fingerprint (backend, model, base_url, dimension, chunking
 version, embed-text caps), so two widths need two storage dirs.
 
 Usage:
-  aft_width_ab.py index  --root DIR --arm NAME --width N --port P --proxy-provider JSON
-  aft_width_ab.py query  --root DIR --arm NAME --width N --port P --queries FILE
-  aft_width_ab.py report --arms NAME=NAME,...
+  aft_width_ab.py index  --root DIR --arm NAME --width N --port P
+  aft_width_ab.py query  --root DIR --arm NAME --width N --port P --queries FILE [--no-trigram]
+  aft_width_ab.py report --arms NAME=WIDTH,... [--label FILE]
+
+Each arm needs its own proxy instance, listening on its own port and
+serving the arm's width. The proxy is the local embedding-dimensions
+proxy from dot_shell/helper/.
 
 The queries file is JSON: [{"id": "...", "query": "...", "expect": "path/rel",
   "kind": "positive"}, ...]
