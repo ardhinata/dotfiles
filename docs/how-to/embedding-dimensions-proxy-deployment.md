@@ -165,7 +165,7 @@ Edit `~/.config/cortexkit/magic-context.jsonc`:
   "model": "qwen/qwen3-embedding-8b",
   "endpoint": "http://127.0.0.1:8099/<salt>/v1",
   "api_key": "{env:OPENROUTER_API_OPENCODE_INDEX}",
-  "max_input_tokens": 640,
+  "max_input_tokens": 480,
 }
 ```
 
@@ -179,8 +179,8 @@ Edit `~/.config/cortexkit/aft.jsonc`:
   "model": "qwen/qwen3-embedding-8b",
   "base_url": "http://127.0.0.1:8099/<salt>/v1",
   "api_key_env": "OPENROUTER_API_OPENCODE_INDEX",
-  "max_input_tokens": 640,
-  "max_batch_size": 32,
+  "max_input_tokens": 480,
+  "max_batch_size": 80,
 }
 ```
 

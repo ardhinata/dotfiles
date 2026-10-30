@@ -13,8 +13,11 @@ elif [[ -n $(which nano) ]]; then
 	export EDITOR=nano
 fi
 
+# --- Bun directory ---
+export BUN_INSTALL="${HOME}/.bun"
+
 # --- Local executable dir ---
-export PATH="${PATH}:${HOME}/.local/bin"
+export PATH="${PATH}:${HOME}/.local/bin:${BUN_INSTALL}/bin"
 
 # --- Fast Node Manager ---
 # Initialize fnm in the shell session, respecting .node-version and .nvmrc files
