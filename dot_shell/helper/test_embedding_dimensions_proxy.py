@@ -84,7 +84,7 @@ class ProxyTest(unittest.TestCase):
         cls.stub.server_close()
 
     def setUp(self):
-        proxy.PROVIDER = {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True}
+        proxy.PROVIDER = {"only": ["nebius", "deepinfra"], "allow_fallbacks": True}
 
     def post(self, body, headers=None):
         request = urllib.request.Request(
@@ -110,7 +110,7 @@ class ProxyTest(unittest.TestCase):
     def test_injects_the_provider_preference(self):
         self.post({"model": "m", "input": ["a"]})
         self.assertEqual(
-            {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True},
+            {"only": ["nebius", "deepinfra"], "allow_fallbacks": True},
             StubUpstream.received["body"]["provider"],
         )
 
@@ -153,7 +153,7 @@ class ProxyTest(unittest.TestCase):
 class LoadProviderTest(unittest.TestCase):
     def test_default_preference_without_the_variable(self):
         self.assertEqual(
-            {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True},
+            {"only": ["nebius", "deepinfra"], "allow_fallbacks": True},
             proxy.load_provider(),
         )
 

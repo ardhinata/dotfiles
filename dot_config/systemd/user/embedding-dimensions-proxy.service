@@ -8,10 +8,11 @@ ExecStart=/usr/bin/python3 %h/.shell/helper/embedding_dimensions_proxy.py
 Environment=EMBEDDING_PROXY_DIMENSIONS=512
 Environment=EMBEDDING_PROXY_PORT=8099
 Environment=EMBEDDING_PROXY_UPSTREAM=https://openrouter.ai/api/v1/embeddings
-# The Nebius Token Factory pool answers a token burst with HTTP 429, so the
-# request order starts at DeepInfra, which costs the same per token, and
-# keeps SiliconFlow behind it as the second choice.
-Environment='EMBEDDING_PROXY_PROVIDER={"order":["deepinfra","siliconflow"],"allow_fallbacks":true}'
+# Nebius and DeepInfra cost the same per token. The list has no order, so
+# OpenRouter picks the provider per request by price, throughput, latency,
+# and reliability, and shifts traffic away from a pool that answers with
+# HTTP 429. SiliconFlow is not in the list.
+Environment='EMBEDDING_PROXY_PROVIDER={"only":["nebius","deepinfra"],"allow_fallbacks":true}'
 # 512 floats is the width the A/B on 2026-10-28 picked: it matched 1024 on
 # every retrieval metric, and it cuts the semantic index by 38 percent. The
 # width does not change the token bill, because the same text is embedded

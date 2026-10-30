@@ -67,6 +67,12 @@
     // 640 was the measured sweet spot (A/B on 2026-10-28): it cut the embedded
     // text by 19.7 percent with no measurable recall loss. Now 480, shrinking
     // the token cap to reduce context dilution.
+    // The rebuild time does not depend on this cap. Two erenmin rebuilds of
+    // the same 21297 chunks took 1490 s at 640 tokens per row and 1457 s at
+    // 480. The cap changes the text length of a chunk, not the chunk count,
+    // and 25 percent less text per chunk bought no speed, so tokens per
+    // minute is not the binding constraint here. Changing this cap costs a
+    // full re-embed of every root and buys no speed.
     "max_input_tokens": 480,
     //
     // Default 20000 is a local-fastembed memory guard. Remote backends embed
@@ -78,9 +84,14 @@
     // Measured 2026-10-26: the upstream provider (Nebius Token Factory)
     // enforces a tokens-per-minute quota and answers a burst with HTTP 429.
     // AFT shrinks the batch on a timeout, but a 429 keeps the batch size, so
-    // one big request can fail on its own and burn three retries. A cap of
-    // 80 rows bounds one attempt to 38k tokens at 480 tokens per row. The
+    // one big request can fail on its own and burn three retries. The
     // provider quota, not the batch size, is the wall on throughput.
-    "max_batch_size": 80,
+    // 32 rows keeps one request near 15k tokens, inside the request size that
+    // measured free of HTTP 429. At 80 rows the same rebuild sent 38k tokens
+    // per request and hit the 25 s build deadline once, plus 6 upstream
+    // HTTP 502 resets. Both sizes ran at the same 14 chunks per second, so
+    // the smaller batch costs no time. This cap is not fingerprinted, so
+    // changing it needs no re-embed.
+    "max_batch_size": 32,
   },
 }

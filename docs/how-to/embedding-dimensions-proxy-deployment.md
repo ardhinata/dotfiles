@@ -59,7 +59,7 @@ ExecStart=/usr/bin/python3 %h/.shell/helper/embedding_dimensions_proxy.py
 Environment=EMBEDDING_PROXY_DIMENSIONS=512
 Environment=EMBEDDING_PROXY_PORT=8099
 Environment=EMBEDDING_PROXY_UPSTREAM=https://openrouter.ai/api/v1/embeddings
-Environment='EMBEDDING_PROXY_PROVIDER={"order":["deepinfra","siliconflow"],"allow_fallbacks":true}'
+Environment='EMBEDDING_PROXY_PROVIDER={"only":["nebius","deepinfra"],"allow_fallbacks":true}'
 Restart=on-failure
 RestartSec=5
 
@@ -117,7 +117,7 @@ Write `~/Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist`:
         <key>EMBEDDING_PROXY_UPSTREAM</key>
         <string>https://openrouter.ai/api/v1/embeddings</string>
         <key>EMBEDDING_PROXY_PROVIDER</key>
-        <string>{"order":["deepinfra","siliconflow"],"allow_fallbacks":true}</string>
+        <string>{"only":["nebius","deepinfra"],"allow_fallbacks":true}</string>
     </dict>
 
     <key>RunAtLoad</key>
@@ -312,6 +312,6 @@ system name. The script starts `systemctl --user enable --now` on Linux and
 | The port is busy | Another proxy uses 8099 | Change `EMBEDDING_PROXY_PORT` and the salt. Restart the service. |
 | The log shows HTTP 401 | The caller sent no `Authorization` header | Export `OPENROUTER_API_OPENCODE_INDEX` in the environment of the agent. |
 | The log shows HTTP 502 | The proxy could not reach the provider | Check the network and the upstream URL. |
-| The log shows HTTP 429 | The provider quota answered the burst | Keep DeepInfra first in the provider order. Lower `max_batch_size`. |
+| The log shows HTTP 429 | The provider quota answered the burst | The provider list has no order, so OpenRouter moves traffic to another pool on its own. Lower `max_batch_size` to shrink one request. |
 | Retrieval finds nothing, the log shows 200 | The stored rows keep the old width | Let the tools re-embed, or delete the rows under the old model id. |
 | The service stops after logout | The user session ended | Run `loginctl enable-linger "$USER"` on Linux. |

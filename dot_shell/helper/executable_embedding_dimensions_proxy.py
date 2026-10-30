@@ -6,10 +6,12 @@ without a "dimensions" field. The server then returns the model default,
 which is 4096 floats for qwen3-embedding-8b. This proxy adds "dimensions"
 to every request body and relays the response unchanged.
 
-The proxy also pins the provider. The Nebius Token Factory pool answers a
-token burst with HTTP 429, so the request order starts at DeepInfra, which
-costs the same, and keeps SiliconFlow behind it as the second choice. A
-caller that sends its own "provider" field keeps that choice.
+The proxy also names the providers the request may use. The list holds
+Nebius and DeepInfra, which cost the same per token. The list has no order,
+so OpenRouter picks the provider for each request by price, throughput,
+latency, and reliability, and shifts traffic away from a pool that answers
+with HTTP 429. SiliconFlow is not in the list. A caller that sends its own
+"provider" field keeps that choice.
 
 The upstream API key stays with the caller. The caller sends its own
 Authorization header and the proxy forwards that header as it is.
@@ -37,7 +39,7 @@ DIMENSIONS = int(os.environ.get("EMBEDDING_PROXY_DIMENSIONS", "1024"))
 PORT = int(os.environ.get("EMBEDDING_PROXY_PORT", "8099"))
 TIMEOUT = float(os.environ.get("EMBEDDING_PROXY_TIMEOUT", "180"))
 PROVIDER_FIELD = re.compile(rb'"provider"\s*:\s*"([^"]+)"')
-DEFAULT_PROVIDER = {"order": ["deepinfra", "siliconflow"], "allow_fallbacks": True}
+DEFAULT_PROVIDER = {"only": ["nebius", "deepinfra"], "allow_fallbacks": True}
 
 
 def load_provider():
