@@ -157,6 +157,25 @@ At n = 50 with the measured paired spread, this design can only detect a
 true MRR gap of about 0.054 (8.5 percent relative) in the semantic lane. A
 real difference smaller than that is invisible here.
 
+### How this sits next to the 2026-10-28 A/B
+
+The earlier A/B (468 files, 16,252 chunks, 40 needle plus 10 fixture
+queries) paired every width against a 1024-dim arm and found 384 at 2
+better and 6 worse. That arm set was 1024, 768, 512, and 384. This run
+pairs 384 against 512.
+
+The two agree once the pairing is accounted for: the earlier run had 512
+level with 1024, and this run has 384 level with 512. So 384 sits close to
+512, and the earlier 384-versus-1024 loss was the 1024 side of that same
+gap. Neither run isolates a 384-specific defect.
+
+The earlier run also found the fused lane's recall@1 at 0.86 for every
+width. This run finds the fused lane at 17/50 (0.34) while the semantic
+lane alone reaches 26/50 (0.52). The two are not in conflict, because they
+measured different corpora and different query sets. They agree on the
+point that matters for a width decision: the fused lane is the same at
+every width.
+
 ### What this does not change
 
 The live setup stays at 512 dimensions. Two reasons:
@@ -164,8 +183,14 @@ The live setup stays at 512 dimensions. Two reasons:
 1. The width is inside the AFT index fingerprint
    (`SemanticIndexFingerprint::from_config` takes `dimension`). Moving to
    384 forces a full re-embed of every root.
-2. The width is also inside the Magic Context identity for stored rows, so
-   the two lanes must move together.
+2. The width is *not* inside the Magic Context identity for stored rows.
+   The memories and git-commit rows are keyed by `providerIdentity` alone,
+   which holds the endpoint but not the vector width. A width change
+   therefore leaves the old rows in place, and the new narrower queries
+   match nothing, because the cosine of a length mismatch is 0. The
+   memory semantic lane stops retrieving until those rows are re-embedded
+   by hand. A width change is not self-applying on the Magic Context
+   side.
 
 Switching to 384 would save 18.8 percent of the semantic index, about 16 MB
 on a 10,427-chunk index. That is a disk saving, not a speed or quality win.
