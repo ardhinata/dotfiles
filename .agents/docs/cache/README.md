@@ -41,6 +41,7 @@ skill or rule file, with the cache entry as the evidence behind it.
 | [agent-instructions](agent-instructions/README.md) | Cost and load-path facts about the always-on instruction files | 2 |
 | [agent-context](agent-context/README.md) | The AGENTS.md standard, the evidence behind it, and what was corrected | 1 |
 | [agent-skills](agent-skills/README.md) | Where each harness looks for skills, and what the Agent Skills spec says | 1 |
+| [aft-embedding](aft-embedding/README.md) | The AFT semantic lane, the embedding-dimensions proxy, and the measured effect of vector width | 1 |
 | [asd-ste100](asd-ste100/README.md) | The upstream ASD-STE100 checker: capabilities and install path | 1 |
 | [document-conventions](document-conventions/README.md) | Which document rules are standard, and which citations were wrong | 1 |
 | [opencode-harness](opencode-harness/README.md) | How the OpenCode harness and its plugins behave | 2 |
