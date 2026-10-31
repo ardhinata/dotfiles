@@ -14,8 +14,9 @@ Magic Context and AFT call an OpenAI-style embeddings API without a
 `dimensions` field. The provider then returns the model default, which is
 4096 floats for `qwen/qwen3-embedding-8b`. A local proxy adds the field to
 every request and relays the answer unchanged. Each tool then stores the
-width the proxy serves it. A width of 512 floats shrinks the semantic index
-by about 38 percent, and a width of 384 shrinks it by about 48 percent.
+width the proxy serves it. A width of 512 floats cuts the semantic index
+by about 38 percent against a 1024-wide index. A width of 384 cuts it by
+about 19 percent against a 512-wide index.
 
 This guide installs the proxy on a Linux or a macOS machine, starts it as a
 user service, and points both tools at it.
