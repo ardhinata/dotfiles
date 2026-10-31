@@ -53,6 +53,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
 - **Subagent fleet case study** (haru/natsu/aki/fuyu/shiki): `docs/agent-case-studies.md` (the fleet itself was retired with Kilo on 2026-10-24, and the reusable lessons live here)
 - **Embedding dimensions proxy deployment** (Linux systemd, macOS launchd, client config, multi-OS templating notes): `docs/how-to/embedding-dimensions-proxy-deployment.md`
+- **AFT embedding findings and measurements**: `docs/reports/` (open findings to hand to the team) and `.agents/docs/cache/aft-embedding/` (the measurements, harness, and query sets behind them)
 - **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`
 - **Project rules**: `.agents/rules/chezmoi-source-project.md` (loaded by every harness through its own `instructions` glob)
 - **AGENTS.md lifecycle** (drafting, README↔AGENTS separation, the vendoring trigger): `dot_agents/skills/project-context/SKILL.md` (deployed to `~/.agents/skills/project-context/`)

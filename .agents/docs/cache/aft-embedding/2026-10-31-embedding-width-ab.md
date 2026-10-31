@@ -41,7 +41,7 @@ Corpus: the opencode source tree (`packages/core`, `packages/ai`,
 `packages/schema`, `packages/sdk`), copied into a scratch git repo so the
 trigram index sees a normal project.
 
-## Three traps that produce a false result
+## Four traps that produce a false result
 
 1. **`configure` needs `cortexkit_user_config_path`.** The `configure`
    payload takes an absolute path to the user-tier `aft.jsonc`. Without it
@@ -246,3 +246,9 @@ one shape where the semantic lane is meant to win.
 - Use a query set with several acceptable target files per question where
   sibling implementations exist (`migration.ts` and `migration.gen.ts`).
   One strict target per question punishes both arms for the same reason.
+
+## See also
+
+- [Embedding build tuning: token cap, batch size, and provider routing](2026-10-31-embedding-build-tuning.md)
+- [The AFT fused search lane demotes the semantic lane for natural-language queries](../../../../docs/reports/2026-10-31-aft-fused-lane-demotes-semantic-lane.md)
+  — the fusion finding written up as a report to hand to the team

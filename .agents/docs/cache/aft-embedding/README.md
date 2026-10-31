@@ -1,11 +1,12 @@
 # aft-embedding
 
 Facts about the AFT semantic lane and the local embedding-dimensions proxy:
-how the lane is measured, what makes a measurement wrong, and the measured
-effect of the vector width.
+how the lane is measured, what makes a measurement wrong, the build knobs,
+and the measured effect of the vector width.
 
 ## Entries
 
 | Date | Entry | Source | Freshness | Notes |
 |---|---|---|---|---|
 | 2026-10-31 | [Embedding width A/B through the AFT semantic lane](2026-10-31-embedding-width-ab.md) | AFT 0.62.0 source, local embedding-dimensions proxy, opencode source corpus | check 2027-04 | Harness plus query sets live next to this file. Four traps make a run silently wrong: a `configure` payload without `cortexkit_user_config_path` falls back to the fastembed default and returns lexical results only; a query issued while `semantic_status` is not `ready` measures the lexical lane; `semantic.query_timeout_ms` expiring drops the lane and reads as a miss; and `results` is a top-level field. Measured result: 384 versus 512 dimensions is a tie at 50 queries (all p above 0.5), so the live setup stays at 512. The entry also records that the fused lane is mostly lexical, and that AFT's lane weights are pinned in the binary. |
+| 2026-10-31 | [Embedding build tuning: token cap, batch size, and provider routing](2026-10-31-embedding-build-tuning.md) | AFT 0.62.0 source, local embedding-dimensions proxy, erenmin rebuild logs, OpenRouter provider routing | check 2027-04 | Which knob decides what. The token cap sets the chunk length, not the chunk count, so it does not decide build speed (1490 s at 640 tokens against 1457 s at 480 for the same 21,297 chunks). The batch size decides whether a build fails: 80 rows sent 38k tokens per request and hit the 25 s deadline with 6 HTTP 502 resets, 32 rows sent 15k and finished clean, both at 14 chunks per second. The provider quota is the real wall. Records which knobs are in the index fingerprint. |
