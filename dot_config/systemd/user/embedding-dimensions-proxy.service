@@ -5,6 +5,8 @@ After=network-online.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 %h/.shell/helper/embedding_dimensions_proxy.py
+# Default width for callers whose URL carries no width segment. A width
+# in the request path overrides it, and the value stays per caller.
 Environment=EMBEDDING_PROXY_DIMENSIONS=512
 Environment=EMBEDDING_PROXY_PORT=8099
 Environment=EMBEDDING_PROXY_UPSTREAM=https://openrouter.ai/api/v1/embeddings

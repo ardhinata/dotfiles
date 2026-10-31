@@ -40,20 +40,40 @@ def load_module():
 proxy = load_module()
 
 
+def echo_vector(width):
+    """The vector the stub answers with for a requested width."""
+    return [((index + 1) / 10) for index in range(width)]
+
+
 class StubUpstream(BaseHTTPRequestHandler):
-    """Records the last request and answers with one short vector."""
+    """Records the last request and answers with a vector of the asked width.
+
+    "force_width" makes the stub answer with another width, the way a
+    provider that ignores "dimensions" would.
+    """
 
     received: ClassVar[dict] = {}
+    force_width: ClassVar[int] = None
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length") or 0)
+        body = json.loads(self.rfile.read(length))
         StubUpstream.received = {
-            "body": json.loads(self.rfile.read(length)),
+            "body": body,
             "authorization": self.headers.get("Authorization"),
             "path": self.path,
         }
+        width = StubUpstream.force_width or body.get("dimensions", 2)
         payload = json.dumps(
-            {"data": [{"embedding": [0.1, 0.2], "index": 0}], "provider": "DeepInfra"}
+            {
+                "data": [
+                    {
+                        "embedding": echo_vector(width),
+                        "index": 0,
+                    }
+                ],
+                "provider": "DeepInfra",
+            }
         ).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -85,10 +105,14 @@ class ProxyTest(unittest.TestCase):
 
     def setUp(self):
         proxy.PROVIDER = {"only": ["nebius", "deepinfra"], "allow_fallbacks": True}
+        proxy.DIMENSIONS = 1024
+        StubUpstream.force_width = None
 
-    def post(self, body, headers=None):
+    def post(self, body, headers=None, path="/v1/embeddings"):
         request = urllib.request.Request(
-            self.url, data=json.dumps(body).encode(), method="POST"
+            f"http://127.0.0.1:{self.server.server_port}{path}",
+            data=json.dumps(body).encode(),
+            method="POST",
         )
         request.add_header("Content-Type", "application/json")
         for name, value in (headers or {}).items():
@@ -96,12 +120,23 @@ class ProxyTest(unittest.TestCase):
         with urllib.request.urlopen(request, timeout=10) as response:
             return response.status, json.loads(response.read())
 
+    def post_error(self, body, path):
+        """Post to a path that must fail and return its status and payload."""
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            self.post(body, path=path)
+        error = caught.exception
+        try:
+            return error.code, json.loads(error.read())
+        finally:
+            error.close()
+
     def test_injects_dimensions(self):
         status, payload = self.post({"model": "qwen/qwen3-embedding-8b", "input": ["a"]})
         self.assertEqual(200, status)
         self.assertEqual(1024, StubUpstream.received["body"]["dimensions"])
         self.assertEqual(["a"], StubUpstream.received["body"]["input"])
-        self.assertEqual([0.1, 0.2], payload["data"][0]["embedding"])
+        self.assertEqual([0.1, 0.2], payload["data"][0]["embedding"][:2])
+        self.assertEqual(echo_vector(1024), payload["data"][0]["embedding"])
 
     def test_overrides_a_dimensions_value_from_the_caller(self):
         self.post({"model": "m", "input": ["a"], "dimensions": 4096})
@@ -148,6 +183,83 @@ class ProxyTest(unittest.TestCase):
         with urllib.request.urlopen(request, timeout=10) as response:
             self.assertEqual(200, response.status)
         self.assertEqual(1024, StubUpstream.received["body"]["dimensions"])
+
+    def test_serves_the_default_width_on_a_plain_path(self):
+        status, payload = self.post({"model": "m", "input": ["a"]})
+        self.assertEqual(200, status)
+        self.assertEqual(1024, StubUpstream.received["body"]["dimensions"])
+        self.assertEqual(1024, len(payload["data"][0]["embedding"]))
+
+    def test_serves_the_default_width_on_a_salted_path(self):
+        status, payload = self.post(
+            {"model": "m", "input": ["a"]}, path="/salty/v1/embeddings"
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(1024, StubUpstream.received["body"]["dimensions"])
+        self.assertEqual(1024, len(payload["data"][0]["embedding"]))
+
+    def test_serves_the_width_from_the_path(self):
+        status, payload = self.post(
+            {"model": "m", "input": ["a"]}, path="/salty/384/v1/embeddings"
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(384, StubUpstream.received["body"]["dimensions"])
+        self.assertEqual(384, len(payload["data"][0]["embedding"]))
+
+    def test_serves_the_width_from_the_path_without_v1(self):
+        status, payload = self.post(
+            {"model": "m", "input": ["a"]}, path="/salty/384/embeddings"
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(384, StubUpstream.received["body"]["dimensions"])
+        self.assertEqual(384, len(payload["data"][0]["embedding"]))
+
+    def test_overrides_the_caller_width_on_a_width_path(self):
+        self.post(
+            {"model": "m", "input": ["a"], "dimensions": 4096},
+            path="/salty/384/v1/embeddings",
+        )
+        self.assertEqual(384, StubUpstream.received["body"]["dimensions"])
+
+    def test_refuses_a_width_that_is_not_numeric(self):
+        status, payload = self.post_error(
+            {"model": "m", "input": ["a"]}, "/salty/wide/v1/embeddings"
+        )
+        self.assertEqual(400, status)
+        self.assertIn("digits", payload["error"]["message"])
+
+    def test_refuses_a_width_outside_the_range(self):
+        for path in ("/salty/0/v1/embeddings", "/salty/4097/v1/embeddings"):
+            with self.subTest(path=path):
+                status, payload = self.post_error(
+                    {"model": "m", "input": ["a"]}, path
+                )
+                self.assertEqual(400, status)
+                self.assertIn("1 and 4096", payload["error"]["message"])
+
+    def test_refuses_three_path_parts(self):
+        status, payload = self.post_error(
+            {"model": "m", "input": ["a"]}, "/a/b/c/v1/embeddings"
+        )
+        self.assertEqual(400, status)
+        self.assertIn("salt", payload["error"]["message"])
+
+    def test_refuses_a_reply_of_the_wrong_width(self):
+        StubUpstream.force_width = 7
+        status, payload = self.post_error(
+            {"model": "m", "input": ["a"]}, "/salty/384/v1/embeddings"
+        )
+        self.assertEqual(502, status)
+        message = payload["error"]["message"]
+        self.assertIn("384", message)
+        self.assertIn("7", message)
+
+    def test_relays_a_reply_of_the_expected_width(self):
+        status, payload = self.post(
+            {"model": "m", "input": ["a"]}, path="/salty/8/v1/embeddings"
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(8, len(payload["data"][0]["embedding"]))
 
 
 class LoadProviderTest(unittest.TestCase):

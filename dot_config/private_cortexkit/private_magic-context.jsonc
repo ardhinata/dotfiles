@@ -71,14 +71,23 @@
     "provider": "openai-compatible",
     "model": "qwen/qwen3-embedding-8b",
     // The local proxy adds "dimensions" to every request, so the model
-    // returns 512 floats instead of 4096. The plugin sends no dimensions
-    // field of its own. The proxy forwards the Authorization header, so the
-    // API key stays in the environment and never reaches a file.
+    // returns the width the path names instead of 4096. The plugin sends no
+    // dimensions field of its own. The proxy forwards the Authorization
+    // header, so the API key stays in the environment and never reaches a
+    // file.
     // The a91e786a61cc segment is an identity salt. The proxy drops it before
     // the call reaches the provider, but the plugin hashes the endpoint into
     // the embedding identity, so changing the salt re-embeds the memories,
     // the git commits and the history chunks.
-    "endpoint": "http://127.0.0.1:8099/a91e786a61cc/v1",
+    // The 512 segment names the vector width. The proxy serves 512 floats to
+    // this caller. The plugin has no width field of its own and its identity
+    // carries no width, so the width in the path is what makes a width
+    // change a re-embed. Without it the rows would keep the old width and
+    // the cosine score of a length mismatch would be zero, so the memory
+    // lane would return nothing while looking healthy.
+    // The proxy script must be updated and restarted before this URL takes
+    // effect. An older proxy ignores the width segment and serves 512.
+    "endpoint": "http://127.0.0.1:8099/a91e786a61cc/512/v1",
     "api_key": "{env:OPENROUTER_API_OPENCODE_INDEX}",
     // Same cap as the AFT lane. Shrinking the token cap to reduce context
     // dilution.
