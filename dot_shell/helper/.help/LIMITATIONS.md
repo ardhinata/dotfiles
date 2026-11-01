@@ -11,8 +11,7 @@ honest list of what it does and does not defend against.
   come from stdin or interactive prompt only).
 - ✅ **Plaintext tokens in `~/.bash_history` / `~/.zsh_history`** (same
   reason — `shellx store` reads the value via stdin, not argv).
-- ✅ **Plaintext tokens in persistent env** (no `export VAR=value`).
-- ✅ **Plaintext tokens in shell rc files** (no rc writes).
+- ✅ **Plaintext tokens in shell rc files** (the helper never writes to an rc file).
 - ✅ **Plaintext tokens in well-known config paths** (`~/.aws/credentials`,
   `~/.netrc`, `~/.npmrc`, `~/.config/gh/hosts.yml`) — they live only in
   the derived-slug store.
@@ -21,6 +20,18 @@ honest list of what it does and does not defend against.
 - ✅ **Blob-swap attacks** (AAD binds ciphertext to its variable name).
 
 ## What shellx does NOT defend against
+
+### Plaintext tokens in the persistent environment
+
+`shellx env NAME` prints one `export NAME=<value>` line, so a shell that
+sources it holds the value in its environment for the rest of the session.
+Every child process of that shell inherits it, and `/proc/<pid>/environ`
+shows it. The helper exports nothing on its own. The startup file
+`dot_shell/zsh/20-secret-env-load.zsh` asks for one variable by name.
+
+**Mitigations:**
+- Load only the variables that a child process needs.
+- Keep the list short. Each variable costs about 115 ms at shell startup.
 
 ### `/proc/<pid>/environ` of the launched child
 

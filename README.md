@@ -69,9 +69,8 @@ chezmoi init --apply
 ├── .chezmoiexternals/
 │   └── zgenom.yaml             # External source: zgenom (weekly refresh)
 │
-├── .encrypted_data/            # Age-encrypted secret snippets
-│   ├── ejson_store/            # One shared ejson store, one section per machine
-│   └── env_store/              # Profile-scoped encrypted env-var exports
+├── .encrypted_data/            # Source-only secret data
+│   └── env_store/              # shellx exports (age-encrypted JSONC)
 │
 ├── .encryption_keys/           # Age encryption keys
 │   ├── README.md               # Key management documentation
@@ -157,54 +156,40 @@ chezmoi re-encrypt    # Re-encrypt all age files (after adding a recipient)
 
 ### Machine profiles
 
-Per-host profiles control which environment-specific secrets deploy where.
+`.chezmoidata.yaml` holds a free-form profile name for the machine. The
+`shellx` export header records it. The profile does not select secrets.
+Every secret lives in the shellx store under the same variable name on
+every machine.
 
-1. Set the profile in `.chezmoidata.yaml`:
-   ```yaml
-   system_environment:
-     profile: "home"   # or "office", "work-laptop", …
-   ```
-
-2. Create encrypted token files that match the profile name under `.encrypted_data/env_store/`:
-   ```bash
-   printf 'export TOKEN_NAME="secret-value"\n' \
-     | age -e -a -R .encryption_keys/<recipient>.public.key \
-       -o ".encrypted_data/env_store/<profile>_<name>.zsh.age"
-   ```
-
-3. Tokens are decrypted and sourced at shell startup.
-
-### Per-machine secret variables
+### Shell-wide secret variables
 
 The `shellx` store is process-scoped: it injects a secret only into the
 process that asks for it. Some secrets must be present in every shell
-instead. Those live in an ejson store at
-`.encrypted_data/ejson_store/environment.json`, with one section per
-machine.
+instead. The `shellx env` subcommand prints one `export` line per variable,
+and the shell startup file sources it.
 
-```json
-{
-  "_public_key": "<hex>",
-  "_metadata": {},
-  "shiraki-yuki": {
-    "OPENROUTER_API_OPENCODE_INDEX": "EJ[1:...]"
-  }
+```zsh
+# ~/.shell/zsh/20-secret-env-load.zsh
+_shellx_env_load() {
+	local _line
+	_line="$("${SHELL_TOOL_DIR}/helper/shellx" env "$1")" || {
+		print -u2 "shellx: failed to load $1"
+		return 1
+	}
+	eval "$_line"
 }
+_shellx_env_load OPENROUTER_API_OPENCODE_INDEX
 ```
 
-The section name is the machine name. Field names inside a section are the
-environment variable names, and they stay plaintext, so a reviewer sees
-which variables exist for which machine but never the values. Only the
-values are ciphertext.
+`dot_zshrc` sources that file. The helper decrypts on every shell start.
+One variable costs about 115 ms, so keep the list short.
 
-`dot_shell/zsh/private_20-ejson-environment-load.zsh.tmpl` decrypts the
-store at apply time and deploys `~/.shell/zsh/20-ejson-environment-load.zsh`
-at mode `0600`. `dot_zshrc` sources it at shell startup. The template uses
-chezmoi's native `ejsonDecryptWithKey`, so no `ejson` binary is needed at
-apply time.
+The value never rests on disk in plaintext. The previous ejson store
+decrypted at `chezmoi apply` time and left the value in a mode-0600 file
+under `~/.shell/zsh/`.
 
-See `.encrypted_data/ejson_store/README.md` for how to add a secret and
-how to rotate the key.
+Restore the store on a new machine with `shellx import`, as described
+below.
 
 ### Secure environment injection
 

@@ -21,6 +21,7 @@ subcommands=(
   'store:Store a secret (value from stdin)'
   'list:List stored variables'
   'rm:Remove a stored variable'
+  'env:Print export lines for stored variables'
   'export:Export the store to JSONC (encrypted by default)'
   'import:Import a JSONC or .jsonc.age export'
   'run:Run a process with matching secrets injected (enables process-name completion)'
@@ -62,6 +63,12 @@ case $state in
         ret=0
         ;;
       rm)
+        shift 2 words
+        (( CURRENT -= 2 ))
+        _vars
+        ret=0
+        ;;
+      env)
         shift 2 words
         (( CURRENT -= 2 ))
         _vars

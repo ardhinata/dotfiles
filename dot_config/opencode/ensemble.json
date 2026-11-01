@@ -9,6 +9,6 @@
     "modelPool": ["openrouter/minimax/minimax-m3.1-flash", "opencode-go/deepseek-v4.1-flash", "opencode-go/glm-5.3-flash"],
     "modelsByAgent": {
     },
-    "modelAssignment": "default",
+    "modelAssignment": "random",
     "promptForModels": true
 }

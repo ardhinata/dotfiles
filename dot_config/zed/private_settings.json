@@ -38,7 +38,8 @@
     "copy_on_select": true,
     "font_weight": 400.0,
     "font_size": 13.0,
-    "font_family": "Terminess Nerd Font"
+    "font_family": "FiraMono Nerd Font",
+    "font_fallbacks": ["NotoMono Nerd Font", "Terminess Nerd Font Mono"]
   },
   "reveal_if_open": true,
   "cli_default_open_behavior": "new_window",
@@ -85,7 +86,7 @@
       "prediction_debounce": 400,
       "max_tokens": 64
     },
-    "provider": "mercury",
+    "provider": "codestral",
     "mercury": {
       "prediction_debounce": 400
     }

@@ -6,10 +6,10 @@ or:
     python3 -m unittest dot_shell/helper/test_shellx.py
 
 Tests focus on the security-critical surface (ChaCha20, scrypt-derived
-key + AAD, blob-swap attacks, tampering) plus the JSONC parser. They
-require no subprocess, no test framework beyond stdlib `unittest`, and
-no temp files. They do not exercise `cmd_export` / `cmd_import` because
-those shell out to `chezmoi` / `age`.
+key + AAD, blob-swap attacks, tampering) plus the JSONC parser and the
+`env` subcommand. They require no subprocess, no test framework beyond
+stdlib `unittest`, and no temp files. They do not exercise `cmd_export`
+/ `cmd_import` because those shell out to `chezmoi` / `age`.
 
 The script is loaded via `importlib.machinery.SourceFileLoader` because
 the deployed filename has no `.py` extension.
@@ -18,8 +18,10 @@ the deployed filename has no `.py` extension.
 import importlib.machinery
 import importlib.util
 import hashlib
+import io
 import json
 import os
+import shlex
 import struct
 import subprocess
 import sys
@@ -578,6 +580,116 @@ class TestRunSubcommandRouting(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn("shellx run", buf.getvalue())
         self.assertNotIn("proc", self._captured)
+
+
+class TestEnvSubcommand(unittest.TestCase):
+    """`shellx env NAME` prints one `export NAME=<value>` line per name.
+
+    The output is shell source text that a zsh startup file sources. The
+    quoting must keep the value inside one shell word, so the tests check
+    the round trip through POSIX word splitting, which reads the same
+    text the way zsh does.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.store = Path(self._tmp.name)
+        (self.store / ".sl").write_text(shellx._derived_slug() + "\n")
+        self._slug_patcher = unittest.mock.patch.object(
+            shellx, "_resolve_store_path", return_value=str(self.store)
+        )
+        self._slug_patcher.start()
+        # An unknown first argument is routed to exec mode. Fail the test
+        # instead of replacing the test runner with a child process.
+        self._exec_patcher = unittest.mock.patch.object(
+            shellx.os,
+            "execvpe",
+            unittest.mock.MagicMock(side_effect=AssertionError("execvpe called")),
+        )
+        self._exec_patcher.start()
+
+    def tearDown(self):
+        self._exec_patcher.stop()
+        self._slug_patcher.stop()
+        self._tmp.cleanup()
+
+    def _store(self, var, value):
+        slug = shellx._read_slug()
+        blob = shellx.encrypt_blob(shellx._static_pw(), var, value.encode())
+        (self.store / shellx._blob_name(var, slug)).write_bytes(blob)
+        idx = shellx._read_idx()
+        idx[var] = {
+            "tag": [],
+            "process": [],
+            "updated": "2026-01-01T00:00:00+00:00",
+        }
+        shellx._write_idx(idx)
+
+    def _run_env(self, *names):
+        class _Out:
+            def __init__(self):
+                self.buffer = io.BytesIO()
+
+            def write(self, s):
+                return len(s)
+
+            def flush(self):
+                pass
+
+        out = _Out()
+        err = io.StringIO()
+        with unittest.mock.patch.object(shellx.sys, "stdout", out), \
+                unittest.mock.patch.object(shellx.sys, "stderr", err):
+            try:
+                rc = shellx.main(["env", *names])
+            except SystemExit as e:
+                rc = e.code
+        return rc, out.buffer.getvalue().decode("utf-8"), err.getvalue()
+
+    def test_env_prints_export_line(self):
+        self._store("PLAIN", "simple")
+        rc, out, err = self._run_env("PLAIN")
+        self.assertEqual(rc, 0)
+        self.assertEqual(out, "export PLAIN=simple\n")
+        self.assertEqual(err, "")
+
+    def test_env_value_stays_one_shell_word(self):
+        awkward = "it's $HOME `id` $(id) \"q\" ;rm -rf /tmp/x\nsecond\tline"
+        self._store("AWKWARD", awkward)
+        rc, out, _ = self._run_env("AWKWARD")
+        self.assertEqual(rc, 0)
+        words = shlex.split(out)
+        self.assertEqual(len(words), 2)
+        self.assertEqual(words[0], "export")
+        self.assertEqual(words[1], "AWKWARD=" + awkward)
+
+    def test_env_empty_value(self):
+        self._store("EMPTY", "")
+        rc, out, _ = self._run_env("EMPTY")
+        self.assertEqual(rc, 0)
+        self.assertEqual(shlex.split(out), ["export", "EMPTY="])
+
+    def test_env_multiple_names(self):
+        self._store("ONE", "1")
+        self._store("TWO", "2")
+        rc, out, _ = self._run_env("ONE", "TWO")
+        self.assertEqual(rc, 0)
+        self.assertEqual(out, "export ONE=1\nexport TWO=2\n")
+
+    def test_env_missing_variable_fails(self):
+        rc, out, err = self._run_env("NOPE")
+        self.assertEqual(rc, 2)
+        self.assertEqual(out, "")
+        self.assertIn("no such variable", err)
+
+    def test_env_invalid_name_fails(self):
+        rc, _out, err = self._run_env("BAD-NAME")
+        self.assertEqual(rc, 2)
+        self.assertIn("invalid variable name", err)
+
+    def test_env_requires_a_name(self):
+        rc, _out, _err = self._run_env()
+        self.assertEqual(rc, 2)
 
 
 if __name__ == "__main__":

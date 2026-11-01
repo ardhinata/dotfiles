@@ -7,6 +7,13 @@ All notable changes to `shellx` are documented here. Format follows
 
 ### Added
 
+- **`shellx env NAME` subcommand.** Prints one `export NAME=<value>` line
+  per variable, for a shell startup file that sources it. The value is
+  quoted with `shlex.quote`, so spaces, quotes, `$`, backticks, and
+  newlines stay inside one shell word. The helper writes the value to
+  stdout as bytes, so a non-UTF-8 secret survives. A missing variable
+  exits with code 2, an undecryptable blob with code 3.
+
 - **`SHELLX_VARS` env var injected alongside `RUNPRIV_VARS`.** When
   `cmd_exec` injects matching secrets into the launched process, it now
   sets `SHELLX_VARS` to the same comma-separated list of injected

@@ -256,7 +256,7 @@ not line 49.
 | `dot_shell/zsh/12-gpg.zsh` | post-zgenom | Owns GPG_TTY lifecycle. Replaces prezto's disabled gpg module's `export GPG_TTY=$TTY` + UPDATESTARTUPTTY. Has a preexec hook for just-in-time tty refresh (alacritty reassigns controlling tty mid-startup). |
 | `dot_shell/zsh/15-zgenom-helper-func.zsh` | helper | `zgenom_refresh_cache`: clears `.zwc` + prezto `zcompdump` + `zgenom reset`. |
 | `dot_p10k.zsh` | p10k | User prompt config (~87 KB). Sourced last (`dot_zshrc:82`). **Never run `p10k configure`** — it overwrites. |
-| `dot_shell/zsh/20-ejson-environment-load.zsh` | post-zgenom | Loads the ejson secret store into the environment. Sourced at `dot_zshrc:79`. Runs only in an interactive session, so a desktop-launched app has no key. |
+| `dot_shell/zsh/20-secret-env-load.zsh` | post-zgenom | Loads shell-wide secrets from the shellx store with `shellx env`. Sourced at `dot_zshrc:79`. Runs only in an interactive session, so a desktop-launched app has no key. Costs about 115 ms per shell start. |
 | `dot_shell/zsh/completions/` | completion | Custom `#compdef` functions (e.g. `_runpriv`). fpath-prepended by `00-before-zgenom.zsh`. |
 
 ## Reference files

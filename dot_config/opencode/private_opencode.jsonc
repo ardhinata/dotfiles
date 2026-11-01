@@ -3,23 +3,15 @@
   "shell": "/usr/bin/bash",
   "username": "ardhinata",
   "plugins": [
-    // Plugin order decides load order, so it decides hook order for hooks that
-    // several plugins share. See the note below the array.
-    //
-    // Pin every version. An unpinned specifier is cached on first install and
-    // never updates, which is how cc-safety-net sat at 2.6.19 while npm had
-    // 2.7.0. `opencode plugin check` shows what is behind.
     "cc-safety-net@latest",
     "@cortexkit/aft-opencode@latest",
     "@cortexkit/opencode-magic-context@latest",
     "opencode-handoff@latest",
     "@dietrichgebert/ponytail@latest",
     "@hueyexe/opencode-ensemble@latest",
-    // Removals last. A builtin id matches at any position, so this is for
-    // readability, not for effect. AFT owns the shell tool and the hashline
-    // edit path, so the builtin shell and patch tools go.
     "-opencode.tool.shell",
     "-opencode.tool.patch",
+    "@upstash/context7-opencode@latest"
   ],
   "instructions": [
     "~/.agents/rules/*.md",

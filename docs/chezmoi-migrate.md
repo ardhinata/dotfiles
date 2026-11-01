@@ -243,7 +243,8 @@ Post-apply state on the remote:
 | `~/.shell/zgenom/` | cloned by `chezmoiscripts` |
 | `~/.shell/zsh/` | project `dot_shell/zsh/` prezto/zgenom init stack |
 | `~/.shell/helper/` | project `dot_shell/helper/` shellx + runpriv |
-| `~/.shell/store/` | shellx encrypted store (empty; populated by `shellx import`) |
+| `~/.shell/store/` | legacy runpriv JSON store, not the shellx store |
+| `~/.local/share/<slug>/` | shellx encrypted store (populated by `shellx import`) |
 | `~/.config/alacritty/`, `~/.config/opencode/`, etc. | project `dot_config/` |
 | `~/.tmux.conf`, `~/.tmux/` (tpm plugins) | project `dot_tmux.conf` + cloned tpm |
 | `.chezmoiscripts/` | run on apply; `init-shellx-store.sh` set up `~/.local/share/`, bytecode-compiled shellx |

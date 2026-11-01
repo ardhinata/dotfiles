@@ -3,8 +3,9 @@
 `shellx` is the replacement for the legacy `runpriv` / `encrypt_store.sh`
 helpers. It stores environment-variable secrets (API tokens, deploy keys,
 etc.) encrypted at rest and injects them into a target process only at the
-moment of launch, so they never appear in your shell history, your
-persistent env, or your shell rc files.
+moment of launch, so they never appear in your shell history or your shell
+rc files. The `env` subcommand is the one exception. It prints an `export`
+line for a shell startup file that asks for a variable by name.
 
 The threat model is **cheap static analysis and signature-based scans** by
 basic infostealers or rogue user-level processes: greps over `~` for
@@ -57,6 +58,7 @@ shellx import "$(ls -t ~/.local/share/chezmoi/.encrypted_data/env_store/encrypte
 | `shellx store VAR --tag=a,b --process=x,y` | Encrypt value from stdin → blob + idx entry. |
 | `shellx list` | Print `VAR → tags/processes/updated`. |
 | `shellx rm VAR` | Remove blob + idx line. |
+| `shellx env VAR [VAR…]` | Print one `export VAR=<value>` line per variable, for a shell startup file. The value is quoted, so it stays one shell word. |
 | `shellx export [--to DIR] [--label LABEL] [--no-encrypt]` | Generate JSONC, pipe through `chezmoi encrypt` to `<source>/.encrypted_data/env_store/encrypted_*.jsonc.age`. |
 | `shellx import PATH [--to DIR] [--slug S] [--force] [--dry-run]` | `chezmoi decrypt` + parse JSONC, re-encrypt into the live store. |
 | `shellx --tag=a,b -- proc args…` | Exec `proc` with secrets matching any tag in `a,b` injected. |

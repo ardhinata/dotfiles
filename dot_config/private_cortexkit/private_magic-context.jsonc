@@ -87,7 +87,7 @@
     // lane would return nothing while looking healthy.
     // The proxy script must be updated and restarted before this URL takes
     // effect. An older proxy ignores the width segment and serves 512.
-    "endpoint": "http://127.0.0.1:8099/a91e786a61cc/512/v1",
+    "endpoint": "http://127.0.0.1:8099/a91e786a61cc/768/v1",
     "api_key": "{env:OPENROUTER_API_OPENCODE_INDEX}",
     // Same cap as the AFT lane. Shrinking the token cap to reduce context
     // dilution.

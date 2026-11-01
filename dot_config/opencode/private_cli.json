@@ -14,7 +14,8 @@
     "acceleration": true
   },
   "debug": {
-    "devtools": true
+    "devtools": true,
+    "turn_tokens": true
   },
   "theme": {
     "name": "opencode2"

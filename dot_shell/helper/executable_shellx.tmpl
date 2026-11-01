@@ -13,6 +13,7 @@ import json
 import os
 import re
 import secrets
+import shlex
 import socket
 import struct
 import subprocess
@@ -384,6 +385,41 @@ def cmd_rm(args) -> int:
         del idx[args.var]
         _write_idx(idx)
     print(f"removed {args.var}")
+    return 0
+
+
+def cmd_env(args) -> int:
+    """Print `export NAME=<value>` lines for the named variables.
+
+    The output is shell source text. Each value is quoted with shlex.quote,
+    so spaces, quotes, `$`, backticks, and newlines stay inside one word.
+    """
+    if not args.names:
+        _die("env requires at least one variable name", code=2)
+    slug = _read_slug()
+    idx = _read_idx()
+    lines = []
+    for var in args.names:
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", var):
+            _die(f"invalid variable name: {var}", code=2)
+        if var not in idx:
+            _die(f"no such variable: {var}", code=2)
+        blob_path = os.path.join(_slug_path(), _blob_name(var, slug))
+        if not os.path.exists(blob_path):
+            _die(f"missing blob for {var}", code=2)
+        with open(blob_path, "rb") as f:
+            blob = f.read()
+        try:
+            pt = decrypt_blob(_static_pw(), var, blob)
+        except ValueError as e:
+            _die(f"failed to decrypt {var}: {e}", code=3)
+        val = pt.decode("utf-8", errors="surrogateescape")
+        lines.append("export %s=%s" % (var, shlex.quote(val)))
+        val = "\x00" * len(val)
+        blob = b"\x00" * len(blob)
+    sys.stdout.buffer.write(
+        ("\n".join(lines) + "\n").encode("utf-8", errors="surrogateescape")
+    )
     return 0
 
 
@@ -782,6 +818,10 @@ def _build_parser() -> argparse.ArgumentParser:
     sp.add_argument("var")
     sp.set_defaults(func=cmd_rm)
 
+    sp = sub.add_parser("env", help="Print export lines for stored variables")
+    sp.add_argument("names", nargs="+", help="Variable names to print")
+    sp.set_defaults(func=cmd_env)
+
     sp = sub.add_parser(
         "export",
         help="Export the store to an age-encrypted JSONC file in the chezmoi source tree",
@@ -846,6 +886,7 @@ def main(argv: list) -> int:
             "store",
             "list",
             "rm",
+            "env",
             "export",
             "import",
             "run",
