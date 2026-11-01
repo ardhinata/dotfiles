@@ -46,6 +46,7 @@ skill or rule file, with the cache entry as the evidence behind it.
 | [document-conventions](document-conventions/README.md) | Which document rules are standard, and which citations were wrong | 1 |
 | [opencode-harness](opencode-harness/README.md) | How the OpenCode harness and its plugins behave | 2 |
 | [pinentry](pinentry/README.md) | gpg-agent's pinentry extension point and the wrapper pattern | 1 |
+| [shellx-security](shellx-security/README.md) | The shellx store: how the master secret is held and what protects it | 1 |
 | [ssh](ssh/README.md) | Reusable SSH client facts for this host | 1 |
 
 ## Related
