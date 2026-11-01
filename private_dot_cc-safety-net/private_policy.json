@@ -17,21 +17,13 @@
       "git.restore-unstaged": "off",
       "git.rebase-abort": "off",
       "git.merge-abort": "off",
-      "rm.recursive-force-outside-cwd": "off",
       "find.delete": "off"
     },
     "allow_paths": []
   },
   "secret_protection": {
     "enabled": true,
-    "overrides": {
-      "secret.basename.env": "off",
-      "secret.pattern.env-variant": "off",
-      "secret.ext.asc": "off",
-      "secret.ext.ovpn": "off",
-      "secret.ext.pem": "off",
-      "secret.ext-pattern.key": "off"
-    },
+    "overrides": {},
     "deny_paths": [],
     "allow_paths": [
       "~/.ssh/config",

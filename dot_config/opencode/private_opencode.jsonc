@@ -39,23 +39,28 @@
     // --hard`, `git clean -fd`, `git push --force`, `git push -f`, `rm -rf /`,
     // and `rm -rf ~`. One owner per command class.
     //
+    // Only the catastrophic paths stay here: the filesystem root and the
+    // home directory. Both are blocked by cc-safety-net as well, so these
+    // rules are the backup for a disabled plugin.
+    //
+    // Every other recursive delete is left to cc-safety-net
+    // (`rm.recursive-force-outside-cwd`) and to the personal
+    // `destructive-actions.md` rule. A path outside the working directory
+    // needs the user's approval. A path inside it does not. The temporary
+    // roots `/tmp` and `/var/tmp` count as scratch space.
+    //
     // The patterns are path-anchored on purpose. The shell scanner pulls
     // words out of quoted strings, so a looser `*rm -*rf*` also denies any
     // command whose text merely mentions `rm -rf`, such as a commit message
-    // that documents this rule. An absolute path, `~/`, `./`, or `../` after
-    // the flag is what marks a real deletion.
+    // that documents this rule.
     //
     // A bare relative name (`rm -rf build`) is not caught here. It is not
     // distinguishable from quoted text, so the `destructive-actions.md` rule
     // covers it.
-    { "action": "shell", "resource": "rm -*rf /*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*rf /", "effect": "deny" },
     { "action": "shell", "resource": "rm -*rf ~*", "effect": "deny" },
-    { "action": "shell", "resource": "rm -*rf ./*", "effect": "deny" },
-    { "action": "shell", "resource": "rm -*rf ../*", "effect": "deny" },
-    { "action": "shell", "resource": "rm -*fr /*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -*fr /", "effect": "deny" },
     { "action": "shell", "resource": "rm -*fr ~*", "effect": "deny" },
-    { "action": "shell", "resource": "rm -*fr ./*", "effect": "deny" },
-    { "action": "shell", "resource": "rm -*fr ../*", "effect": "deny" },
   ],
   "snapshots": true,
   "watcher": {
