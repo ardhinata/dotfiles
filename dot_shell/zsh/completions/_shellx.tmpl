@@ -24,6 +24,7 @@ subcommands=(
   'env:Print export lines for stored variables'
   'export:Export the store to JSONC (encrypted by default)'
   'import:Import a JSONC or .jsonc.age export'
+  'key:Manage the master key (status, store, move, clear)'
   'run:Run a process with matching secrets injected (enables process-name completion)'
   'help:Show usage'
 )
@@ -88,6 +89,12 @@ case $state in
         else
           _files -g '*.jsonc *.json *.age'
         fi
+        ret=0
+        ;;
+      key)
+        shift 2 words
+        (( CURRENT -= 2 ))
+        compadd -Q -- 'status' 'store' 'move' 'clear'
         ret=0
         ;;
       run)

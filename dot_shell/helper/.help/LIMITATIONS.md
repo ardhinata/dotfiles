@@ -15,8 +15,9 @@ honest list of what it does and does not defend against.
 - ✅ **Plaintext tokens in well-known config paths** (`~/.aws/credentials`,
   `~/.netrc`, `~/.npmrc`, `~/.config/gh/hosts.yml`) — they live only in
   the derived-slug store.
-- ✅ **Offline brute force of the on-disk ciphertext** (scrypt 2¹⁵/8/1
-  ≈ 32 MiB per attempt).
+- ✅ **Offline brute force of the on-disk ciphertext** (the master key is
+  64 random characters, so a guess costs a derivation; a version 1 blob
+  costs an scrypt 2¹⁵/8/1 ≈ 32 MiB attempt).
 - ✅ **Blob-swap attacks** (AAD binds ciphertext to its variable name).
 
 ## What shellx does NOT defend against
@@ -31,7 +32,7 @@ shows it. The helper exports nothing on its own. The startup file
 
 **Mitigations:**
 - Load only the variables that a child process needs.
-- Keep the list short. Each variable costs about 115 ms at shell startup.
+- Keep the list short. Each variable costs about 41 ms at shell startup.
 
 ### `/proc/<pid>/environ` of the launched child
 
@@ -57,14 +58,24 @@ hardware enclave (SGX, TrustZone, etc.) — `shellx` is no exception.
 
 ### Live memory dump of `shellx` itself
 
-`shellx` does its best to scrub plaintext buffers with `b"\x00" * len`,
-but Python's GC may have copied the bytes to internal buffers (string
-interning, etc.) that we cannot reliably overwrite. CPython also does
-not provide `mlock(2)` in the stdlib.
+`shellx` rebinds the plaintext names to zero-filled copies, but Python's
+GC may have copied the bytes to internal buffers (string interning, etc.)
+that we cannot reliably overwrite. CPython also does not provide
+`mlock(2)` in the stdlib.
 
 **Implication:** while `shellx` is decrypting a blob (a few hundred ms),
 the plaintext briefly exists in the process heap. A concurrent attacker
 with `/proc/<shellx-pid>/mem` access could read it.
+
+### The master key on disk
+
+The master key lives in `~/.local/share/shellx/master.key`, mode 0600,
+rendered by `chezmoi apply`. A process with the same user id can read it,
+and so can any infostealer that walks the home directory as that user.
+`shellx key move` copies the key into the platform secret store and
+removes the file, so a file scanner never sees it. The secret store is
+reachable by any process of the same user, so this raises the bar for a
+naive scanner, not for a determined one.
 
 ### Malware already inside the child process
 
@@ -109,9 +120,9 @@ profile-name entropy.
 
 As of **shellx 1.5.0**, `STATIC_PW` is a SHA-256 hash of
 `"com.ardju.utils:shellx:" + <nonce>` — profile is no longer part of
-the derivation at all. The deployed script embeds the 64-char hex
-digest; the nonce itself is not visible in `~/.shell/helper/shellx`.
-The attacker must crack scrypt to recover the preimage.
+the derivation at all. As of **shellx 1.6.0** the deployed script holds
+no digest at all: the key lives in `~/.local/share/shellx/master.key`
+with mode 0600, or in the platform secret store.
 
 ### Cross-tool keyspace collision
 

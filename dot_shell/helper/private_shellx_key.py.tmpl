@@ -1,0 +1,173 @@
+# shellx_key — the master key resolution and the store slug.
+#
+# The master key is not embedded in any shellx file. It is resolved at
+# runtime, in this order:
+#
+#   1. the SHELLX_MASTER_KEY environment variable, for tests and for a
+#      one-off recovery run
+#   2. the SHELLX_NONCE environment variable, a test-only override that
+#      derives the key from a nonce
+#   3. ~/.local/share/shellx/master.key, which `chezmoi apply` renders
+#      from the nonce in the chezmoi config
+#   4. the platform secret store: the macOS login Keychain through
+#      `security`, or libsecret through `secret-tool` elsewhere
+#
+# The secret store and the key file hold the same value. The file is the
+# bootstrap and the recovery path. The secret store is the steady state
+# for a host that wants the key out of the filesystem, because a file
+# scanner never sees it. The file comes first in the lookup order because
+# it costs a plain read, while the secret store costs a subprocess call.
+#
+# The key is `sha256sum("com.ardju.utils:shellx:<nonce>")`, where the
+# nonce is `.system_environment.nonce` from `.chezmoi.yaml.tmpl`. The
+# `com.ardju.utils:<tool>:` reverse-DNS namespace is per-tool, so each
+# tool that derives from the shared nonce picks its own namespace string
+# and the hash domains stay disjoint.
+
+import hashlib
+import os
+import sys
+
+SHELLX_MASTER_KEY_ENV = "SHELLX_MASTER_KEY"
+SHELLX_NONCE_ENV = "SHELLX_NONCE"
+SHELLX_KEY_FILE = os.path.join(
+    os.path.expanduser("~"), ".local", "share", "shellx", "master.key"
+)
+SHELLX_KEY_STORE_SERVICE = "shellx"
+SHELLX_KEY_STORE_ACCOUNT = "master"
+# A key shorter than this is treated as a passphrase, and its blobs get the
+# slow key derivation. The chezmoi nonce is 64 random characters, so the
+# rendered key is far above the threshold.
+SHELLX_KEY_MIN_LENGTH = 32
+
+
+def resolve_nonce() -> str:
+    """Return the test-only nonce override, or an empty string."""
+    return os.environ.get(SHELLX_NONCE_ENV, "").strip()
+
+
+def derive_from_nonce(nonce: str) -> str:
+    """Derive the master key from a nonce."""
+    return hashlib.sha256(
+        f"com.ardju.utils:shellx:{nonce}".encode()
+    ).hexdigest()
+
+
+def platform_store_cmd(mode: str = "read") -> list:
+    """Return the command that reads from, writes to, or clears the platform
+    secret store.
+
+    On macOS the store is the login Keychain, reached through `security`.
+    Elsewhere the store is libsecret, reached through `secret-tool`.
+    """
+    if sys.platform == "darwin":
+        if mode == "write":
+            # `-X` reads the value from stdin as hex, so the key never
+            # appears in the process arguments.
+            return [
+                "security",
+                "add-generic-password",
+                "-U",
+                "-s",
+                SHELLX_KEY_STORE_SERVICE,
+                "-a",
+                SHELLX_KEY_STORE_ACCOUNT,
+                "-X",
+            ]
+        if mode == "clear":
+            return [
+                "security",
+                "delete-generic-password",
+                "-s",
+                SHELLX_KEY_STORE_SERVICE,
+                "-a",
+                SHELLX_KEY_STORE_ACCOUNT,
+            ]
+        return [
+            "security",
+            "find-generic-password",
+            "-w",
+            "-s",
+            SHELLX_KEY_STORE_SERVICE,
+            "-a",
+            SHELLX_KEY_STORE_ACCOUNT,
+        ]
+    if mode == "write":
+        return [
+            "secret-tool",
+            "store",
+            "--label=shellx master key",
+            "service",
+            SHELLX_KEY_STORE_SERVICE,
+            "key",
+            SHELLX_KEY_STORE_ACCOUNT,
+        ]
+    if mode == "clear":
+        return [
+            "secret-tool",
+            "clear",
+            "service",
+            SHELLX_KEY_STORE_SERVICE,
+            "key",
+            SHELLX_KEY_STORE_ACCOUNT,
+        ]
+    return [
+        "secret-tool",
+        "lookup",
+        "service",
+        SHELLX_KEY_STORE_SERVICE,
+        "key",
+        SHELLX_KEY_STORE_ACCOUNT,
+    ]
+
+
+def platform_store_read() -> str | None:
+    """Read the master key from the platform secret store.
+
+    Returns None when the platform has no secret store, the store holds no
+    key, or the lookup fails. The lookup does not block for long: a locked
+    store returns an error instead of a prompt.
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            platform_store_cmd("read"),
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
+def key_file_read() -> str | None:
+    """Read the master key from the chezmoi-rendered key file."""
+    try:
+        with open(SHELLX_KEY_FILE) as f:
+            return f.read().strip() or None
+    except OSError:
+        return None
+
+
+def master_key() -> str | None:
+    """Return the master key, or None when it is not available."""
+    override = os.environ.get(SHELLX_MASTER_KEY_ENV, "").strip()
+    if override:
+        return override
+    nonce = resolve_nonce()
+    if nonce:
+        return derive_from_nonce(nonce)
+    return key_file_read() or platform_store_read()
+
+
+def store_slug(key: str) -> str:
+    """Return the store slug for a master key.
+
+    The store path is derived from the master key, so every shellx
+    operation needs the key.
+    """
+    return hashlib.blake2b(key.encode(), digest_size=16).hexdigest()

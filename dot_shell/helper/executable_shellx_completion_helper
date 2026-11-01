@@ -9,30 +9,31 @@
 #   shellx_completion_helper vars          # all variable names
 #
 # Exits silently (rc 0) if the store is not initialized.
+#
+# The master key is not embedded here. It comes from `shellx_key`, the
+# module that holds the key resolution for every shellx helper.
 
-import hashlib
-import json
 import os
 import sys
 
-# Mirrors executable_shellx's slug derivation: blake2b(STATIC_PW)[:16].hex().
-# STATIC_PW is injected by chezmoi at apply time as
-#   sha256sum("com.ardju.utils:shellx:" + nonce)
-# — same derivation as the main shellx script. Keeping the helper
-# self-contained (no shellx import) avoids a Python-level cycle.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-SHELLX_STATIC_PW = "{{- printf "%s%s" "com.ardju.utils:shellx:" .system_environment.nonce | sha256sum -}}"
-
-
-def _derived_slug() -> str:
-    return hashlib.blake2b(SHELLX_STATIC_PW.encode(), digest_size=16).hexdigest()
+try:
+    from shellx_key import master_key, store_slug
+except Exception:
+    # The key module is private to the owner. Another user gets no
+    # completion, which is the same as an uninitialized store.
+    sys.exit(0)
 
 
 def main():
     if len(sys.argv) < 2:
         sys.exit(0)
     kind = sys.argv[1]
-    store = os.path.join(os.path.expanduser("~/.local/share"), _derived_slug())
+    key = master_key()
+    if not key:
+        sys.exit(0)
+    store = os.path.join(os.path.expanduser("~/.local/share"), store_slug(key))
     if not os.path.isdir(store):
         sys.exit(0)
     idx_path = os.path.join(store, ".idx")

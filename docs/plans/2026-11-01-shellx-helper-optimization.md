@@ -49,6 +49,47 @@ Measured on 2026-11-01 with `shellx env NAME` against the real store.
 The store holds 16 blobs. Each blob carries its own random salt, so the KDF
 runs once per secret. Sixteen secrets in one call cost 1254.9 ms.
 
+### After the work
+
+Measured on 2026-11-02 with the deployed helper, median of 15 runs.
+
+| Case | Before | After |
+|---|---|---|
+| One secret | 140.0 ms | 41.0 ms |
+| All 16 secrets | 1254.9 ms | 44.0 ms |
+
+The cost is now nearly flat in the number of secrets. Twenty scratch
+environments with 1, 2, 4, 8 and 16 secrets each all measured between
+40.4 ms and 41.3 ms for a single secret, and between 40.8 ms and 43.4 ms
+for the whole store.
+
+| Part | Before | After |
+|---|---|---|
+| Key derivation, one secret | 72.7 ms | 0.14 ms |
+| Import of the stdlib modules | 21.7 ms | 9.3 ms |
+| Compile of the source | 7.2 ms | 0, the cached bytecode is reused |
+| Interpreter start and spawn | 11.3 ms | 11.3 ms |
+| Argparse parser build | 1.1 ms | 1.1 ms |
+
+## Decisions
+
+1. Correctness, then performance, then security. The order comes from the
+   owner.
+2. A missing master key exits with code 4 for every shellx operation,
+   including the exec path. The zsh startup loader downgrades that to a
+   warning on stderr, so a missing secret never blocks the login.
+3. The platform secret store is used where it exists: the macOS login
+   Keychain through `security`, and libsecret through `secret-tool` on
+   Linux. The key file stays the normal source, because it costs a plain
+   read, while the secret store costs a subprocess call. `shellx key move`
+   moves the key into the secret store and removes the file.
+4. The key derivation changes. The master key is 64 random characters, so
+   the slow derivation protects nothing.
+5. The KDF change needs a blob version dispatch and a migration, so it
+   lands after the correctness fixes.
+6. The launcher split waits for the master secret detachment, so the
+   secret never lands in two files at once.
+
 ## Steps
 
 ### Step 1 — Deploy the committed change
@@ -224,15 +265,15 @@ secret is lost.
 
 | Step | Priority | State | Blocked by |
 |---|---|---|---|
-| 1. Deploy the committed change | correctness | pending | needs the user's apply |
-| 2. Fix `shellx import --to` | correctness | pending | |
-| 3. Close the temp-file window | correctness | pending | |
-| 4. Remove the no-op bytecode step | correctness | pending | |
-| 5. Cover the untested paths | correctness | pending | |
-| 6. Take the interpreter savings | performance | pending | part 3 waits for step 8 |
-| 7. Change the KDF | performance | pending | step 2, because the migration uses `import` |
-| 8. Detach the master secret | security | pending | |
-| 9. Retire the runpriv triple | security | pending | needs the user's approval |
+| 1. Deploy the committed change | correctness | done | |
+| 2. Fix `shellx import --to` | correctness | done | |
+| 3. Close the temp-file window | correctness | done | |
+| 4. Remove the no-op bytecode step | correctness | done | |
+| 5. Cover the untested paths | correctness | open | the `RESTRICTED` mode and the login shell |
+| 6. Take the interpreter savings | performance | done | the launcher split is measured separately |
+| 7. Change the KDF | performance | done | the 16 blob migration is still open |
+| 8. Detach the master secret | security | done | |
+| 9. Retire the runpriv triple | security | open | needs the owner's approval |
 
 ## Decisions
 
@@ -257,12 +298,7 @@ secret is lost.
 
 ## Open questions
 
-1. When the master secret is missing, should the shell startup fail closed
-   or print a warning and continue?
-2. Is the kernel keyring layer worth it? A process with the same user id can
-   read both the `0600` file and the keyring.
-3. Should the KDF change happen at all, given that the master secret will
-   move to a `0600` file or the keyring either way?
+None. The owner answered all three on 2026-11-02.
 
 ## Related
 

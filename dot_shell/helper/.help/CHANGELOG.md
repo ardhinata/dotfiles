@@ -14,6 +14,11 @@ All notable changes to `shellx` are documented here. Format follows
   stdout as bytes, so a non-UTF-8 secret survives. A missing variable
   exits with code 2, an undecryptable blob with code 3.
 
+- **`shellx key` subcommand.** `status` prints where the master key comes
+  from and a fingerprint, never the key. `store` copies the key into the
+  platform secret store. `move` also removes the key file. `clear`
+  removes the key from the secret store.
+
 - **`SHELLX_VARS` env var injected alongside `RUNPRIV_VARS`.** When
   `cmd_exec` injects matching secrets into the launched process, it now
   sets `SHELLX_VARS` to the same comma-separated list of injected
@@ -21,6 +26,55 @@ All notable changes to `shellx` are documented here. Format follows
   backward compatibility with consumers written before shellx 1.x.
   Prefer `SHELLX_VARS` in new code; treat `RUNPRIV_VARS` as the legacy
   alias.
+
+## [1.6.0] — 2026-11-02
+
+### Added
+
+- **The master key is no longer embedded in the helper.** It is derived at
+  apply time into `~/.local/share/shellx/master.key`, mode 0600, and read
+  at runtime. The platform secret store is the fallback: the macOS login
+  Keychain through `security`, or libsecret through `secret-tool`. The
+  lookup order is the environment override, the test-only nonce override,
+  the key file, then the secret store. The key file comes first because it
+  costs a plain read, while the secret store costs a subprocess call.
+- **Blob version 2.** The per-blob keys are derived with HMAC-SHA512 over
+  the blob salt instead of scrypt. The version byte selects the
+  derivation, so version 1 blobs written by an older shellx still
+  decrypt. A master key shorter than 32 characters still gets scrypt,
+  because a passphrase needs stretching.
+- **The helper has mode 0700.** The source file carries the
+  `private_executable_` attributes, so no other user can read it.
+
+### Changed
+
+- **A missing master key exits with code 4.** Every command needs the
+  key, because the store path is derived from it. The zsh startup loader
+  turns that into a warning on stderr, so a missing secret never blocks
+  the login.
+- **The cold-path imports are lazy.** `getpass`, `secrets`, `socket`,
+  `subprocess` and `datetime` are imported inside the functions that need
+  them. A shell startup reads one secret, and the import of those modules
+  cost more than the decryption itself.
+
+### Fixed
+
+- **`shellx import --to DIR` wrote the index into the live store.** The
+  blobs went to the target directory while the index went to the live
+  store, so the live index named blobs that the live store did not hold.
+  The index now belongs to the target directory.
+- **The import counters were wrong.** With `--force`, every entry was
+  counted as updated, because the check ran after the index was written.
+- **The temporary files had a mode window.** The index and the blobs were
+  created with the default mode and chmod-ed afterwards. They are now
+  created with mode 0600 from the start.
+
+### Removed
+
+- **The bytecode-compile step in the post-apply hook.** Python never
+  reads a `.pyc` for a script that runs as `__main__`, so the step
+  changed no timing. Its only effect was a second world-readable copy of
+  the master key.
 
 ## [1.5.0] — 2026-08-24
 

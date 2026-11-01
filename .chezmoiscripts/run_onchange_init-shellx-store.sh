@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Idempotent post-apply hook: ensure ~/.local/share/ exists for the shellx store,
-# and bytecode-compile the deployed shellx for fast cold start.
+# and keep the store files private.
 # Re-runs only when this file changes (chezmoi's run_onchange_ behavior).
 set -euo pipefail
 {
@@ -20,13 +20,22 @@ set -euo pipefail
     fi
   fi
 
-  # Bytecode-compile the deployed shellx so subsequent Python starts reuse
-  # the parsed AST (saves ~20–30 ms on cold start). Pycache is written
-  # under __pycache__/ next to the script; .chezmoiignore already excludes
-  # that pattern, so it never gets re-deployed or checked in.
-  SHELLX_DEPLOY="${HOME}/.shell/helper/shellx"
-  if [ -f "${SHELLX_DEPLOY}" ]; then
-    python3 -m py_compile "${SHELLX_DEPLOY}" 2>/dev/null || true
+  # The master key file holds the shellx master key. It is rendered by
+  # chezmoi with mode 0600. The check keeps the mode after a manual copy.
+  KEY_FILE="${HOME}/.local/share/shellx/master.key"
+  if [ -f "${KEY_FILE}" ]; then
+    chmod 600 "${KEY_FILE}"
+  fi
+
+  # Stale bytecode from the pre-1.6.0 deployment embeds the master key.
+  # The current helpers keep no secret in their source, so their bytecode
+  # is harmless. The two files below belong to helpers that no longer
+  # exist in that shape.
+  PYCACHE="${HOME}/.shell/helper/__pycache__"
+  if [ -d "${PYCACHE}" ]; then
+    find "${PYCACHE}" -maxdepth 1 -type f \
+      \( -name 'shellxcpython-*.pyc' -o -name 'shellx_completion_helpercpython-*.pyc' \) \
+      -delete
   fi
 } 2>&1
 exit 0

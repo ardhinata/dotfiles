@@ -4,11 +4,11 @@
 # `shellx env NAME` decrypts one variable and prints one `export NAME=<value>`
 # line. The helper quotes the value, so it stays one word.
 #
-# The helper decrypts on every shell start. One variable costs about 115 ms:
-# 65 ms of helper start plus the scrypt key derivation. Keep this list short.
+# The helper decrypts on every shell start. The master key comes from
+# ~/.local/share/shellx/master.key, which `chezmoi apply` renders.
 #
-# A failure prints to stderr and leaves the variable unset. The status check
-# turns the failure into a message instead of a silent empty export.
+# A failure prints a warning on stderr and leaves the variable unset. The
+# shell still starts: a missing secret must not block the login.
 
 if [[ -x "${SHELL_TOOL_DIR}/helper/shellx" ]]; then
 	_shellx_env_load() {
@@ -20,11 +20,14 @@ if [[ -x "${SHELL_TOOL_DIR}/helper/shellx" ]]; then
 		if (( _rc == 0 )); then
 			eval "$_line"
 		else
-			print -u2 "shellx: failed to load $1"
+			# The helper already printed the reason on stderr.
+			print -u2 "shellx: warning: failed to load $1 (exit $_rc)"
 		fi
 		(( _xtrace )) && set -x
-		return _rc
+		return 0
 	}
 	_shellx_env_load OPENROUTER_API_OPENCODE_INDEX
 	unset -f _shellx_env_load
+else
+	print -u2 "shellx: warning: helper not found at ${SHELL_TOOL_DIR}/helper/shellx"
 fi

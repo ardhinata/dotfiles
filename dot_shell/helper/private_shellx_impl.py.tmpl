@@ -1,78 +1,89 @@
-#!/usr/bin/env python3
-# shellx — stealth-first secret manager for the chezmoi dotfiles repo.
-# Pure Python 3 stdlib (no pip, no venv). See dot_shell/helper/.help/ for docs.
-# The store slug is derived deterministically from the static password
+# shellx_impl — the shellx subcommands.
+#
+# The launcher `shellx` imports this module. Keeping the implementation in
+# a module lets Python reuse the cached bytecode, which saves about 8 ms on
+# every shell start.
+#
+# Pure Python 3 stdlib (no pip, no venv). See dot_shell/helper/.help/ for
+# docs. The store slug is derived deterministically from the master key
 # (see _derived_slug), so no marker file is needed; the store lives at
 # ~/.local/share/<slug>/. Legacy stores with a hand-written .sl file
 # continue to work (see _read_slug).
 import argparse
-import getpass
 import hashlib
 import hmac
 import json
 import os
 import re
-import secrets
 import shlex
-import socket
 import struct
-import subprocess
 import sys
-from datetime import datetime, timezone
-from typing import Any, NoReturn
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import shellx_key  # noqa: E402
+from shellx_key import (  # noqa: E402
+    SHELLX_KEY_FILE,
+    SHELLX_KEY_MIN_LENGTH,
+    SHELLX_KEY_STORE_ACCOUNT,
+    SHELLX_KEY_STORE_SERVICE,
+    SHELLX_MASTER_KEY_ENV,
+    SHELLX_NONCE_ENV,
+    store_slug,
+)
+
+# The cold-path modules are imported inside the functions that need them.
+# `shellx env` reads one secret at shell start, and the import of
+# getpass, secrets, socket, subprocess and datetime costs more than the
+# decryption itself.
 
 # ---- Constants ------------------------------------------------------------
 
-SHELLX_VERSION = "1.5.0"
+SHELLX_VERSION = "1.6.0"
 SHELLX_EXPORT_TMPDIR = os.path.join(os.path.expanduser("~"), ".cache", "shellx")
-# Static password derived at `chezmoi apply` time via Sprig's `sha256sum`:
-#
-#     STATIC_PW = sha256sum("com.ardju.utils:shellx:<nonce>")
-#
-# where `<nonce>` is `.system_environment.nonce` from `.chezmoi.yaml.tmpl`.
-# The `com.ardju.utils:<tool>:` reverse-DNS namespace is per-tool so each
-# tool that needs a derivation of the shared nonce picks its own
-# namespace string and the resulting hash domains are disjoint.
-#
-# As of shellx 1.5.0, the deployed script receives `STATIC_PW` as a
-# plain string constant — no `chezmoi data` subprocess, no profile in the
-# derivation, no runtime fallback path. The `SHELLX_NONCE` env var is
-# honored as a test-only override (recomputes `STATIC_PW` from the
-# override at runtime); the `SHELLX_PROFILE` env var no longer exists.
-SHELLX_NONCE_DEFAULT = "{{- .system_environment.nonce -}}"
-SHELLX_PROFILE_DEFAULT = "{{- .system_environment.profile -}}"
-SHELLX_STATIC_PW_DEFAULT = "{{- printf "%s%s" "com.ardju.utils:shellx:" .system_environment.nonce | sha256sum -}}"
 
-# Test-only override: setting SHELLX_NONCE in the environment replaces the
-# template-injected nonce, and STATIC_PW is recomputed from the override.
-# Used by the test suite to pin the derivation against a known input.
-# `_static_pw()` reads the env var fresh on each call (no module-global
-# cache) so test setup and CI pin overrides apply immediately.
+# The profile name is not a secret. It only labels the export header.
+SHELLX_PROFILE_DEFAULT = "{{- .system_environment.profile -}}"
+
+# The master key resolution lives in shellx_key. The two wrappers below
+# keep the old private spelling inside this module.
 
 
 def _resolve_nonce() -> str:
-    """Return the effective nonce: env-var override if set, otherwise the
-    template-injected default. Empty string if neither is available."""
-    return os.environ.get("SHELLX_NONCE", SHELLX_NONCE_DEFAULT).strip()
+    return shellx_key.resolve_nonce()
+
+
+def _master_key() -> str | None:
+    return shellx_key.master_key()
 
 
 def _static_pw() -> str:
-    """Return STATIC_PW derived from the effective nonce (env-var override
-    or template-injected default)."""
-    nonce = _resolve_nonce()
-    if not nonce:
+    """Return the master key.
+
+    Dies with exit code 4 when the key is not available. Every shellx
+    operation needs the key, because the store path is derived from it.
+    """
+    key = _master_key()
+    if not key:
         _die(
-            "shellx: missing nonce — re-run `chezmoi apply` to re-render "
-            "the deployed template, or set SHELLX_NONCE in the environment.",
+            "master key not found — run `chezmoi apply` to render "
+            f"{SHELLX_KEY_FILE}, run `shellx key store` to move the key "
+            "into the platform secret store, or set SHELLX_MASTER_KEY.",
             code=4,
         )
-    return hashlib.sha256(
-        f"com.ardju.utils:shellx:{nonce}".encode()
-    ).hexdigest()
+    return key
 
 
 MAGIC = b"SHX1"
-VERSION = 1
+# Blob version 1 derives the per-blob keys with scrypt. Blob version 2
+# derives them with HMAC-SHA512 over the per-blob salt. The version byte
+# selects the derivation, so one store can hold blobs of both versions.
+#
+# scrypt is key stretching. It protects a low entropy passphrase. The
+# master key is 64 random characters, so it needs no stretching and the
+# slow derivation only delays every shell start.
+VERSION_SCRYPT = 1
+VERSION_HMAC = 2
 SCRYPT_N = 1 << 15
 SCRYPT_R = 8
 SCRYPT_P = 1
@@ -141,16 +152,22 @@ def chacha20_xor(key: bytes, nonce: bytes, data: bytes, counter: int = 0) -> byt
 # ---- Crypto helpers --------------------------------------------------------
 
 
-def _derive_keys(static_pw: str, salt: bytes) -> tuple[bytes, bytes]:
-    raw = hashlib.scrypt(
-        static_pw.encode(),
-        salt=salt,
-        n=SCRYPT_N,
-        r=SCRYPT_R,
-        p=SCRYPT_P,
-        maxmem=SCRYPT_MAXMEM,
-        dklen=SCRYPT_DKLEN,
-    )
+def _derive_keys(static_pw: str, salt: bytes, version: int) -> tuple[bytes, bytes]:
+    """Derive the encryption key and the authentication key for one blob."""
+    if version == VERSION_SCRYPT:
+        raw = hashlib.scrypt(
+            static_pw.encode(),
+            salt=salt,
+            n=SCRYPT_N,
+            r=SCRYPT_R,
+            p=SCRYPT_P,
+            maxmem=SCRYPT_MAXMEM,
+            dklen=SCRYPT_DKLEN,
+        )
+    elif version == VERSION_HMAC:
+        raw = hmac.new(static_pw.encode(), salt, hashlib.sha512).digest()
+    else:
+        raise ValueError(f"unsupported blob version: {version}")
     return raw[:32], raw[32:]
 
 
@@ -159,13 +176,18 @@ def _aad(var_name: str, salt: bytes, nonce: bytes) -> bytes:
 
 
 def encrypt_blob(static_pw: str, var_name: str, plaintext: bytes) -> bytes:
+    import secrets
+
     salt = secrets.token_bytes(SALT_LEN)
     nonce = secrets.token_bytes(NONCE_LEN)
-    enc_key, mac_key = _derive_keys(static_pw, salt)
+    # A short key is a passphrase, so it gets the slow derivation. A long
+    # key is already random, so it gets the fast one.
+    version = VERSION_HMAC if len(static_pw) >= SHELLX_KEY_MIN_LENGTH else VERSION_SCRYPT
+    enc_key, mac_key = _derive_keys(static_pw, salt, version)
     ct = chacha20_xor(enc_key, nonce, plaintext, counter=0)
     aad = _aad(var_name, salt, nonce)
     tag = hmac.new(mac_key, aad + ct, hashlib.blake2b).digest()[:TAG_LEN]
-    return MAGIC + bytes([VERSION]) + salt + nonce + tag + ct
+    return MAGIC + bytes([version]) + salt + nonce + tag + ct
 
 
 def decrypt_blob(static_pw: str, var_name: str, blob: bytes) -> bytes:
@@ -173,8 +195,9 @@ def decrypt_blob(static_pw: str, var_name: str, blob: bytes) -> bytes:
         raise ValueError("blob too short")
     if blob[:4] != MAGIC:
         raise ValueError("bad magic")
-    if blob[4] != VERSION:
-        raise ValueError(f"unsupported version: {blob[4]}")
+    version = blob[4]
+    if version not in (VERSION_SCRYPT, VERSION_HMAC):
+        raise ValueError(f"unsupported version: {version}")
     off = 5
     salt = blob[off : off + SALT_LEN]
     off += SALT_LEN
@@ -183,7 +206,7 @@ def decrypt_blob(static_pw: str, var_name: str, blob: bytes) -> bytes:
     tag = blob[off : off + TAG_LEN]
     off += TAG_LEN
     ct = blob[off:]
-    enc_key, mac_key = _derive_keys(static_pw, salt)
+    enc_key, mac_key = _derive_keys(static_pw, salt, version)
     aad = _aad(var_name, salt, nonce)
     expected = hmac.new(mac_key, aad + ct, hashlib.blake2b).digest()[:TAG_LEN]
     if not hmac.compare_digest(expected, tag):
@@ -201,7 +224,7 @@ def decrypt_blob(static_pw: str, var_name: str, blob: bytes) -> bytes:
 
 
 def _derived_slug() -> str:
-    return hashlib.blake2b(_static_pw().encode(), digest_size=16).hexdigest()
+    return store_slug(_static_pw())
 
 
 def _default_store_path() -> str:
@@ -250,8 +273,8 @@ def _read_slug() -> str:
     return _derived_slug()
 
 
-def _read_idx() -> dict:
-    p = _idx_path()
+def _read_idx(path: str | None = None) -> dict:
+    p = path or _idx_path()
     if not os.path.exists(p):
         return {}
     out = {}
@@ -272,18 +295,33 @@ def _read_idx() -> dict:
     return out
 
 
-def _write_idx(idx: dict) -> None:
-    p = _idx_path()
+def _write_private(path: str, data: bytes) -> None:
+    """Write a file with mode 0600 from the start.
+
+    Creating the file first and chmod-ing it afterwards leaves a window in
+    which the file holds a secret with the default mode.
+    """
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "wb") as f:
+        f.write(data)
+
+
+def _write_idx(idx: dict, path: str | None = None) -> None:
+    p = path or _idx_path()
     tmp = p + ".tmp"
-    with open(tmp, "w") as f:
-        f.writelines("{}\t{}\t{}\t{}\n".format(
-                    var,
-                    ",".join(meta.get("tag", [])),
-                    ",".join(meta.get("process", [])),
-                    meta.get("updated", ""),
-                ) for var, meta in sorted(idx.items()))
+    _write_private(
+        tmp,
+        "".join(
+            "{}\t{}\t{}\t{}\n".format(
+                var,
+                ",".join(meta.get("tag", [])),
+                ",".join(meta.get("process", [])),
+                meta.get("updated", ""),
+            )
+            for var, meta in sorted(idx.items())
+        ).encode("utf-8"),
+    )
     os.replace(tmp, p)
-    os.chmod(p, 0o600)
 
 
 # ---- Subcommands -----------------------------------------------------------
@@ -304,14 +342,10 @@ def cmd_init(args) -> int:
     os.makedirs(store, exist_ok=True)
     os.chmod(store, 0o700)
 
-    with open(os.path.join(store, ".sl"), "w") as f:
-        f.write(slug + "\n")
-    os.chmod(os.path.join(store, ".sl"), 0o600)
+    _write_private(os.path.join(store, ".sl"), (slug + "\n").encode("utf-8"))
 
     if not os.path.exists(os.path.join(store, ".idx")):
-        with open(os.path.join(store, ".idx"), "w") as f:
-            pass
-        os.chmod(os.path.join(store, ".idx"), 0o600)
+        _write_private(os.path.join(store, ".idx"), b"")
 
     print(f"shellx initialized at {store}")
     print(f"slug: {slug}")
@@ -322,6 +356,9 @@ def cmd_init(args) -> int:
 
 
 def cmd_store(args) -> int:
+    import getpass
+    from datetime import datetime, timezone
+
     var = args.var
     if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", var):
         _die(f"invalid variable name: {var}", code=2)
@@ -341,9 +378,7 @@ def cmd_store(args) -> int:
     blob = encrypt_blob(_static_pw(), var, val.encode(errors="surrogateescape"))
     blob_path = os.path.join(_slug_path(), _blob_name(var, slug))
     tmp = blob_path + ".tmp"
-    with open(tmp, "wb") as f:
-        f.write(blob)
-    os.chmod(tmp, 0o600)
+    _write_private(tmp, blob)
     os.replace(tmp, blob_path)
 
     idx = _read_idx()
@@ -360,6 +395,77 @@ def cmd_store(args) -> int:
     print(
         f"stored {var} ({len(args.tag or [])} tag(s), {len(args.process or [])} process(es))"
     )
+    return 0
+
+
+def cmd_key(args) -> int:
+    """Manage the master key.
+
+    The key file is the normal source. The platform secret store is the
+    fallback that a file scanner cannot see.
+    """
+    import subprocess
+
+    action = args.action
+    if action == "status":
+        key = shellx_key.key_file_read()
+        source = SHELLX_KEY_FILE
+        if not key:
+            key = shellx_key.platform_store_read()
+            source = "platform secret store"
+        if not key:
+            override = os.environ.get(SHELLX_MASTER_KEY_ENV, "").strip()
+            if override:
+                key = override
+                source = "environment"
+        if not key:
+            print("master key: not found", file=sys.stderr)
+            return 4
+        fingerprint = hashlib.sha256(key.encode()).hexdigest()[:16]
+        print(f"master key source: {source}")
+        print(f"master key fingerprint: {fingerprint}")
+        return 0
+
+    if action == "clear":
+        result = subprocess.run(
+            shellx_key.platform_store_cmd("clear"),
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            _die("failed to clear the platform secret store", code=result.returncode)
+        print("cleared the master key from the platform secret store")
+        return 0
+
+    # store and move both write the key into the platform secret store.
+    key = os.environ.get(SHELLX_MASTER_KEY_ENV, "").strip() or shellx_key.key_file_read()
+    if not key:
+        _die(
+            f"no master key in the environment or in {SHELLX_KEY_FILE} — "
+            "run `chezmoi apply` first",
+            code=4,
+        )
+    payload = key.encode("utf-8")
+    if sys.platform == "darwin":
+        payload = payload.hex().encode("ascii")
+    result = subprocess.run(
+        shellx_key.platform_store_cmd("write"),
+        input=payload,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        msg = result.stderr.decode("utf-8", errors="replace").strip()
+        _die(f"failed to write the master key: {msg}", code=result.returncode)
+    print("stored the master key in the platform secret store")
+    if action == "move" and os.path.exists(SHELLX_KEY_FILE):
+        os.remove(SHELLX_KEY_FILE)
+        print(f"removed {SHELLX_KEY_FILE}")
+    else:
+        print(
+            f"run `shellx key move` to remove {SHELLX_KEY_FILE} and keep the "
+            "key in the platform secret store only"
+        )
     return 0
 
 
@@ -424,6 +530,10 @@ def cmd_env(args) -> int:
 
 
 def cmd_export(args) -> int:
+    import socket
+    import subprocess
+    from datetime import datetime, timezone
+
     slug = _read_slug()
     store = _slug_path()
     idx = _read_idx()
@@ -526,6 +636,8 @@ def cmd_export(args) -> int:
 
 def _detect_export_dir() -> str:
     """Resolve the chezmoi source dir's .encrypted_data/env_store/ path."""
+    import subprocess
+
     src = os.environ.get("CHEZMOI_SOURCE_PATH", "").strip()
     candidates = []
     if src:
@@ -548,6 +660,8 @@ def _detect_export_dir() -> str:
 
 
 def cmd_import(args) -> int:
+    from datetime import datetime, timezone
+
     src = args.path
     if not os.path.exists(src):
         _die(f"file not found: {src}", code=2)
@@ -606,27 +720,27 @@ def cmd_import(args) -> int:
     if not os.path.exists(target_dir):
         os.makedirs(target_dir, exist_ok=True)
         os.chmod(target_dir, 0o700)
-    if not os.path.exists(os.path.join(target_dir, ".sl")):
-        with open(os.path.join(target_dir, ".sl"), "w") as f:
-            f.write(target_slug + "\n")
-        os.chmod(os.path.join(target_dir, ".sl"), 0o600)
-    if not os.path.exists(os.path.join(target_dir, ".idx")):
-        open(os.path.join(target_dir, ".idx"), "w").close()
-        os.chmod(os.path.join(target_dir, ".idx"), 0o600)
+    target_sl_path = os.path.join(target_dir, ".sl")
+    target_idx_path = os.path.join(target_dir, ".idx")
+    if not os.path.exists(target_sl_path):
+        _write_private(target_sl_path, (target_slug + "\n").encode("utf-8"))
+    if not os.path.exists(target_idx_path):
+        _write_private(target_idx_path, b"")
 
-    idx = _read_idx()
+    # The index belongs to the target directory. Reading the live index
+    # here would write the target entries into the live store.
+    idx = _read_idx(target_idx_path)
     added, updated, skipped = 0, 0, 0
     for var, e in sorted(payload.items()):
-        if var in idx and not args.force:
+        existed = var in idx
+        if existed and not args.force:
             skipped += 1
             continue
         val = e["value"]
         blob = encrypt_blob(_static_pw(), var, val.encode())
         blob_path = os.path.join(target_dir, _blob_name(var, target_slug))
         tmp = blob_path + ".tmp"
-        with open(tmp, "wb") as f:
-            f.write(blob)
-        os.chmod(tmp, 0o600)
+        _write_private(tmp, blob)
         os.replace(tmp, blob_path)
         idx[var] = {
             "tag": e.get("tag", []),
@@ -634,19 +748,21 @@ def cmd_import(args) -> int:
             "updated": e.get("updated")
             or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
-        if var in idx and args.force:
+        if existed:
             updated += 1
         else:
             added += 1
         val = "\x00" * len(val)
         blob = b"\x00" * len(blob)
-    _write_idx(idx)
+    _write_idx(idx, target_idx_path)
 
     print(f"imported: added={added} updated={updated} skipped={skipped}")
     return 0
 
 
 def _age_decrypt(path: str) -> str:
+    import subprocess
+
     # Use chezmoi decrypt — it knows which age identities are configured
     # (CHEZMOI_SOURCE_DIR/CHEZMOI_CONFIG_DIR etc.). Avoids hand-rolling
     # identity discovery against $AGE_IDENTITY_FILE / ~/.config/age/keys.txt /
@@ -789,7 +905,7 @@ def cmd_exec(args) -> int:
 # ---- Misc helpers ----------------------------------------------------------
 
 
-def _die(msg: str, code: int = 1) -> NoReturn:
+def _die(msg: str, code: int = 1):
     print(f"shellx: {msg}", file=sys.stderr)
     sys.exit(code)
 
@@ -813,6 +929,19 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("list", help="List stored variables and their tags/processes")
     sp.set_defaults(func=cmd_list)
+
+    sp = sub.add_parser(
+        "key",
+        help="Manage the master key (status, store, move, clear)",
+    )
+    sp.add_argument(
+        "action",
+        choices=["status", "store", "move", "clear"],
+        help="status: show the source and fingerprint. store: copy the key "
+        "into the platform secret store. move: store the key and remove the "
+        "key file. clear: remove the key from the platform secret store.",
+    )
+    sp.set_defaults(func=cmd_key)
 
     sp = sub.add_parser("rm", help="Remove a stored variable")
     sp.add_argument("var")
@@ -889,6 +1018,7 @@ def main(argv: list) -> int:
             "env",
             "export",
             "import",
+            "key",
             "run",
             "help",
             "-h",

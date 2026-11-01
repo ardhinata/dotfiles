@@ -132,17 +132,38 @@ applies both attributes.
 
 ## Recommendation
 
-Use option 1 as the base and option 2 as the runtime layer. The secret
-lives in a `0600` file, the helper is `0700`, and the helper pushes the
-secret into the user keyring at startup. A file scanner never sees the
-secret. A local user can still read it through the keyring, but so can they
-read the `0600` file, so the keyring adds no new exposure while it removes
-the secret from the file.
+Use option 1 as the base and option 3 as the runtime layer.
 
-Option 3 is the better answer when the provider is always present. It costs
-7.6 ms per lookup, and the helper must fail open or fail closed when the
-provider is locked. That failure mode is a correctness decision, not a
-performance one.
+The key lives in `~/.local/share/shellx/master.key`, mode 0600, rendered by
+`chezmoi apply`. The helper reads it. When the owner wants the key out of
+the filesystem, `shellx key move` copies it into the platform secret store
+and removes the file. The secret store is the macOS login Keychain on
+macOS and libsecret elsewhere.
+
+The lookup order is the environment override, the test-only nonce
+override, the key file, then the secret store. The key file comes first
+because it costs a plain read, while the secret store costs a subprocess
+call.
+
+The kernel keyring is not the answer. It holds the payload in RAM only, so
+a reboot loses it, and the key file has to exist anyway to bootstrap it.
+It adds no exposure reduction and 2 ms of cost.
+
+## What the implementation settled
+
+- The macOS Keychain is reachable through `security`. The read is
+  `security find-generic-password -w -s <service> -a <account>`. The write
+  is `security add-generic-password -U -s <service> -a <account> -X`, and
+  `-X` reads the value from stdin as hex, so the key never appears in the
+  process arguments.
+- The libsecret write is `secret-tool store --label=... service <s> key
+  <k>`, and it reads the secret from stdin.
+- Every shellx command needs the key, because the store path is derived
+  from it. A missing key exits with code 4. The zsh startup loader turns
+  that into a warning on stderr, so a missing secret never blocks the
+  login.
+- The deployed helper is mode 0700, from the `private_executable_`
+  attributes.
 
 ## Source
 

@@ -7,17 +7,35 @@ No `pip install`, no virtualenv, no third-party wheels.
 
 | Primitive | Algorithm | Source |
 |---|---|---|
-| Password-based KDF | **scrypt** (`N=2¹⁵, r=8, p=1, dklen=64`) | `hashlib.scrypt` |
+| Key derivation, version 1 | **scrypt** (`N=2¹⁵, r=8, p=1, dklen=64`) | `hashlib.scrypt` |
+| Key derivation, version 2 | **HMAC-SHA512** over the per-blob salt | `hmac` + `hashlib.sha512` |
 | Stream cipher | **ChaCha20** (RFC 7539) | ~80-line reference impl inline |
 | Authentication | **HMAC-BLAKE2b** (default 64-byte digest = 512 bits) truncated to 128 bits | `hmac` + `hashlib.blake2b` |
-| Key length | 32 bytes (encryption) + 32 bytes (MAC) | derived via scrypt |
+| Key length | 32 bytes (encryption) + 32 bytes (MAC) | derived per blob |
 
-The 64-byte scrypt output is split into:
+The 64-byte derivation output is split into:
 
 ```
 derived[0:32]   → enc_key   (ChaCha20 key)
 derived[32:64]  → mac_key   (HMAC-BLAKE2b key)
 ```
+
+### The two blob versions
+
+The version byte in the blob header selects the derivation, so one store
+can hold blobs of both versions.
+
+| Version | Derivation | When it is written |
+|---|---|---|
+| 1 | scrypt (`N=2¹⁵, r=8, p=1`) | When the master key is shorter than 32 characters, so a passphrase still gets stretched. |
+| 2 | HMAC-SHA512 over the per-blob salt | When the master key is at least 32 characters. |
+
+scrypt is key stretching. It protects a low entropy passphrase. The
+master key is 64 random characters, so it needs no stretching, and the
+slow derivation delayed every shell start by about 75 ms per secret.
+
+Version 1 blobs written by an older shellx still decrypt. The version
+byte is read from the blob, never guessed.
 
 ## Password (STATIC_PW)
 
@@ -32,10 +50,11 @@ STATIC_PW       = sha256sum("com.ardju.utils:shellx:" + SHELLX_NONCE)
                 = "12e93a040922a55cb23b228d392b32da29da138209fd67e5eae733ce5cf4850b"
 ```
 
-The deployed script embeds `STATIC_PW` as a plain string constant and
-never shells out to `chezmoi data` — the only runtime work is one
-in-process `hashlib.sha256()` call if the test-only `SHELLX_NONCE`
-env-var override is set.
+As of shellx 1.6.0 the deployed script no longer embeds `STATIC_PW`.
+The derivation happens at apply time in a separate file,
+`~/.local/share/shellx/master.key`, with mode 0600. The helper reads
+that file at runtime, or reads the key from the platform secret store.
+The helper never shells out to `chezmoi data`.
 
 ### Why the reverse-DNS namespace string?
 

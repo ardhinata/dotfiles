@@ -18,6 +18,7 @@ the deployed filename has no `.py` extension.
 import importlib.machinery
 import importlib.util
 import hashlib
+import hmac
 import io
 import json
 import os
@@ -28,59 +29,63 @@ import sys
 import tempfile
 import unittest
 import unittest.mock
+from contextlib import redirect_stdout
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-_SOURCE = _HERE / "executable_shellx.tmpl"
+_KEY_MODULE_SOURCE = _HERE / "private_shellx_key.py.tmpl"
+_IMPL_SOURCE = _HERE / "private_shellx_impl.py.tmpl"
+_KEY_SOURCE = (
+    _HERE.parents[1]
+    / "dot_local"
+    / "share"
+    / "private_shellx"
+    / "private_master.key.tmpl"
+)
 
-# Since 1.3.0 the source file is a chezmoi template. Python cannot import
-# it directly (the `{{- ... -}}` actions are not valid Python). Render it
-# via `chezmoi execute-template` into a temp file, then import the rendered
-# output. This keeps the tests hermetic — they don't depend on a deployed
-# `~/.shell/helper/shellx` or on a working chezmoi state DB.
+# The source files are chezmoi templates. Python cannot import them
+# directly (the `{{- ... -}}` actions are not valid Python). Render them
+# via `chezmoi execute-template` into a temp directory, then import the
+# rendered output. This keeps the tests hermetic — they don't depend on a
+# deployed `~/.shell/helper/shellx` or on a working chezmoi state DB.
 def _render_and_load():
-    if not _SOURCE.exists():
-        raise FileNotFoundError(f"shellx source not found: {_SOURCE}")
+    for src in (_KEY_MODULE_SOURCE, _IMPL_SOURCE):
+        if not src.exists():
+            raise FileNotFoundError(f"shellx source not found: {src}")
     # Skip the render if SHELLX_TEST_SKIP_RENDER=1 (the deployed copy is
     # already-rendered Python — used in CI containers where chezmoi is not
     # installed but the binary is).
     if os.environ.get("SHELLX_TEST_SKIP_RENDER") == "1":
-        candidates = [
-            Path("/home/ardhinata/.shell/helper/shellx"),
-            _HERE / "executable_shellx",
-        ]
-        for c in candidates:
-            if c.exists():
-                return _load_from_file(c)
+        deployed = Path("/home/ardhinata/.shell/helper")
+        if (deployed / "shellx_impl.py").exists():
+            sys.path.insert(0, str(deployed))
+            return importlib.import_module("shellx_impl")
         raise FileNotFoundError("no rendered shellx found")
+    tmpdir = tempfile.mkdtemp(prefix="shellx-test-")
     try:
-        result = subprocess.run(
-            ["chezmoi", "execute-template"],
-            stdin=_SOURCE.open("rb"),
-            capture_output=True,
-            check=True,
-        )
+        for src, name in (
+            (_KEY_MODULE_SOURCE, "shellx_key.py"),
+            (_IMPL_SOURCE, "shellx_impl.py"),
+        ):
+            result = subprocess.run(
+                ["chezmoi", "execute-template"],
+                stdin=src.open("rb"),
+                capture_output=True,
+                check=True,
+            )
+            Path(tmpdir, name).write_bytes(result.stdout)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise RuntimeError(
             f"failed to render shellx template via chezmoi: {e}. "
             f"Install chezmoi, or set SHELLX_TEST_SKIP_RENDER=1 and ensure "
-            f"the deployed ~/.shell/helper/shellx exists."
+            f"the deployed ~/.shell/helper/shellx_impl.py exists."
         ) from e
-    tmp = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
-    tmp.write(result.stdout)
-    tmp.close()
-    return _load_from_file(Path(tmp.name))
-
-
-def _load_from_file(path: Path):
-    loader = importlib.machinery.SourceFileLoader("shellx", str(path))
-    spec = importlib.util.spec_from_loader("shellx", loader)
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    return module
+    sys.path.insert(0, tmpdir)
+    return importlib.import_module("shellx_impl")
 
 
 shellx = _render_and_load()
+shellx_key = sys.modules["shellx_key"]
 
 
 class TestChaCha20(unittest.TestCase):
@@ -251,9 +256,61 @@ class TestBlobConstants(unittest.TestCase):
         self.assertEqual(len(empty_blob), 49)
 
     def test_magic_and_version(self):
-        blob = shellx.encrypt_blob("pw", "X", b"x")
+        """A long master key gets the fast derivation, version 2."""
+        blob = shellx.encrypt_blob("p" * 64, "X", b"x")
         self.assertEqual(blob[:4], b"SHX1")
-        self.assertEqual(blob[4], 1)
+        self.assertEqual(blob[4], shellx.VERSION_HMAC)
+
+    def test_short_key_gets_the_slow_derivation(self):
+        """A short master key is a passphrase, so it gets scrypt."""
+        blob = shellx.encrypt_blob("short", "X", b"x")
+        self.assertEqual(blob[4], shellx.VERSION_SCRYPT)
+
+    def test_both_versions_round_trip(self):
+        """A store can hold blobs of both versions."""
+        for pw in ("p" * 64, "short"):
+            blob = shellx.encrypt_blob(pw, "X", b"payload")
+            self.assertEqual(shellx.decrypt_blob(pw, "X", blob), b"payload")
+
+
+class TestBlobVersionDispatch(unittest.TestCase):
+    """The version byte selects the key derivation, so a blob written by an
+    older shellx still decrypts."""
+
+    PW = "p" * 64
+
+    def _scrypt_blob(self, var_name: str, plaintext: bytes) -> bytes:
+        """Build a version 1 blob the way shellx 1.5 did."""
+        salt = os.urandom(shellx.SALT_LEN)
+        nonce = os.urandom(shellx.NONCE_LEN)
+        raw = hashlib.scrypt(
+            self.PW.encode(),
+            salt=salt,
+            n=shellx.SCRYPT_N,
+            r=shellx.SCRYPT_R,
+            p=shellx.SCRYPT_P,
+            maxmem=shellx.SCRYPT_MAXMEM,
+            dklen=shellx.SCRYPT_DKLEN,
+        )
+        enc_key, mac_key = raw[:32], raw[32:]
+        ct = shellx.chacha20_xor(enc_key, nonce, plaintext, counter=0)
+        aad = shellx._aad(var_name, salt, nonce)
+        tag = hmac.new(mac_key, aad + ct, hashlib.blake2b).digest()[: shellx.TAG_LEN]
+        return b"SHX1" + bytes([1]) + salt + nonce + tag + ct
+
+    def test_legacy_blob_still_decrypts(self):
+        blob = self._scrypt_blob("OLD", b"legacy-value")
+        self.assertEqual(shellx.decrypt_blob(self.PW, "OLD", blob), b"legacy-value")
+
+    def test_legacy_blob_rejects_the_wrong_key(self):
+        blob = self._scrypt_blob("OLD", b"legacy-value")
+        with self.assertRaises(ValueError):
+            shellx.decrypt_blob("q" * 64, "OLD", blob)
+
+    def test_fast_blob_rejects_the_wrong_key(self):
+        blob = shellx.encrypt_blob(self.PW, "NEW", b"value")
+        with self.assertRaises(ValueError):
+            shellx.decrypt_blob("q" * 64, "NEW", blob)
 
 
 class TestJsoncParsing(unittest.TestCase):
@@ -313,79 +370,144 @@ class TestJsoncParsing(unittest.TestCase):
             shellx._parse_jsonc(text)
 
 
-class TestStaticPasswordDerivation(unittest.TestCase):
-    """As of shellx 1.5.0, `STATIC_PW = sha256sum("com.ardju.utils:shellx:<nonce>")`
-    is derived at `chezmoi apply` time and injected as a plain string constant
-    (`SHELLX_STATIC_PW_DEFAULT`). The runtime `_static_pw()` only recomputes
-    from the nonce when the test-only `SHELLX_NONCE` env-var override is set.
-    There is no `chezmoi data` subprocess fallback."""
+class TestMasterKeyResolution(unittest.TestCase):
+    """As of shellx 1.6.0 the master key is no longer embedded in the
+    helper. It is resolved at runtime from the environment, from a test-only
+    nonce override, from `~/.local/share/shellx/master.key`, or from the
+    platform secret store."""
 
     def setUp(self):
-        # Clear any env-var override from previous tests.
+        os.environ.pop("SHELLX_MASTER_KEY", None)
         os.environ.pop("SHELLX_NONCE", None)
+        self._file = unittest.mock.patch.object(
+            shellx_key, "SHELLX_KEY_FILE", "/nonexistent/shellx/master.key"
+        )
+        self._file.start()
+        self.addCleanup(self._file.stop)
+        self._platform = unittest.mock.patch.object(
+            shellx_key, "platform_store_read", return_value=None
+        )
+        self._platform.start()
+        self.addCleanup(self._platform.stop)
 
-    def test_sprig_and_python_sha256_agree(self):
-        """`SHELLX_STATIC_PW_DEFAULT` (rendered by Sprig's sha256sum at apply
-        time) matches the value `hashlib.sha256` produces in Python. If Sprig
-        ever changes its output format or the namespace string drifts, this
-        will fail."""
+    def test_key_file_matches_the_sprig_derivation(self):
+        """The rendered key file is sha256("com.ardju.utils:shellx:<nonce>").
+
+        The nonce comes from the chezmoi config data. If Sprig's sha256sum
+        output format or the namespace string drifts, this fails.
+        """
+        if not _KEY_SOURCE.exists():
+            self.skipTest("master key template not found")
+        try:
+            result = subprocess.run(
+                ["chezmoi", "execute-template"],
+                stdin=_KEY_SOURCE.open("rb"),
+                capture_output=True,
+                check=True,
+            )
+            data = subprocess.run(
+                ["chezmoi", "data", "--format=json"],
+                capture_output=True,
+                check=True,
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            raise unittest.SkipTest(f"chezmoi not usable here: {e}") from e
+        nonce = json.loads(data.stdout)["system_environment"]["nonce"]
         expected = hashlib.sha256(
-            f"com.ardju.utils:shellx:{shellx.SHELLX_NONCE_DEFAULT}".encode()
+            f"com.ardju.utils:shellx:{nonce}".encode()
         ).hexdigest()
-        self.assertEqual(shellx.SHELLX_STATIC_PW_DEFAULT, expected)
-        self.assertEqual(len(expected), 64)  # SHA256 hex digest
+        self.assertEqual(result.stdout.decode().strip(), expected)
+        self.assertEqual(len(expected), 64)
 
-    def test_static_pw_returns_injected_default(self):
-        """Without an env-var override, _static_pw() returns the
-        template-injected constant directly."""
-        self.assertEqual(shellx._static_pw(), shellx.SHELLX_STATIC_PW_DEFAULT)
+    def test_master_key_env_override_wins(self):
+        """SHELLX_MASTER_KEY replaces every other source."""
+        os.environ["SHELLX_MASTER_KEY"] = "b" * 64
+        self.assertEqual(shellx._master_key(), "b" * 64)
 
-    def test_env_var_nonce_override_recomputes(self):
-        """Setting SHELLX_NONCE in the environment replaces the nonce and
-        _static_pw() recomputes STATIC_PW from the override (no subprocess).
-        The override is read fresh on each call (no module-global cache)."""
-        override_nonce = "n" * 64
-        os.environ["SHELLX_NONCE"] = override_nonce
+    def test_nonce_override_derives_the_key(self):
+        """SHELLX_NONCE derives the key without touching the filesystem."""
+        os.environ["SHELLX_NONCE"] = "n" * 64
         expected = hashlib.sha256(
-            f"com.ardju.utils:shellx:{override_nonce}".encode()
+            f"com.ardju.utils:shellx:{'n' * 64}".encode()
         ).hexdigest()
-        self.assertEqual(shellx._static_pw(), expected)
-        # And the env-var nonce was used, not SHELLX_NONCE_DEFAULT.
-        self.assertEqual(shellx._resolve_nonce(), override_nonce)
-        self.assertNotEqual(shellx._static_pw(), shellx.SHELLX_STATIC_PW_DEFAULT)
+        self.assertEqual(shellx._master_key(), expected)
+        self.assertEqual(shellx._resolve_nonce(), "n" * 64)
 
-    def test_empty_nonce_dies_without_subprocess(self):
-        """An empty nonce produces a clear error. There is no recovery path
-        (no chezmoi data subprocess)."""
-        os.environ.pop("SHELLX_NONCE", None)
-        original_default = shellx.SHELLX_NONCE_DEFAULT
-        self.addCleanup(setattr, shellx, "SHELLX_NONCE_DEFAULT", original_default)
-        # Empty the template-injected nonce AND the env var so _resolve_nonce()
-        # returns "".
-        shellx.SHELLX_NONCE_DEFAULT = ""
+    def test_key_file_is_read_when_present(self):
+        """The key file is the normal source."""
         with unittest.mock.patch.object(
-            shellx.subprocess, "run",
-            side_effect=AssertionError(
-                "subprocess.run called — empty nonce should die, not shell out"
-            ),
+            shellx_key, "key_file_read", return_value="c" * 64
+        ):
+            self.assertEqual(shellx._master_key(), "c" * 64)
+
+    def test_platform_store_is_the_fallback(self):
+        """The platform secret store is used when the key file is gone."""
+        with unittest.mock.patch.object(
+            shellx_key, "key_file_read", return_value=None
+        ), unittest.mock.patch.object(
+            shellx_key, "platform_store_read", return_value="d" * 64
+        ):
+            self.assertEqual(shellx._master_key(), "d" * 64)
+
+    def test_missing_key_exits_with_code_4(self):
+        """A missing master key is a clear failure with exit code 4."""
+        with self.assertRaises(SystemExit) as cm:
+            shellx._static_pw()
+        self.assertEqual(cm.exception.code, 4)
+
+    def test_no_subprocess_for_the_file_and_env_paths(self):
+        """The normal paths never spawn a subprocess."""
+        with unittest.mock.patch.object(
+            shellx_key, "platform_store_read",
+            side_effect=AssertionError("subprocess path must not be reached"),
+        ):
+            os.environ["SHELLX_MASTER_KEY"] = "e" * 64
+            self.assertEqual(shellx._static_pw(), "e" * 64)
+            os.environ.pop("SHELLX_MASTER_KEY")
+            os.environ["SHELLX_NONCE"] = "n" * 64
+            self.assertEqual(len(shellx._static_pw()), 64)
+
+
+class TestMissingMasterKeyExit(unittest.TestCase):
+    """Every shellx operation needs the master key, because the store path
+    is derived from it. A missing key must fail with exit code 4, not with
+    the "store not initialized" code 2."""
+
+    def setUp(self):
+        os.environ.pop("SHELLX_MASTER_KEY", None)
+        os.environ.pop("SHELLX_NONCE", None)
+        for name, value in (
+            ("SHELLX_KEY_FILE", "/nonexistent/shellx/master.key"),
+        ):
+            patcher = unittest.mock.patch.object(shellx_key, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        patcher = unittest.mock.patch.object(
+            shellx_key, "platform_store_read", return_value=None
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_env_fails_with_code_4(self):
+        with self.assertRaises(SystemExit) as cm:
+            shellx.main(["env", "ANY"])
+        self.assertEqual(cm.exception.code, 4)
+
+    def test_list_fails_with_code_4(self):
+        with self.assertRaises(SystemExit) as cm:
+            shellx.main(["list"])
+        self.assertEqual(cm.exception.code, 4)
+
+    def test_run_fails_with_code_4(self):
+        """The exec path needs the key too, so it must not start a process."""
+        with unittest.mock.patch.object(
+            shellx.os,
+            "execvpe",
+            unittest.mock.MagicMock(side_effect=AssertionError("execvpe called")),
         ):
             with self.assertRaises(SystemExit) as cm:
-                shellx._static_pw()
+                shellx.main(["run", "echo", "hi"])
             self.assertEqual(cm.exception.code, 4)
-
-    def test_no_subprocess_called_for_static_pw(self):
-        """Sanity: deriving STATIC_PW never spawns a subprocess. The path is
-        pure Python `hashlib.sha256` from this point on."""
-        with unittest.mock.patch.object(
-            shellx.subprocess, "run",
-            side_effect=AssertionError(
-                "subprocess.run called — static_pw derivation must be pure-Python"
-            ),
-        ):
-            # Both the default and the env-override paths must be clean.
-            _ = shellx._static_pw()
-            os.environ["SHELLX_NONCE"] = "n" * 64
-            _ = shellx._static_pw()
 
 
 class TestDerivedSlug(unittest.TestCase):
@@ -455,6 +577,10 @@ class TestRunSubcommandRouting(unittest.TestCase):
     `shellx <TAB>` subcommand list. These tests pin that contract."""
 
     def setUp(self):
+        # The store path is derived from the master key, so every command
+        # needs one.
+        os.environ["SHELLX_MASTER_KEY"] = "a" * 64
+        self.addCleanup(os.environ.pop, "SHELLX_MASTER_KEY", None)
         # Capture (proc, passthrough) handed to os.execvpe instead of
         # actually exec'ing — we don't want a real subprocess spawned
         # from the test runner.
@@ -582,6 +708,100 @@ class TestRunSubcommandRouting(unittest.TestCase):
         self.assertNotIn("proc", self._captured)
 
 
+class TestImportTargetIndex(unittest.TestCase):
+    """`shellx import --to DIR` must write the index into DIR.
+
+    A regression read and wrote the live store index, so the live index
+    named blobs that the live store did not hold.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.live = self.root / "live"
+        self.live.mkdir()
+        self.target = self.root / "target"
+        self.target.mkdir()
+        (self.live / ".sl").write_text("liveslug\n")
+        (self.live / ".idx").write_text("")
+        os.environ["SHELLX_MASTER_KEY"] = "a" * 64
+        self.addCleanup(os.environ.pop, "SHELLX_MASTER_KEY", None)
+        patcher = unittest.mock.patch.object(
+            shellx, "_resolve_store_path", return_value=str(self.live)
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.addCleanup(self._tmp.cleanup)
+
+    def _export_file(self) -> str:
+        path = self.root / "dump.jsonc"
+        path.write_text(
+            "// shellx_export: true\n"
+            "// Format version: 1\n"
+            "{\n"
+            '  "MYVAR": {"value": "v", "tag": [], "process": []}\n'
+            "}\n"
+        )
+        return str(path)
+
+    def _import(self) -> int:
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            return shellx.main(
+                ["import", self._export_file(), "--to", str(self.target)]
+            )
+
+    def test_import_to_writes_the_target_index(self):
+        rc = self._import()
+        self.assertEqual(rc, 0)
+        self.assertIn("MYVAR", (self.target / ".idx").read_text())
+        self.assertNotIn("MYVAR", (self.live / ".idx").read_text())
+
+    def test_import_to_leaves_the_live_store_alone(self):
+        rc = self._import()
+        self.assertEqual(rc, 0)
+        live_blobs = [
+            p for p in self.live.iterdir() if p.name not in (".sl", ".idx")
+        ]
+        self.assertEqual(live_blobs, [])
+        self.assertTrue(
+            (self.target / shellx._blob_name("MYVAR", "target")).exists()
+        )
+
+
+class TestKeyCommand(unittest.TestCase):
+    """`shellx key status` reports the source of the master key and a
+    fingerprint. It never prints the key."""
+
+    def test_status_prints_the_source_not_the_key(self):
+        os.environ["SHELLX_MASTER_KEY"] = "s" * 64
+        self.addCleanup(os.environ.pop, "SHELLX_MASTER_KEY", None)
+        for name in ("key_file_read", "platform_store_read"):
+            patcher = unittest.mock.patch.object(shellx_key, name, return_value=None)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = shellx.main(["key", "status"])
+        out = buf.getvalue()
+        self.assertEqual(rc, 0)
+        self.assertIn("master key source", out)
+        self.assertIn("fingerprint", out)
+        self.assertNotIn("s" * 64, out)
+
+    def test_status_without_a_key_exits_with_code_4(self):
+        os.environ.pop("SHELLX_MASTER_KEY", None)
+        os.environ.pop("SHELLX_NONCE", None)
+        for name in ("key_file_read", "platform_store_read"):
+            patcher = unittest.mock.patch.object(shellx_key, name, return_value=None)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = shellx.main(["key", "status"])
+        self.assertEqual(rc, 4)
+
+
 class TestEnvSubcommand(unittest.TestCase):
     """`shellx env NAME` prints one `export NAME=<value>` line per name.
 
@@ -592,6 +812,8 @@ class TestEnvSubcommand(unittest.TestCase):
     """
 
     def setUp(self):
+        os.environ["SHELLX_MASTER_KEY"] = "a" * 64
+        self.addCleanup(os.environ.pop, "SHELLX_MASTER_KEY", None)
         self._tmp = tempfile.TemporaryDirectory()
         self.store = Path(self._tmp.name)
         (self.store / ".sl").write_text(shellx._derived_slug() + "\n")
