@@ -156,6 +156,10 @@ The `RESTRICTED` mode, a login shell, and the `shellx run` exec path were
 never tested. The exec path decrypts every matching secret, so it pays the
 same per-secret KDF cost.
 
+Done: the login shell was measured at 172 ms with the secret loaded, and
+the exec path exits with code 4 when the master key is missing. Still
+open: the `RESTRICTED` mode.
+
 Fix: add a test for each path, or record the manual check in the helper
 CHANGELOG.
 
@@ -269,7 +273,7 @@ secret is lost.
 | 2. Fix `shellx import --to` | correctness | done | |
 | 3. Close the temp-file window | correctness | done | |
 | 4. Remove the no-op bytecode step | correctness | done | |
-| 5. Cover the untested paths | correctness | open | the `RESTRICTED` mode and the login shell |
+| 5. Cover the untested paths | correctness | partly done | the login shell works; the `RESTRICTED` mode is still untested |
 | 6. Take the interpreter savings | performance | done | the launcher split is measured separately |
 | 7. Change the KDF | performance | done | the 16 blob migration is still open |
 | 8. Detach the master secret | security | done | |
