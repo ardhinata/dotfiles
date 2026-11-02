@@ -94,8 +94,7 @@ def path_width(path):
     name a width.
     """
     rest = path[: -len("/embeddings")]
-    if rest.endswith("/v1"):
-        rest = rest[: -len("/v1")]
+    rest = rest.removesuffix("/v1")
     parts = [part for part in rest.split("/") if part]
     if len(parts) < 2:
         return DIMENSIONS

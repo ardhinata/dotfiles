@@ -15,10 +15,10 @@ The script is loaded via `importlib.machinery.SourceFileLoader` because
 the deployed filename has no `.py` extension.
 """
 
-import importlib.machinery
-import importlib.util
 import hashlib
 import hmac
+import importlib.machinery
+import importlib.util
 import io
 import json
 import os
