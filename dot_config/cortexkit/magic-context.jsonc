@@ -3,7 +3,7 @@
   "historian": {
     "opencode": {
       "model": {
-        "model": "openrouter/minimax/minimax-m3.1-flash",
+        "model": "opencode-go/deepseek-v4.1-flash",
         "variant": "low",
       },
       "fallback_models": [
@@ -34,7 +34,7 @@
     },
     "opencode": {
       "model": {
-        "model": "openrouter/minimax/minimax-m3.1-flash",
+        "model": "opencode-go/deepseek-v4.1-flash",
         "variant": "high",
       },
       "fallback_models": [
@@ -49,18 +49,18 @@
   },
   "memory": {
     "enabled": true,
-    "injection_budget_tokens": 6000,
+    "injection_budget_tokens": 6144,
     "auto_promote": true,
     "retrieval_count_promotion_threshold": 3,
     "auto_search": {
       "enabled": true,
-      "score_threshold": 0.6,
+      "score_threshold": 0.5,
       "min_prompt_chars": 20,
     },
     "git_commit_indexing": {
       "enabled": true,
-      "since_days": 720,
-      "max_commits": 2000,
+      "since_days": 1791,
+      "max_commits": 4096,
     },
   },
   "sqlite": {

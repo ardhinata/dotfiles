@@ -89,7 +89,7 @@
     // server-side, so this only bites on roots over 20k files.
     // "max_files": 50000,
 
-    // "timeout_ms": 25000,      // schema default; fine for background builds
+    "timeout_ms": 60000,
     // "max_batch_size": undefined, // let the pipeline size its own batches
     // Measured 2026-10-26: the upstream provider (Nebius Token Factory)
     // enforces a tokens-per-minute quota and answers a burst with HTTP 429.
@@ -102,6 +102,6 @@
     // HTTP 502 resets. Both sizes ran at the same 14 chunks per second, so
     // the smaller batch costs no time. This cap is not fingerprinted, so
     // changing it needs no re-embed.
-    "max_batch_size": 32,
+    "max_batch_size": 80,
   },
 }
