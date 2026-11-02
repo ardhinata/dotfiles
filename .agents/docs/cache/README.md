@@ -51,7 +51,7 @@ skill or rule file, with the cache entry as the evidence behind it.
 
 ## Related
 
-- `.help/` — legacy project knowledge cache (chezmoi + sprig docs, quirks, doc
-  index). See `.help/README.md`.
+- `.help/` — the fetched chezmoi and sprig documentation, the doc index, and
+  the template function quirks. See `.help/README.md`.
 - `~/.agents/rules/web-verification.md` — global web-tool selection and
   cache-use policy.

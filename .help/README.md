@@ -10,8 +10,10 @@ Downloads the Chezmoi documentation matching the installed `chezmoi` version fro
 
 **Usage:**
 
+Run it from the repository root:
+
 ```
-bash fetch_current_docs.sh
+bash .help/fetch_current_docs.sh
 ```
 
 **Behavior:**
@@ -22,7 +24,7 @@ bash fetch_current_docs.sh
 
 ### `DOCS_MAP.md`
 
-A structured index mapping all files under `chezmoi-docs/` to brief descriptions. Organized by category (user guide, reference, commands, templates, developer guide, etc.). Kept **outside** `chezmoi-docs/` so it survives the fetch script's directory wipe.
+A structured index mapping all files under `chezmoi-docs/` to brief descriptions. Organized by category (user guide, reference, commands, templates, developer guide, and the sprig function table). Kept **outside** `chezmoi-docs/` so it survives the fetch script's directory wipe. The version header is hand maintained. The fetch script does not update it, so compare it against `chezmoi --version` after every fetch.
 
 ### `QUIRKS.md`
 
@@ -37,10 +39,11 @@ Local copy of the https://chezmoi.io website documentation, organized as MkDocs 
 - `docs/reference/` — commands, flags, configuration, special directories/files, template functions
 - `docs/developer-guide/` — architecture, contributing, packaging, testing
 - `snippets/` — reusable doc snippets (common CLI flags)
+- `overrides/` — MkDocs theme override
 
 ### `sprig-docs/`
 
-Local copy of the [Sprig](https://github.com/Masterminds/sprig) template function library documentation (master branch). Chezmoi includes Sprig functions natively in templates, making this the canonical reference for all Sprig functions available in Chezmoi templates. Populated by running `fetch_current_docs.sh`.
+Local copy of the [Sprig](https://github.com/Masterminds/sprig) template function library documentation (master branch). Chezmoi includes Sprig functions natively in templates, making this the canonical reference for all Sprig functions available in Chezmoi templates. Populated by running `fetch_current_docs.sh`. The clone follows the branch tip, so the content can change without a version change.
 
 **Key files:**
 - `strings.md` — string manipulation (trim, upper/lower, replace, plural, etc.)
@@ -61,6 +64,8 @@ Local copy of the [Sprig](https://github.com/Masterminds/sprig) template functio
 - `paths.md` — file path manipulation (base, dir, ext, clean)
 - `network.md` — network utilities
 - `uuid.md` — UUID generation
+- `integer_slice.md` — integer slice utilities (until, untilStep)
+- `string_slice.md` — string slice utilities
 
 ## Usage
 
@@ -73,5 +78,5 @@ For Sprig template functions:
 2. Read the relevant file for function signatures and examples
 
 If `chezmoi-docs/` or `sprig-docs/` is missing or empty:
-1. Run `bash fetch_current_docs.sh` to populate them
+1. Run `bash .help/fetch_current_docs.sh` to populate them
 2. If the script fails, instruct the user to run it manually

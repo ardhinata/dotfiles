@@ -31,14 +31,14 @@ Any template that iterates over encrypted files with `include | decrypt` without
 
 ### Project mitigation
 
-This project uses a **guarded `output "bash" "-c"` pattern** instead of `decrypt` in templates that need graceful degradation. The pattern:
+This project avoids `decrypt` in templates. The pattern below is the fallback for a template that must decrypt a glob.
 
 1. Use `output "bash" "-c"` to call `age --decrypt` directly with the same identity keys chezmoi configures
 2. The shell command uses `|| echo __DECRYPT_FAILED__` so the command always exits 0
 3. Check the captured output against the failure marker
 4. Emit a diagnostic comment on failure instead of aborting
 
-Reference implementation: `dot_shell/helper/executable_shellx.tmpl` (scrypt + ChaCha20 + HMAC-BLAKE2b for the runtime environment store; pure Python 3 stdlib, no pip). The legacy `executable_runpriv.tmpl` / `executable_encrypt_store.sh.tmpl` remain in the tree during transition but are superseded by `shellx`. As of shellx 1.5.0, `STATIC_PW = sha256sum("com.ardju.utils:shellx:" + .system_environment.nonce)` is derived at `chezmoi apply` time and injected into the deployed script as a plain hex constant. There is no runtime `chezmoi data` subprocess fallback.
+Reference implementation: `dot_shell/helper/private_executable_shellx.tmpl` (scrypt + ChaCha20 + HMAC-BLAKE2b for the runtime environment store, pure Python 3 stdlib, no pip). The legacy `executable_runpriv.tmpl` / `executable_encrypt_store.sh.tmpl` remain in the tree during transition but are superseded by `shellx`. As of shellx 1.6.0 (2026-11-02), the master key is not embedded in the helper. `dot_local/share/private_shellx/private_master.key.tmpl` derives it at `chezmoi apply` time as `sha256sum("com.ardju.utils:shellx:" + .system_environment.nonce)` and writes it to `~/.local/share/shellx/master.key` with mode 0600. The helper reads that file at runtime, and the platform secret store is the fallback. There is no runtime `chezmoi data` subprocess fallback.
 
 ```
 {{- $keys := glob (printf "%s/.encryption_keys/*.secret.key" .chezmoi.sourceDir) -}}
@@ -57,7 +57,7 @@ Reference implementation: `dot_shell/helper/executable_shellx.tmpl` (scrypt + Ch
 {{- end -}}
 ```
 
-An alternative approach in `.chezmoiignore` uses an external script (`check_decrypt.sh`) to test decryption and dynamically produce ignore patterns for undecryptable files, avoiding template-level `decrypt` entirely.
+The approach this project uses today sits in `.chezmoiignore`. It runs an external script (`.shell_helper/check_decrypt.sh`) that tests decryption and emits ignore patterns for the files that fail, so the target state never needs them. The template-level `decrypt` stays out of the tree.
 
 ### When to apply this mitigation
 
@@ -82,6 +82,7 @@ instead.
 
 | chezmoi version | Status |
 |---|---|
-| v2.70.5 | Confirmed — `decrypt` aborts template on undecryptable ciphertext |
-| v2.73.3 | Confirmed — still aborts; `include \| decrypt` on an age key aborts the whole apply |
+| v2.70.5 | Confirmed by test — `decrypt` aborts template on undecryptable ciphertext |
+| v2.73.3 | Confirmed by test — still aborts; `include \| decrypt` on an age key aborts the whole apply |
+| v2.74.0 | Confirmed by source review — `decryptTemplateFunc` calls `mustValue`, which panics on error |
 
