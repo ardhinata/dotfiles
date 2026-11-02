@@ -4,18 +4,29 @@
 
 Personal dotfiles managed with [Chezmoi](https://chezmoi.io). Secrets are stored with [age](https://github.com/FiloSottile/age) encryption. The shell is [Zsh](https://www.zsh.org/). It uses the [zgenom](https://github.com/jandamm/zgenom) plugin manager and the [Powerlevel10k](https://github.com/romkatv/powerlevel10k) prompt.
 
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Usage](#usage)
+- [How It Works](#how-it-works)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
 
 - **Secrets stay encrypted.** SSH keys, API tokens, and sensitive config files are stored as age-encrypted blobs in the source directory. Only a host that holds the matching private key can decrypt them.
 - **Per-machine profiles.** A machine profile (`personal-laptop`, `home`, `office`, …) decides which encrypted secrets and configurations deploy to each host.
 - **Key discovery is automatic.** Age keys under `.encryption_keys/` are found through glob patterns. No config change is needed when a key is added or removed.
 - **Files skip cleanly when keys are missing.** Encrypted files that the current host cannot decrypt are removed from the apply set. A host without every key still applies what it can.
-- **Secrets enter processes only when needed.** Environment variables for tokens and API keys are encrypted at rest. `shellx` injects them at process launch, so they are not exposed through the shell. `shellx` runs on Python 3 stdlib — no `pip`, no venv. It uses an opaque on-disk format, JSONC export and import to the chezmoi source tree, and zsh completion. See `dot_shell/helper/.help/` (source-only) for the full design.
+- **Secrets enter processes only when needed.** Environment variables for tokens and API keys are encrypted at rest. `shellx` injects them at process launch, so they are not exposed through the shell. `shellx` runs on Python 3 stdlib, with no `pip` and no venv. It uses an opaque on-disk format, JSONC export and import to the chezmoi source tree, and zsh completion. See `dot_shell/helper/.help/` (source-only) for the full design.
 - **Zsh is plugin-driven.** Modular shell configuration through zgenom and Prezto modules: completion, syntax highlighting, history search, git, prompt, and more.
 - **SSH is hardened.** Global SSH hardening (strong host-key, KEX, and MAC algorithms, strict host-key checking) with age-encrypted per-host config includes and visual host keys.
 - **The SSH agent is GPG.** SSH authentication runs through `gpg-agent`. `SSH_AUTH_SOCK` is set automatically.
 - **Git config is portable.** Global Git settings carry conditional includes for work repositories.
-- **Kilo is managed.** Configuration for the [Kilo](https://kilo.ai) AI coding assistant covers model routing, MCP servers, and project rules.
+- **Agent tooling is managed.** OpenCode, Magic Context, and AFT configs, the cc-safety-net destructive-command policy, and the global agent rules and skills all deploy from this tree. The project-scope `.agents/` tree stays in the repo and never reaches `$HOME`.
 
 ## Prerequisites
 
@@ -60,85 +71,52 @@ chezmoi init --apply
 
 ```
 .
-├── .chezmoi.yaml.tmpl          # Chezmoi config template (age, key discovery)
-├── .chezmoidata.yaml           # Static template data (paths, profile)
-├── .chezmoiignore              # Templated exclusion rules (decryption checks)
-├── .chezmoiversion             # Minimum Chezmoi version: 2.70.4
-├── .gitignore
+├── .chezmoi.yaml.tmpl      # Chezmoi config template (age, key discovery)
+├── .chezmoidata.yaml       # Static template data (paths, profile)
+├── .chezmoiignore          # Templated exclusion rules (decryption checks)
+├── .chezmoiversion         # Minimum Chezmoi version: 2.70.4
+├── .chezmoiscripts/        # Post-apply hooks
+├── .chezmoiexternals/      # Externally managed trees (zgenom, TPM, themes)
+├── AGENTS.md               # Instructions for coding agents
 │
-├── .chezmoiexternals/
-│   └── zgenom.yaml             # External source: zgenom (weekly refresh)
+├── .agents/                # Project-scope agent tree (never deployed)
+│   ├── docs/cache/         # Curated knowledge cache
+│   ├── opencode/           # Project-scope OpenCode config
+│   ├── rules/              # Project-scope rule files
+│   └── skills/             # Project-scope skills
+├── dot_agents/             # Global agent tree → ~/.agents/
+│   ├── exact_rules/        # Shared rules → ~/.agents/rules/
+│   ├── exact_rules.opencode/  # OpenCode-only rules
+│   ├── rules.personal.d/   # Personal rules
+│   └── skills/             # Global skills → ~/.agents/skills/
 │
-├── .encrypted_data/            # Source-only secret data
-│   └── env_store/              # shellx exports (age-encrypted JSONC)
+├── .encrypted_data/        # Source-only secret data
+│   └── env_store/          # shellx exports (age-encrypted JSONC)
+├── .encryption_keys/       # Age encryption keys
+├── .shell_helper/          # Template helpers (never deployed)
+│   └── check_decrypt.sh    # Tests which encrypted files are decryptable
+├── .help/                  # Local chezmoi and sprig documentation
 │
-├── .encryption_keys/           # Age encryption keys
-│   ├── README.md               # Key management documentation
-│   ├── .gitignore              # Ignores unencrypted private keys
-│   ├── *.public.key            # Public keys (committed)
-│   ├── *.secret.key            # Private keys (gitignored)
-│   ├── *.secret.key.age        # age-encrypted private key backup (committed)
-│   └── *.secret.key.asc        # GPG-encrypted private key backup (committed)
-│
-├── .shell_helper/
-│   ├── check_decrypt.sh        # Tests which encrypted files are decryptable
-│   └── README.md               # Helper script documentation
-│
-├── .help/                      # Agent reference materials
-│   ├── README.md
-│   ├── DOCS_MAP.md             # Index of Chezmoi and Sprig docs
-│   ├── QUIRKS.md               # Documented edge cases for chezmoi templates
-│   ├── fetch_current_docs.sh   # Downloads Chezmoi and Sprig docs
-│   ├── chezmoi-docs/           # Populated by fetch_current_docs.sh
-│   └── sprig-docs/             # Populated by fetch_current_docs.sh
-│
-├── .kilo/                      # Kilo AI agent project config
-│   ├── kilo.jsonc              # Agent model, MCP servers, routing
-│   ├── package.json            # Project dependencies (@kilocode/plugin)
-│   ├── agent-manager.json      # Worktree state and session metadata
-│   ├── rules/
-│   │   └── chezmoi-source-project.md  # Project-specific agent rules
-│   └── skills/
-│       └── chezmoi/            # Chezmoi skill (source-state conventions)
-│
-├── dot_config/                 → ~/.config/
-│   └── kilo/
-│       ├── kilo.jsonc.tmpl     # Kilo agent configuration
-│       ├── rules/              # Agent rules
-│       └── skills/             # Agent skills
-│
-├── dot_gitconfig               → ~/.gitconfig
-│
-├── dot_p10k.zsh                → ~/.p10k.zsh
-│
-├── dot_zprofile                → ~/.zprofile
-│
-├── dot_shell/                  → ~/.shell/
-│   ├── zsh/
-│   │   ├── 00-before-zgenom.zsh        # Pre-plugin initialization
-│   │   ├── 10-common-export.zsh         # EDITOR, SSH_AUTH_SOCK, shellx on PATH
-│   │   ├── 15-zgenom-helper-func.zsh    # Helpers for zgenom-loaded plugins
-│   │   └── completions/
-│   │       └── _shellx.tmpl            # Zsh completion for shellx
-│   ├── helper/
-│   │   ├── executable_shellx                    # Secret manager (Python 3 stdlib)
-│   │   ├── executable_shellx_completion_helper.tmpl
-│   │   ├── .help/                               # shellx docs (source-only)
-│   │   ├── executable_runpriv.tmpl              # LEGACY: superseded by shellx
-│   │   └── executable_encrypt_store.sh.tmpl    # LEGACY: superseded by shellx
-│   └── private_store/               # Encrypted JSON stores
-│
-├── dot_ssh/                    → ~/.ssh/
-│   ├── config                  # Hardened SSH client config
-│   ├── config.d/               # Per-host encrypted SSH configs
-│   │   ├── .gitignore
-│   │   └── encrypted_*.conf.age  # Age-encrypted per-host SSH configs
-│   └── keys/                   # Encrypted SSH key pairs
-│       ├── .gitignore
-│       ├── encrypted_private_*.key.age       # Encrypted SSH private keys
-│       └── encrypted_private_*.key.pub.age   # Encrypted SSH public keys
-│
-└── dot_zshrc                   → ~/.zshrc
+├── dot_config/             → ~/.config/
+│   ├── alacritty/          # Terminal emulator config
+│   ├── tmux/               # Terminal multiplexer config
+│   ├── zed/                # Editor config
+│   ├── opencode/           # OpenCode config and rules
+│   ├── private_cortexkit/  # Magic Context and AFT config
+│   └── systemd/user/       # Embeddings proxy unit
+├── dot_gitconfig           → ~/.gitconfig
+├── dot_local/share/private_shellx/  # Master key template (0600)
+├── dot_p10k.zsh            → ~/.p10k.zsh
+├── dot_shell/              → ~/.shell/
+│   ├── helper/             # shellx, pinentry wrappers, embeddings proxy
+│   ├── private_store/      # Legacy ejson store (still deployed)
+│   └── zsh/                # Zsh modules and completions
+├── dot_ssh/                → ~/.ssh/
+├── dot_zprofile            → ~/.zprofile
+├── dot_zshrc               → ~/.zshrc
+├── private_dot_cc-safety-net/  # → ~/.cc-safety-net/ (destructive-command policy)
+├── private_dot_gnupg/      # → ~/.gnupg/ (gpg and gpg-agent config)
+└── docs/                   # Human-facing docs (plans, reports, post-mortems)
 ```
 
 ## Usage
@@ -166,34 +144,22 @@ every machine.
 The `shellx` store is process-scoped: it injects a secret only into the
 process that asks for it. Some secrets must be present in every shell
 instead. The `shellx env` subcommand prints one `export` line per variable,
-and the shell startup file sources it.
-
-```zsh
-# ~/.shell/zsh/20-secret-env-load.zsh
-_shellx_env_load() {
-	local _line
-	_line="$("${SHELL_TOOL_DIR}/helper/shellx" env "$1")" || {
-		print -u2 "shellx: failed to load $1"
-		return 1
-	}
-	eval "$_line"
-}
-_shellx_env_load OPENROUTER_API_OPENCODE_INDEX
-```
+and `dot_shell/zsh/20-secret-env-load.zsh` sources it at shell startup.
 
 `dot_zshrc` sources that file. The helper decrypts on every shell start.
-One variable costs about 115 ms, so keep the list short.
+One variable costs about 42 ms, so keep the list short.
 
 The value never rests on disk in plaintext. The previous ejson store
 decrypted at `chezmoi apply` time and left the value in a mode-0600 file
-under `~/.shell/zsh/`.
-
-Restore the store on a new machine with `shellx import`, as described
-below.
+under `~/.shell/zsh/`. Restore the store on a new machine with
+`shellx import`, as described below.
 
 ### Secure environment injection
 
-`shellx` launches processes with secrets injected from an opaque on-disk store. It replaces the older `runpriv` and `encrypt_store.sh` helpers. It uses Python 3 stdlib only — no `pip`, no venv — and avoids common credential-file signatures.
+`shellx` launches processes with secrets injected from an opaque on-disk
+store. It replaces the older `runpriv` and `encrypt_store.sh` helpers. It
+uses Python 3 stdlib only, with no `pip` and no venv, and it avoids common
+credential-file signatures.
 
 ```bash
 # First-time setup. Auto-runs on the first invocation; an explicit init also works.
@@ -209,9 +175,22 @@ shellx --tag=git gh pr list
 shellx run --tag=git gh pr list
 ```
 
-Secrets are encrypted with **scrypt + ChaCha20 + HMAC-BLAKE2b** under variable-name-bound AAD. The output is an opaque binary blob kept under `~/.local/share/<random-16-hex-slug>/`. The slug and per-secret filenames are blake2b hashes — indistinguishable from app-cache noise to a static scanner. See `dot_shell/helper/.help/` (source-only) for the full design, crypto, and limitations.
+Secrets are encrypted with ChaCha20 under keys derived from the master key.
+A new blob derives its keys with HMAC-SHA512 over a per-blob salt. The tag
+is HMAC-BLAKE2b over the associated data and the ciphertext. The associated
+data binds the blob to its own header and to the variable name, so a
+swapped blob fails to authenticate. Blobs written by an older version
+derive their keys with scrypt, and both versions live in one store.
 
-The injected process also receives `SHELLX_VARS` — and the legacy `RUNPRIV_VARS` alias with the same value — a comma-separated list of injected secret names. Scripts use it to introspect which secrets are present.
+The output is an opaque binary blob kept under `~/.local/share/<32-hex-slug>/`.
+The slug and the per-secret filenames are blake2b hashes, so they look like
+app-cache noise to a static scanner. See `dot_shell/helper/.help/`
+(source-only) for the full design, the crypto, and the limitations.
+
+The injected process also receives `SHELLX_VARS`, and the legacy
+`RUNPRIV_VARS` alias with the same value. Both hold a comma-separated list
+of injected secret names. Scripts use it to introspect which secrets are
+present.
 
 #### Export to and import from the chezmoi source tree
 
@@ -222,7 +201,11 @@ shellx export   # Writes an age-encrypted JSONC export to the chezmoi source tre
 shellx import ~/.local/share/chezmoi/.encrypted_data/env_store/encrypted_*.jsonc.age
 ```
 
-Exports are JSONC (JSON with `//` comments) with per-entry metadata in the comments — readable, editable, diffable. The plaintext JSONC is piped through `chezmoi encrypt` and never touches disk. `.chezmoiignore` excludes the resulting blobs from `chezmoi apply`, so restoration is explicit through `shellx import`.
+Exports are JSONC (JSON with `//` comments) with per-entry metadata in the
+comments, so they stay readable, editable, and diffable. The plaintext JSONC
+is piped through `chezmoi encrypt` and never touches disk. `.chezmoiignore`
+excludes the resulting blobs from `chezmoi apply`, so restoration is
+explicit through `shellx import`.
 
 ### SSH configuration workflow
 
@@ -256,6 +239,9 @@ Per-host SSH config fragments are stored as age-encrypted files.
 
 ## How It Works
 
+One repository serves many hosts. Each host applies only the secrets it can
+decrypt.
+
 ### Encryption flow
 
 ```
@@ -268,7 +254,7 @@ age -e -a -R <public-key> -o encrypted_file.age
 Stored in source dir (committed)
       │
       ▼
-chezmoi apply  ───  age -d -i <secret-key>
+chezmoi apply  ─── age -d -i <secret-key>
       │
       ▼
 Plaintext restored at target path (~/.ssh/..., ~/.shell/..., etc.)
@@ -276,21 +262,16 @@ Plaintext restored at target path (~/.ssh/..., ~/.shell/..., etc.)
 
 ### Dynamic ignore mechanism
 
-The `.chezmoiignore` template runs `check_decrypt.sh` at evaluation time. The script:
+The `.chezmoiignore` template runs `check_decrypt.sh` at evaluation time.
+The script checks which age identities the host holds. It then tries to
+decrypt every `encrypted_*` file, and prints the target paths of the files
+it cannot decrypt. Those files are then skipped during `chezmoi apply`.
 
-1. Checks which `*.secret.key` files exist in `.encryption_keys/`.
-2. Finds every `encrypted_*` file, skipping dot-directories. Chezmoi ignores
-   every dot-directory at the source root except `.chezmoi*`, so a file
-   inside one can never become a target and never needs an ignore pattern.
-3. Tries to decrypt each file with the available keys.
-4. Prints target paths for files that **cannot** be decrypted.
-5. Those files are skipped during `chezmoi apply`.
-
-One repository serves many hosts. Each host applies only the secrets it can decrypt.
-
-The dot-directory prune matters for speed. Without it the walk descends
-into `.tmp`, which holds well over a hundred thousand files, on every
-chezmoi command.
+The script prunes dot-directories, because chezmoi ignores every
+dot-directory at the source root except `.chezmoi*`. Without the prune the
+walk descends into `.tmp`, which holds over a hundred thousand files, on
+every chezmoi command. See `.shell_helper/README.md` for the full script
+documentation.
 
 ## Contributing
 
@@ -304,11 +285,13 @@ Contributions are welcome.
 3. **Test your changes**: run `chezmoi diff` to verify the expected output before applying.
 4. **Submit a pull request** with a clear description of the changes.
 
+Coding agents should read [`AGENTS.md`](AGENTS.md) first.
+
 ## License
 
 This project is released into the public domain. No rights reserved.
 
 If you use this repository as a starting point for your own dotfiles, attribution is appreciated but not required.
 
-Kept as-is: "Age" / "GPG" / "scrypt + ChaCha20 + HMAC-BLAKE2b" — cryptographic primitives with fixed names, kept as written.
+Kept as-is: "Age" / "GPG" / "ChaCha20" / "HMAC-BLAKE2b" / "HMAC-SHA512" / "scrypt" — cryptographic primitives with fixed names, kept as written.
 Kept as-is: `<repo-url>`, `<key>`, `<name>`, `<recipient>`, `<profile>`, `<descriptor>` — placeholder tokens left literal so the user knows what to substitute.
