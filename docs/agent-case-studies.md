@@ -4,8 +4,6 @@ date: 2026-10-23
 last-updated: 2026-10-23
 status: active
 related:
-  - docs/subagent-fleet/README.md
-  - docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md
   - docs/assist-only/constitution.md
 ---
 
@@ -278,7 +276,5 @@ often — it is a normal path, not an edge case, and should be budgeted for.
 
 ## Related
 
-- Canonical fleet design: [`docs/subagent-fleet/2026-08-17-subagent-creative-conservative.md`](subagent-fleet/2026-08-17-subagent-creative-conservative.md)
-- Fleet index and pointer maintenance: [`docs/subagent-fleet/README.md`](subagent-fleet/README.md)
 - Agent sources (retired with Kilo on 2026-10-24; archived under `~/Playground/backup/2026-10-24-kilo-teardown/`)
 - assist-only constitution: [`docs/assist-only/constitution.md`](assist-only/constitution.md)
