@@ -8,7 +8,6 @@
     "@cortexkit/opencode-magic-context@latest",
     "opencode-handoff@latest",
     "@dietrichgebert/ponytail@latest",
-    "@hueyexe/opencode-ensemble@latest",
     "-opencode.tool.shell",
     "-opencode.tool.patch",
     "@upstash/context7-opencode@latest"
