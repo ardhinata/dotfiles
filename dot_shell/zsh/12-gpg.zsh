@@ -14,6 +14,19 @@
 #   The preexec hook below catches that race at the moment the user actually
 #   types a command, when tty is guaranteed stable.
 
+# --- pinentry on macOS: terminal prompt over SSH ---
+#
+# pinentry-mac needs a window server connection. A prompt triggered from an SSH
+# login draws its dialog on the Mac's own screen, which a remote user cannot
+# see, so the command looks hung. pinentry-mac reads USE_CURSES=1 from
+# PINENTRY_USER_DATA and uses the terminal UI instead. Other backends ignore
+# the variable. gpg-agent passes its own environment on to pinentry, so an
+# agent already running from the GUI session keeps the GUI behaviour until it
+# is restarted.
+if [[ -n ${SSH_CONNECTION:-} && "${OSTYPE}" == darwin* ]]; then
+	export PINENTRY_USER_DATA=USE_CURSES=1
+fi
+
 # --- Startup: point SSH_AUTH_SOCK at gpg-agent and seed GPG_TTY ---
 #
 # `tty -s` is silent (no stdout pollution); raw `tty` writes "not a tty" to
