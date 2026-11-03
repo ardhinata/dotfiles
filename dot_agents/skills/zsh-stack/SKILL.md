@@ -156,7 +156,7 @@ The key table is in `references/prezto-zstyle-api.md`. Read it when you need the
 - **gpg module GPG_TTY race** — `modules/gpg/init.zsh:30` runs `export GPG_TTY=$TTY` at **pmodload time**, but `$TTY`/`$(tty)` during `.zshrc` source is the *previous* alacritty tab's pts. The stale value then leaks into `systemd --user import-environment` and points pinentry at the wrong tty on the next SSH sign. The module also auto-starts `gpg-agent --daemon` (gpg/init.zsh:21-27), installs the `UPDATESTARTUPTTY` preexec hook (43-47), `pmodload 'ssh'` on `enable-ssh-support` (33-41), and sets `PINENTRY_USER_DATA=USE_CURSES=1` when `$SSH_CONNECTION` (54-56). All **disabled here** via the `loaded` zstyle (`00-before-zgenom.zsh:17`) + reimplemented in `dot_shell/zsh/12-gpg.zsh` with a just-in-time preexec hook.
 - **`ZGEN_PREZTO_LOAD_DEFAULT=0` drops `INTERACTIVE_COMMENTS`** — must explicitly load `environment` first (`dot_zshrc:49`).
 - **syntax-highlighting → history-substring-search order** — syntax-highlighting must be sourced **before** HSS so HSS's key binds land on top of the wrapping (`dot_zshrc:59-60`). Also: syntax-highlighting is gated by `:prezto:* color yes`. HSS is not.
-- **completion compinit ordering vs fpath additions** — compinit snapshots `$fpath` at module-load (`completion/init.zsh:56-68`). User completions added after will not register until the 20h cache expires. **`00-before-zgenom.zsh:7` prepends `$SHELL_TOOL_DIR/zsh/completions` before zgenom/prezto init** precisely for this reason (`_runpriv` is the load-bearing completion there).
+- **completion compinit ordering vs fpath additions** — compinit snapshots `$fpath` at module-load (`completion/init.zsh:56-68`). User completions added after will not register until the 20h cache expires. **`00-before-zgenom.zsh:7` prepends `$SHELL_TOOL_DIR/zsh/completions` before zgenom/prezto init** precisely for this reason (`_shellx` is the load-bearing completion there).
 - **`prompt_powerlevel10k_setup` is a submodule symlink** — verify `git submodule status` inside `$ZGEN_DIR/sources/prezto/` if p10k is broken.
 
 ### Project wiring (line-by-line)
@@ -252,12 +252,12 @@ not line 49.
 |---|---|---|
 | `dot_zshrc` | all three | The orchestration. Lines 1-7 = p10k preamble, 9-13 = env+fpath, 16 = zgenom knob, 18 = zgenom source, 24 = autoupdate, 27-73 = saved-cache guard + prezto setup, 75-77 = sourced helpers, 82 = `~/.p10k.zsh`. |
 | `dot_shell/zsh/00-before-zgenom.zsh` | zgenom/prezto | `fpath` prepend for `compinit`; zstyle-disable prezto `gpg` module. Must run **before** zgenom init. |
-| `dot_shell/zsh/10-common-export.zsh` | post-zgenom | Exports + `fnm env --use-on-cd` + `runpriv` PATH. Top comment says it runs after completions are active. |
+| `dot_shell/zsh/10-common-export.zsh` | post-zgenom | Exports + `fnm env --use-on-cd` + helper PATH + JetBrains Toolbox scripts PATH. Top comment says it runs after completions are active. |
 | `dot_shell/zsh/12-gpg.zsh` | post-zgenom | Owns GPG_TTY lifecycle. Replaces prezto's disabled gpg module's `export GPG_TTY=$TTY` + UPDATESTARTUPTTY. Has a preexec hook for just-in-time tty refresh (alacritty reassigns controlling tty mid-startup). |
 | `dot_shell/zsh/15-zgenom-helper-func.zsh` | helper | `zgenom_refresh_cache`: clears `.zwc` + prezto `zcompdump` + `zgenom reset`. |
 | `dot_p10k.zsh` | p10k | User prompt config (~87 KB). Sourced last (`dot_zshrc:82`). **Never run `p10k configure`** — it overwrites. |
 | `dot_shell/zsh/20-secret-env-load.zsh` | post-zgenom | Loads shell-wide secrets from the shellx store with `shellx env`. Sourced at `dot_zshrc:79`. Runs only in an interactive session, so a desktop-launched app has no key. Costs about 115 ms per shell start. |
-| `dot_shell/zsh/completions/` | completion | Custom `#compdef` functions (e.g. `_runpriv`). fpath-prepended by `00-before-zgenom.zsh`. |
+| `dot_shell/zsh/completions/` | completion | Custom `#compdef` functions (e.g. `_shellx`). fpath-prepended by `00-before-zgenom.zsh`. |
 
 ## Reference files
 

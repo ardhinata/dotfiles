@@ -27,6 +27,13 @@ All notable changes to `shellx` are documented here. Format follows
   Prefer `SHELLX_VARS` in new code; treat `RUNPRIV_VARS` as the legacy
   alias.
 
+### Removed
+
+- **The legacy `runpriv` and `encrypt_store.sh` helpers.** Their source
+  files are gone from the repo. `shellx` is the only supported way to
+  inject secrets into a launched process. The old JSON store under
+  `~/.shell/store/` stays on disk until you remove it by hand.
+
 ## [1.6.0] — 2026-11-02
 
 ### Added
@@ -341,10 +348,11 @@ who have existing `runpriv`-managed secrets should:
 2. Re-add each secret with `shellx store VAR --tag=… --process=…`.
 3. Optionally, run `shellx export` to back up the new store.
 
-The legacy helpers remain functional and can be invoked alongside
-`shellx` for backward compatibility during transition. They read from
-`~/.shell/store/<profile>_environment_store.json` while `shellx` reads
-from `~/.local/share/<slug>/.idx`.
+The legacy helpers are retired. Their sources are gone from the repo.
+They read from `~/.shell/store/<profile>_environment_store.json` while
+`shellx` reads from `~/.local/share/<slug>/.idx`. A copy that is already
+installed still runs, but it has no source in the repo and no new release
+will fix it.
 
 ## Future plans
 

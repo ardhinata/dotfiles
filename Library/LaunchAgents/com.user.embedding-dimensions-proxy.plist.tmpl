@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd agent for the local embeddings proxy.
+
+  The Linux counterpart is the systemd user unit at
+  dot_config/systemd/user/embedding-dimensions-proxy.service. The proxy
+  script itself is shared: dot_shell/helper/executable_embedding_dimensions_proxy.py
+  deploys to ~/.shell/helper/embedding_dimensions_proxy.py on both systems.
+
+  The label must match the file name, so it carries no user name.
+  launchd reads no PATH, so ProgramArguments points at the script and
+  relies on its shebang (env python3). The script is executable, so the
+  kernel honours the shebang.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.embedding-dimensions-proxy</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ .chezmoi.homeDir }}/.shell/helper/embedding_dimensions_proxy.py</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- Default width for callers whose URL carries no width segment. -->
+        <key>EMBEDDING_PROXY_DIMENSIONS</key>
+        <string>512</string>
+        <key>EMBEDDING_PROXY_PORT</key>
+        <string>8099</string>
+        <key>EMBEDDING_PROXY_UPSTREAM</key>
+        <string>https://openrouter.ai/api/v1/embeddings</string>
+        <!-- Nebius and DeepInfra cost the same per token. The list has no
+             order, so OpenRouter picks the provider per request. -->
+        <key>EMBEDDING_PROXY_PROVIDER</key>
+        <string>{"only":["nebius","deepinfra"],"allow_fallbacks":true}</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/state/embedding-dimensions-proxy/proxy.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/state/embedding-dimensions-proxy/proxy.log</string>
+</dict>
+</plist>

@@ -176,7 +176,7 @@ bind -T copy-mode-vi V send-keys -X select-line
 # Useful for capturing column-aligned data such as log tables or diffs.
 bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
 # `y` yanks the selection and exits copy-mode (mirrors Vim's yank).
-bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "wl-copy"
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "{{ if eq .chezmoi.os "darwin" }}pbcopy{{ else }}wl-copy{{ end }}"
 
 # ==========================================
 # BUFFER PASTE (no copy-mode)
@@ -200,17 +200,19 @@ bind -r < swap-window -d -t :-1
 bind -r > swap-window -d -t :+1
 
 # ==========================================
-# MOUSE-DRIVEN CLIPBOARD BRIDGE (Wayland)
+# MOUSE-DRIVEN CLIPBOARD BRIDGE (Wayland / macOS)
 # ==========================================
 # When the user drags to select text inside a pane, pipe the selection
-# directly to `wl-copy` so it lands in the system clipboard. Avoids
-# the awkward "select, prefix+[, Enter, prefix+] to copy" dance.
-# Using Wayland's wl-copy; swap to `xclip -selection clipboard` on X11.
+# directly to the platform clipboard tool so it lands in the system
+# clipboard. Avoids the awkward "select, prefix+[, Enter, prefix+] to
+# copy" dance.
+# Wayland uses wl-copy; macOS uses pbcopy. On X11 use
+# `xclip -selection clipboard` instead.
 # Note: with `set-clipboard on` above, OSC-52-capable apps (Neovim
 # 0.10+, kitty, etc.) already reach the clipboard through tmux without
 # this bridge — these bindings cover the rest.
-bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "wl-copy"
-bind-key -T copy-mode    MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "wl-copy"
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "{{ if eq .chezmoi.os "darwin" }}pbcopy{{ else }}wl-copy{{ end }}"
+bind-key -T copy-mode    MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "{{ if eq .chezmoi.os "darwin" }}pbcopy{{ else }}wl-copy{{ end }}"
 
 # ==========================================
 # STATUS BAR

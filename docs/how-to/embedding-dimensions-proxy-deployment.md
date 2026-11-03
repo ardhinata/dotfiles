@@ -32,12 +32,20 @@ caller. The API key stays in the environment of the caller.
 | Service definition | `~/.config/systemd/user/embedding-dimensions-proxy.service` | `~/Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist` |
 | Log | `journalctl --user -u embedding-dimensions-proxy.service` | `~/.local/state/embedding-dimensions-proxy/proxy.log` |
 
+Chezmoi deploys the proxy script on both systems and the service
+definition of the host OS only. The unit and the plist live in the source
+tree as `dot_config/systemd/user/embedding-dimensions-proxy.service` and
+`Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist.tmpl`.
+`.chezmoiignore` keeps the unit of the other OS out of the target state.
+
 ## Before you start
 
 1. Install Python 3.9 or newer.
 2. Make sure port 8099 is free.
 3. Export `OPENROUTER_API_OPENCODE_INDEX` in the environment of the agent.
-4. Copy the proxy script to `~/.shell/helper/embedding_dimensions_proxy.py`.
+4. Run `chezmoi apply`. It writes the proxy script to
+   `~/.shell/helper/embedding_dimensions_proxy.py` and the service
+   definition of this OS.
 
 The script lives in this repository at
 `dot_shell/helper/executable_embedding_dimensions_proxy.py`. Chezmoi drops the
@@ -94,7 +102,8 @@ out of that machine.
 
 ### 1. Install the agent
 
-Write `~/Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist`:
+Chezmoi writes `~/Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist`.
+The rendered file is:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -341,20 +350,27 @@ above does not depend on them.
 |---|---|
 | `dot_shell/helper/executable_embedding_dimensions_proxy.py` | `~/.shell/helper/embedding_dimensions_proxy.py` |
 | `dot_config/systemd/user/embedding-dimensions-proxy.service` | `~/.config/systemd/user/embedding-dimensions-proxy.service` |
-| `dot_Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist.tmpl` | `~/Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist` |
+| `Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist.tmpl` | `~/Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist` |
 
 The script path is the same on both systems. Keep one source file for it.
 
 ### Ignore the file of the other system
 
-`.chezmoiignore` is a template. Add the target path of the file that does
-not belong to the current system:
+`.chezmoiignore` is a template. It holds the target path of the file
+that does not belong to the current system. This is in place now:
 
 ```text
 {{ if eq .chezmoi.os "darwin" }}
 .config/systemd/user/embedding-dimensions-proxy.service
 {{ end }}
+{{ if eq .chezmoi.os "linux" }}
+Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist
+{{ end }}
 ```
+
+The `Library` source directory carries no `dot_` prefix. The prefix adds
+a leading dot, which would give `~/.Library/LaunchAgents/` instead of
+`~/Library/LaunchAgents/`.
 
 ### Template variables
 
@@ -377,9 +393,11 @@ does not read `PATH`. Use an absolute path in `ProgramArguments`, or point
 
 ### Start the service after apply
 
-Use a `run_onchange` script under `.chezmoiscripts/` that branches on the
-system name. The script starts `systemctl --user enable --now` on Linux and
-`launchctl bootstrap` on macOS. The script needs no root rights.
+A `run_` script under `.chezmoiscripts/` branches on the system name. It
+is `run_start-embeddings-proxy.sh`. It starts `systemctl --user enable
+--now` on Linux and `launchctl bootstrap` on macOS. The script needs no
+root rights, and it leaves a service that already runs alone. Restart the
+service by hand after you change the unit or the plist.
 
 ## Troubleshooting
 

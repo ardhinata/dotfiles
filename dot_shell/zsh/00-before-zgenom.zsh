@@ -3,7 +3,7 @@
 # SHELL_TOOL_DIR is set in ~/.zshrc before this file is sourced.
 
 # Register custom completions directory so Prezto's completion module
-# discovers completions (e.g. _runpriv via #compdef) during compinit.
+# discovers completions (e.g. _shellx via #compdef) during compinit.
 fpath=("${SHELL_TOOL_DIR}/zsh/completions" $fpath)
 
 # Skip Prezto's gpg module. Its `init.zsh` does `export GPG_TTY=$TTY` at

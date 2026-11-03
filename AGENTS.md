@@ -61,6 +61,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
 - **shellx design and limits** (crypto, JSONC format, export and import, threat model): `dot_shell/helper/.help/` (source-only)
 - **Embedding dimensions proxy deployment** (Linux systemd, macOS launchd, client config, multi-OS templating notes): `docs/how-to/embedding-dimensions-proxy-deployment.md`
+- **macOS host brief** (what the 2026-11-03 portability change did, what the macOS host receives, and the open items that still assume Linux): `docs/reports/2026-11-03-macos-host-portability-brief.md`
 - **AFT embedding findings and measurements**: `docs/reports/` (open findings to hand to the team) and `.agents/docs/cache/aft-embedding/` (the measurements, harness, and query sets behind them)
 - **Subagent fleet case study** (haru/natsu/aki/fuyu/shiki): `docs/agent-case-studies.md` (the fleet itself was retired with Kilo on 2026-10-24, and the reusable lessons live here)
 - **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`

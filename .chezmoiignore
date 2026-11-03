@@ -41,6 +41,24 @@ dot_shell/helper/.help
 ## ~/.config/opencode/service.json (2026-10-23).
 dot_config/opencode/private_service.json
 
+## The embeddings proxy runs under the service manager of the host OS.
+## Linux uses a systemd user unit; macOS uses a launchd agent. The proxy
+## script itself is shared, so only the unit of the other OS is ignored.
+{{ if eq .chezmoi.os "darwin" }}
+.config/systemd/user/embedding-dimensions-proxy.service
+{{ end }}
+{{ if eq .chezmoi.os "linux" }}
+Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist
+{{ end }}
+
+## The pinentry tooling is not deployed. gpg-agent.conf no longer points
+## pinentry-program at the wrapper, so neither the wrapper nor the
+## switcher that manages it has a consumer. The sources stay in the tree
+## for reference; chezmoi does not copy them to $HOME.
+.shell/helper/pinentry-switch
+.shell/helper/pinentry-wrapper
+.shell/zsh/completions/_pinentry-switch
+
 ## Dynamic ignore for files that failed to be decrypted
 {{ $script := joinPath .chezmoi.sourceDir .source_structure.helper "check_decrypt.sh" -}}
 {{ $keyDir := joinPath .chezmoi.sourceDir .source_structure.encryption_keys -}}

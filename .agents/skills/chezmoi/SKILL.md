@@ -18,7 +18,7 @@ Load this skill when working with chezmoi templates, source-state files, encrypt
 
 ## Source Naming
 
-- Source files and directories follow the Chezmoi naming convention: prefix attributes are **stripped** from the name to determine the target name. `dot_shell` → `.shell`, `private_store` → `store`, `executable_runpriv` → `runpriv`.
+- Source files and directories follow the Chezmoi naming convention: prefix attributes are **stripped** from the name to determine the target name. `dot_shell` → `.shell`, `private_store` → `store`, `executable_embedding_dimensions_proxy.py` → `embedding_dimensions_proxy.py`.
 - **Applies to both files and directory path components.** All prefix attributes on every directory component in a source path are stripped. Templates and scripts that reference target paths must use the stripped name, never the source-state name.
 
 ## Source-State Attributes
@@ -58,7 +58,7 @@ Load this skill when working with chezmoi templates, source-state files, encrypt
 ## Project-Specific Conventions
 
 - **`private_` + `encrypted_` combination:** SSH keys use both prefixes (e.g., `encrypted_private_codeforge.key.age` in `dot_ssh/keys/`). This ensures keys are both encrypted-at-rest and deployed with restricted permissions.
-- **`dot_shell/private_store/` directory (legacy store):** The `private_` prefix is a chezmoi attribute, so the target directory is `~/.shell/store/` (with 700 permissions). The environment store JSON file at `dot_shell/private_store/encrypted_private_<profile>_environment_store.json.age` targets `~/.shell/store/<profile>_environment_store.json`. The legacy helpers (`runpriv`, `encrypt_store.sh`) reference `$HOME/.shell/store/`, not `.../private_store/`. `shellx` replaced both helpers and keeps its own store under `~/.local/share/<slug>/`.
+- **`dot_shell/private_store/` directory (legacy store):** The `private_` prefix is a chezmoi attribute, so the target directory is `~/.shell/store/` (with 700 permissions). The environment store JSON file at `dot_shell/private_store/encrypted_private_<profile>_environment_store.json.age` targets `~/.shell/store/<profile>_environment_store.json`. The `runpriv` and `encrypt_store.sh` helpers that read this store were retired on 2026-11-03. `shellx` replaced them and keeps its own store under `~/.local/share/<slug>/`.
 - **`dot_shell/helper/` shellx sources:** The helper is split into three source files, all with the `private_` attribute so the deployed target carries mode 0600. `private_executable_shellx.tmpl` is the launcher (target mode 0700), `private_shellx_impl.py.tmpl` holds the subcommands, and `private_shellx_key.py.tmpl` resolves the master key. The launcher and the key module carry the `.tmpl` suffix, so chezmoi renders them.
 - **Master key file:** `dot_local/share/private_shellx/private_master.key.tmpl` renders to `~/.local/share/shellx/master.key` with mode 0600. No deployed file holds the master secret in plaintext. `shellx` reads the key from the `SHELLX_MASTER_KEY` override, then the `SHELLX_NONCE` override, then the key file, then the platform secret store.
 - **Blob versions:** A shellx blob starts with a version byte. Version 1 derives the per-blob keys with scrypt. Version 2 derives them with HMAC-SHA512 over the per-blob salt. The tag stays HMAC-BLAKE2b in both versions, so one store can hold blobs of both versions.

@@ -24,12 +24,28 @@ export PATH="${PATH}:${HOME}/.local/bin:${BUN_INSTALL}/bin"
 # when changing directories (--use-on-cd).
 eval "$(fnm env --use-on-cd --shell zsh)"
 
-# --- runpriv: privileged process launcher ---
-# runpriv injects decrypted environment tokens from the per-profile JSON store
-# into a target process. Available on PATH via ~/.shell/helper.
+# --- Helper directory ---
+# shellx injects decrypted environment tokens into a target process.
+# Available on PATH via ~/.shell/helper.
 path=("${SHELL_TOOL_DIR}/helper" $path)
-# Completion is handled by ~/.shell/zsh/completions/_runpriv,
+# Completion is handled by ~/.shell/zsh/completions/_shellx,
 # loaded via fpath (set in 00-before-zgenom.zsh before compinit runs).
+
+# --- JetBrains Toolbox scripts ---
+# The Toolbox ships launcher scripts (idea, webstorm, ...) that belong on
+# PATH. The directory differs per OS: Linux keeps it under ~/.local/share,
+# macOS under ~/Library/Application Support. Add whichever one exists.
+# This lives in a .zshrc-sourced file, not in ~/.zprofile: ~/.zprofile is
+# read by login shells only, so an interactive non-login shell never saw
+# the Toolbox scripts there.
+for _jb_scripts in \
+	"${HOME}/.local/share/JetBrains/Toolbox/scripts" \
+	"${HOME}/Library/Application Support/JetBrains/Toolbox/scripts"; do
+	if [[ -d "$_jb_scripts" ]]; then
+		path=("$path" "$_jb_scripts")
+	fi
+done
+unset _jb_scripts
 
 if [[ -n $(which opencode) ]]; then
 	source <(opencode --completions zsh);
