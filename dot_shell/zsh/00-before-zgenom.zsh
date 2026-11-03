@@ -2,6 +2,22 @@
 # Runs before zgenom/Prezto initialization in ~/.zshrc.
 # SHELL_TOOL_DIR is set in ~/.zshrc before this file is sourced.
 
+# --- Homebrew ---
+# Put the Homebrew prefix first in the PATH. macOS /etc/zprofile runs
+# path_helper, which leaves /usr/bin ahead of /opt/homebrew/bin. That
+# makes `python3` resolve to the system Python 3.9, and the shellx helper
+# needs Python 3.10 or newer. brew shellenv also sets HOMEBREW_PREFIX,
+# HOMEBREW_CELLAR and HOMEBREW_REPOSITORY, and adds the Homebrew
+# completions to fpath. It runs here, before Prezto's compinit, so the
+# completions are picked up.
+for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+	if [[ -x "$_brew" ]]; then
+		eval "$("$_brew" shellenv zsh)"
+		break
+	fi
+done
+unset _brew
+
 # Register custom completions directory so Prezto's completion module
 # discovers completions (e.g. _shellx via #compdef) during compinit.
 fpath=("${SHELL_TOOL_DIR}/zsh/completions" $fpath)

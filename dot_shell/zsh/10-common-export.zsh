@@ -3,6 +3,14 @@
 # initialization, so the completion system is already active.
 # SHELL_TOOL_DIR is defined in ~/.zshrc as ${HOME}/.shell.
 
+# --- PATH hygiene ---
+# Every shell inherits the PATH of its parent, and fnm adds one multishell
+# directory to it. The PATH then grows with every shell generation.
+# Drop the multishell directories of the parent shells, and remove the
+# duplicate directories. fnm adds the one for this shell further down.
+typeset -U path
+path=(${path:#*/fnm_multishells/*})
+
 # --- Editor preference ---
 # Set EDITOR to the first available editor from the ordered preference list.
 if [[ -n $(which nvim) ]]; then
@@ -42,7 +50,7 @@ for _jb_scripts in \
 	"${HOME}/.local/share/JetBrains/Toolbox/scripts" \
 	"${HOME}/Library/Application Support/JetBrains/Toolbox/scripts"; do
 	if [[ -d "$_jb_scripts" ]]; then
-		path=("$path" "$_jb_scripts")
+		path+=("$_jb_scripts")
 	fi
 done
 unset _jb_scripts
