@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "shell": "/usr/bin/bash",
+  "shell": "bash",
   "username": "ardhinata",
   "plugins": [
     "cc-safety-net@latest",
@@ -8,9 +8,11 @@
     "@cortexkit/opencode-magic-context@latest",
     "opencode-handoff@latest",
     "@dietrichgebert/ponytail@latest",
+    "@upstash/context7-opencode@latest",
     "-opencode.tool.shell",
     "-opencode.tool.patch",
-    "@upstash/context7-opencode@latest"
+    "opencode-kiro@latest",
+    "@slkiser/opencode-quota@latest"
   ],
   "instructions": [
     "~/.agents/rules/*.md",
@@ -24,12 +26,6 @@
       "resource": "~/.local/share/opencode/worktree/**",
       "effect": "allow",
     },
-    // These two skills document tools that do not exist on this host.
-    // tavily-defaults describes five Tavily MCP tools and no MCP server is
-    // configured. spec-kit describes a tool that was removed on 2026-10-24.
-    // The deny hides them from the model without deleting the files.
-    { "action": "skill", "resource": "tavily-defaults", "effect": "deny" },
-    { "action": "skill", "resource": "spec-kit", "effect": "deny" },
 
     // Destructive shell commands. The action token is `shell`, not `bash`. A
     // `bash` rule validates against the schema and blocks nothing.
@@ -79,6 +75,7 @@
       "model": "openrouter/qwen/qwen3.7-flash#none",
     },
   },
+  "warming": true,
   // The websearch provider is not pinned. OpenCode picks one at runtime, so
   // the provider keys must exist in the environment that starts OpenCode.
   "providers": {

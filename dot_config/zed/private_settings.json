@@ -7,6 +7,8 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "use_system_prompts": false,
+  "use_system_path_prompts": false,
   "proxy": "",
   "project_panel": {
     "hide_root": true
@@ -31,13 +33,14 @@
   "buffer_line_height": "standard",
   "buffer_font_family": "RobotoMono Nerd Font",
   "terminal": {
+    "blinking": "terminal_controlled",
     "toolbar": {
       "breadcrumbs": true
     },
     "bell": "off",
     "copy_on_select": true,
     "font_weight": 400.0,
-    "font_size": 13.0,
+    "font_size": 12.0,
     "font_family": "FiraMono Nerd Font",
     "font_fallbacks": ["NotoMono Nerd Font", "Terminess Nerd Font Mono"]
   },
