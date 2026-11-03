@@ -145,8 +145,11 @@ notes are corrected below. The rest still stand.
    **Also stale.** The live `~/.p10k.zsh` is the 2026-06-18 wizard
    output. The repo file is the 2026-05-24 output. Applying moves the
    prompt backwards.
-9. **The pacman module.** `dot_zshrc` loads the prezto `pacman` module.
-   The module only adds aliases, so this is cosmetic.
+9. **The pacman module.** `dot_zshrc.tmpl` loads the prezto `pacman`
+   module on Linux only. The module only adds aliases, so this is
+   cosmetic. The macOS rendering loads `osx` and `command-not-found`
+   instead. The reasoning is in
+   [`../../docs/how-to/prezto-modules-per-os.md`](../../docs/how-to/prezto-modules-per-os.md).
 
 ## Troubleshooting
 

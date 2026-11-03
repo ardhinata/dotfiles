@@ -137,7 +137,7 @@ remove them. They name identity files that exist only on this host.
 
 ## Shell layout warning
 
-The repo `dot_zshrc` sources `~/.shell/zsh/00-before-zgenom.zsh` and the
+The repo `dot_zshrc.tmpl` sources `~/.shell/zsh/00-before-zgenom.zsh` and the
 other files in that directory. It does not source `~/.shell/useropts/`.
 The live host sources `useropts/` from `~/.shell/.zshrc`. Applying
 replaces the live `~/.zshrc` with the repo version, so the `useropts/`

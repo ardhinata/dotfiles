@@ -67,7 +67,7 @@ deleted file mode 120755
 ```
 
 The live `~/.shell/.zshrc` sources `~/.shell/useropts/`. The repo
-`dot_zshrc` sources `~/.shell/zsh/`. Two different layouts.
+`dot_zshrc.tmpl` sources `~/.shell/zsh/`. Two different layouts.
 
 **The migration is manual.** The live files are backed up at
 `~/.local/state/chezmoi-host-artifacts/`:
@@ -95,16 +95,19 @@ Each row needs a decision. The repo file to change is in the third column.
 | `99-sdkman.zsh` (SDKMAN init) | `~/.shell/useropts/` | new `dot_shell/zsh/99-sdkman.zsh` |
 | `brew shellenv` | `~/.shell/.zprofile` | done: `dot_shell/zsh/00-before-zgenom.zsh` |
 | `HOMEBREW_CASK_OPTS="--appdir=~/Applications"` | `~/.shell/.zshrc` | `dot_shell/zsh/10-common-export.zsh` |
-| Kiro CLI pre and post blocks | `~/.shell/.zshrc`, `~/.shell/.zprofile` | `dot_zshrc`, `dot_zprofile` |
+| Kiro CLI pre and post blocks | `~/.shell/.zshrc`, `~/.shell/.zprofile` | `dot_zshrc.tmpl`, `dot_zshprofile` |
 | bun `_bun` completions | `~/.shell/.zshrc` | `dot_shell/zsh/10-common-export.zsh` |
-| prezto `command-not-found`, `homebrew`, `gnu-utility` | `~/.shell/useropts/00-zgenom.zsh` | `dot_zshrc` |
-| `zgenom prezto "git:log:context" format "medium"` | `~/.shell/useropts/00-zgenom.zsh` | `dot_zshrc` |
-| `zgenom prezto "homebrew:alias" skip "yes"` | `~/.shell/useropts/00-zgenom.zsh` | `dot_zshrc` |
+| prezto `command-not-found` | `~/.shell/useropts/00-zgenom.zsh` | done: `dot_zshrc.tmpl` (macOS branch) |
+| prezto `homebrew` | `~/.shell/useropts/00-zgenom.zsh` | skipped on purpose, see [`../../docs/how-to/prezto-modules-per-os.md`](../../docs/how-to/prezto-modules-per-os.md) |
+| prezto `gnu-utility` | `~/.shell/useropts/00-zgenom.zsh` | skipped on purpose, see [`../../docs/how-to/prezto-modules-per-os.md`](../../docs/how-to/prezto-modules-per-os.md) |
+| `zgenom prezto "git:log:context" format "medium"` | `~/.shell/useropts/00-zgenom.zsh` | `dot_zshrc.tmpl` |
+| `zgenom prezto "homebrew:alias" skip "yes"` | `~/.shell/useropts/00-zgenom.zsh` | not needed, the `homebrew` module is not loaded |
 | brew `site-functions` on `fpath` | `~/.shell/useropts/03-compinit.zsh` | done: `dot_shell/zsh/00-before-zgenom.zsh` |
 
-The repo has three prezto modules the live setup does not: `pacman` and
-`editor`. It also sets `zgenom prezto prompt managed "yes"` and
-`zgenom prezto utility:download helper "aria2c"`.
+The repo sets `zgenom prezto prompt managed "yes"` and
+`zgenom prezto utility:download helper "aria2c"`. The `editor` module is
+now in the common list. The `pacman` module moved to the Linux branch of
+`dot_zshrc.tmpl`.
 
 ### The repo shell has what the live one lacks
 
@@ -142,14 +145,14 @@ deleted file mode 120755
 ```
 
 The live `~/.shell/.zshrc` sources `~/.shell/useropts/`. The repo
-`dot_zshrc` sources `~/.shell/zsh/`. Two different layouts.
+`dot_zshrc.tmpl` sources `~/.shell/zsh/`. Two different layouts.
 
 The live `useropts/` files have no counterpart in the repo:
 
 | Live file | What it does | Repo equivalent |
 |---|---|---|
 | `00-brew-fix.zsh` | Patches `DYLD_LIBRARY_PATH` for awscli | none |
-| `00-zgenom.zsh` | zgenom setup | `dot_zshrc` inlines it |
+| `00-zgenom.zsh` | zgenom setup | `dot_zshrc.tmpl` inlines it |
 | `01-openblas.zsh` | Sets `LDFLAGS`, `CPPFLAGS`, `PKG_CONFIG_PATH` | none |
 | `02-bun.zsh` | bun path and completions | `10-common-export.zsh` |
 | `02-opencode.zsh` | opencode completions via fpath | `10-common-export.zsh` |
@@ -159,18 +162,18 @@ The live `useropts/` files have no counterpart in the repo:
 So after the apply, **SDKMAN and OpenBLAS stop working**, and the awscli
 `DYLD_LIBRARY_PATH` patch is gone.
 
-The repo `dot_zshrc` also drops the Kiro CLI pre and post blocks that the
+The repo `dot_zshrc.tmpl` also drops the Kiro CLI pre and post blocks that the
 live files carry.
 
 **Fix before apply.** Move the three unique files into the repo layout, as
-`dot_shell/zsh/` files, and source them from `dot_zshrc`. The live files
+`dot_shell/zsh/` files, and source them from `dot_zshrc.tmpl`. The live files
 are on disk, so the content is available:
 
 - `~/.shell/useropts/01-openblas.zsh`
 - `~/.shell/useropts/00-brew-fix.zsh`
 - `~/.shell/useropts/99-sdkman.zsh`
 
-The SDKMAN file must stay last. `dot_zshrc` sources the `dot_shell/zsh/`
+The SDKMAN file must stay last. `dot_zshrc.tmpl` sources the `dot_shell/zsh/`
 files in numeric order already, so a `99-sdkman.zsh` name works.
 
 ## Blocker 3: the shellx store does not exist on this host, so the OpenRouter key is lost

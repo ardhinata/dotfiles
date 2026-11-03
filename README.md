@@ -113,7 +113,7 @@ chezmoi init --apply
 │   └── zsh/                # Zsh modules and completions
 ├── dot_ssh/                → ~/.ssh/
 ├── dot_zprofile            → ~/.zprofile
-├── dot_zshrc               → ~/.zshrc
+├── dot_zshrc.tmpl          → ~/.zshrc  (per-OS prezto module list)
 ├── private_dot_cc-safety-net/  # → ~/.cc-safety-net/ (destructive-command policy)
 ├── private_dot_gnupg/      # → ~/.gnupg/ (gpg and gpg-agent config)
 └── docs/                   # Human-facing docs (plans, reports, post-mortems)
@@ -146,8 +146,8 @@ process that asks for it. Some secrets must be present in every shell
 instead. The `shellx env` subcommand prints one `export` line per variable,
 and `dot_shell/zsh/20-secret-env-load.zsh` sources it at shell startup.
 
-`dot_zshrc` sources that file. The helper decrypts on every shell start.
-One variable costs about 42 ms, so keep the list short.
+`dot_zshrc.tmpl` sources that file. The helper decrypts on every shell
+start. One variable costs about 42 ms, so keep the list short.
 
 The value never rests on disk in plaintext. The previous ejson store
 decrypted at `chezmoi apply` time and left the value in a mode-0600 file

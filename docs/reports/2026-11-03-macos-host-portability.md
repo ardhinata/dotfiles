@@ -187,6 +187,12 @@ a dot at the front, which would give `~/.Library/LaunchAgents/` instead of
    module. p10k skips a segment whose command does not exist, and the
    pacman module only adds aliases.
 
+> **Update, 2026-11-03.** The `dot_zshrc` file is now a template named
+> `dot_zshrc.tmpl`, and the `pacman` module moved to the Linux branch of
+> it. The macOS branch loads `osx` and `command-not-found` instead. See
+> [`../how-to/prezto-modules-per-os.md`](../how-to/prezto-modules-per-os.md).
+> The rest of this report describes the state at the time of capture.
+
 ## Workaround
 
 A macOS host can work without the pinentry tools, because gpg-agent

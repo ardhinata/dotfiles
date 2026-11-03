@@ -90,6 +90,6 @@ SSH cache TTLs. The live `~/.gnupg/gpg-agent.conf` has neither, so the
 agent does not serve SSH today.
 
 The agent currently holds no identities, so the change is inert on this
-host. It matters when keys are loaded. Note that the repo `dot_zshrc`
+host. It matters when keys are loaded. Note that the repo `dot_zshrc.tmpl`
 points `SSH_AUTH_SOCK` at the gpg-agent socket, so the shell is already
 prepared for it.
