@@ -8,6 +8,7 @@ machine.
 | Guide | Covers |
 |---|---|
 | [Embedding dimensions proxy deployment](embedding-dimensions-proxy-deployment.md) | Install the local embeddings proxy on Linux and macOS, start it as a user service, and point Magic Context and AFT at it. |
+| [Prezto modules per operating system](prezto-modules-per-os.md) | Which prezto modules each operating system loads, which ones it skips, and how a change reaches the shell. |
 
 ## Related source
 
