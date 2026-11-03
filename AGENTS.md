@@ -67,6 +67,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`
 - **Project rules**: `.agents/rules/chezmoi-source-project.md`. OpenCode loads it through the `instructions` glob in `.agents/opencode/opencode.jsonc`. Other harnesses read it only if they add the same glob.
 - **AGENTS.md lifecycle** (drafting, README↔AGENTS separation, the vendoring trigger): `dot_agents/skills/project-context/SKILL.md` (deployed to `~/.agents/skills/project-context/`)
+- **Agent-only notes** (context that only an agent needs, one file per topic, no date prefix, no index): `.agents/docs/`
 - **Knowledge cache convention + required `README.md` index**: `.agents/docs/cache/README.md` (full spec: `dot_agents/skills/project-context/references/knowledge-cache.md`)
 - **Canonical on-disk project layout** (`.agents/`, `.tmp/` subroles, knowledge cache, vendor unification): `dot_agents/skills/project-layout/SKILL.md` (deployed to `~/.agents/skills/project-layout/`)
 - **Local chezmoi/sprig documentation**: `.help/README.md`, `.help/DOCS_MAP.md`, `.help/QUIRKS.md`
