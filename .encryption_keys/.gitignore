@@ -1,2 +1,4 @@
 # Do not track any secret keys
 *.secret.key
+*.public.key
+!master*.public.key
