@@ -26,6 +26,14 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - For `AGENTS.md`: **load the `project-context` skill** — it covers the agents.md open standard and the drafting workflow.
 - For `SKILL.md`: **load the `document-conventions` skill** — it covers the agentskills.io spec, the frontmatter policy, and the authoring playbook.
 
+## Working with other agents
+More than one agent works on this repo. The global rules and skills reach nine harnesses. The harness spawns `general` and `explore` subagents. This repo is the source of truth for more than one machine. Each agent has its own context window, so a fact that lives in one agent's head is lost.
+
+- **Write it down.** When you learn a fact the next agent needs and the repo does not carry it, write it before the session ends.
+- **A file is the source of truth. Memory is a pointer.** Harness memory does not travel in git, so an agent on a fresh clone never sees it. Put the fact in a file, and let the memory hold the path.
+- **Pick the tree by scope.** A reusable fact from web research goes in `.agents/docs/cache/<topic>/`, and the index there is updated. A project note goes in `.agents/docs/`, one topic per file. A rule that every project needs goes in `dot_agents/`. A fact that belongs to this project alone never goes in `dot_agents/`, because that tree deploys to `$HOME`.
+- **Carry the evidence.** A written fact names the file, the command, or the URL that proves it.
+
 ## Testing rules
 - Always run `chezmoi diff` before applying to verify expected output.
 - After `chezmoi re-encrypt`, run `chezmoi apply --dry-run` first to catch decryption failures.
