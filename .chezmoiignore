@@ -54,13 +54,15 @@ dot_config/opencode/private_service.json
 Library
 {{ end }}
 
-## The pinentry tooling is not deployed. gpg-agent.conf no longer points
-## pinentry-program at the wrapper, so neither the wrapper nor the
-## switcher that manages it has a consumer. The sources stay in the tree
-## for reference; chezmoi does not copy them to $HOME.
+## The pinentry tooling runs on Linux only. There the wrapper is the
+## pinentry-program of gpg-agent and the switcher manages that line.
+## On every other host the tooling has no consumer, so it stays in the
+## tree for reference and chezmoi does not copy it to $HOME.
+{{ if ne .chezmoi.os "linux" }}
 .shell/helper/pinentry-switch
 .shell/helper/pinentry-wrapper
 .shell/zsh/completions/_pinentry-switch
+{{ end }}
 
 ## Dynamic ignore for files that failed to be decrypted
 {{ $script := joinPath .chezmoi.sourceDir .source_structure.helper "check_decrypt.sh" -}}
