@@ -209,13 +209,28 @@ explicit through `shellx import`.
 
 ### SSH configuration workflow
 
+The main `~/.ssh/config` holds only the `Include` lines and the `Host *`
+hardening block. Every host entry lives in its own file under `~/.ssh/config.d/`.
+
+Each fragment is classified by its file name suffix, and the `Include` lines in
+`dot_ssh/config` pull in one class at a time:
+
+| Suffix | Use |
+| --- | --- |
+| `*.single.conf` | One host. |
+| `*.group.conf` | Several hosts that share a key or a site. |
+| `*.general.conf` | Settings that apply to every host, such as the default identities. |
+
+A host that is not in a fragment still gets the `Host *` hardening from the
+main config.
+
 Per-host SSH config fragments are stored as age-encrypted files.
 
-1. Write the plaintext SSH config fragment.
+1. Write the plaintext SSH config fragment, named `<descriptor>.<class>.conf`.
 2. Encrypt it:
    ```bash
    age -e -a -R .encryption_keys/<recipient>.public.key \
-     -o dot_ssh/config.d/encrypted_<descriptor>.conf.age \
+     -o dot_ssh/config.d/encrypted_<descriptor>.<class>.conf.age \
      <plaintext-file>
    ```
 3. The main `~/.ssh/config` includes every `config.d/*.conf` file automatically.

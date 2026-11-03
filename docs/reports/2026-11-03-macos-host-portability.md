@@ -22,6 +22,15 @@ the pinentry tooling. The details are at the end of this file. The brief
 for an agent that works on the macOS host is at
 `.agents/docs/macos-host-handoff.md`.
 
+**Update, 2026-11-03.** A later audit of the apply itself found six
+blockers that this file does not cover, and it corrected one instruction
+below. The age encryption key must **not** go on the macOS work laptop.
+Read [`2026-11-03-macos-apply-audit/`](2026-11-03-macos-apply-audit/)
+before the apply. That report holds the blockers, the decisions taken on
+each, and the tooling written to make the apply reversible. The
+agent-facing notes are `.agents/docs/macos-apply-blockers.md` and
+`.agents/docs/macos-apply-target-state.md`.
+
 ## Impact
 
 On a macOS host, before the change:
@@ -143,8 +152,13 @@ a dot at the front, which would give `~/.Library/LaunchAgents/` instead of
 ## What still assumes Linux
 
 1. **The age encryption key.** `.encryption_keys/personal_pq.secret.key`
-   is not in git. Copy it to the macOS host before the first apply, or
-   the apply fails on every encrypted file.
+   is not in git.
+
+   **Corrected on 2026-11-03.** Do **not** copy the identity to the macOS
+   work laptop. The encrypted files are the personal machine's SSH keys.
+   The host stays separate. The `check_decrypt.sh` mechanism skips the
+   encrypted files the host cannot decrypt, so the apply succeeds with no
+   identity. See `.agents/docs/macos-apply-blockers.md`.
 2. **The pinentry sources.** The switcher and the wrapper name
    `/usr/bin/pinentry-*` and use `ldd`. Homebrew GnuPG installs the
    binaries in `/opt/homebrew/bin`, and macOS has no `ldd`. The change
