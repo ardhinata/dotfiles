@@ -354,19 +354,24 @@ above does not depend on them.
 
 The script path is the same on both systems. Keep one source file for it.
 
-### Ignore the file of the other system
+### Ignore the directory of the other system
 
-`.chezmoiignore` is a template. It holds the target path of the file
+`.chezmoiignore` is a template. It holds the target path of the directory
 that does not belong to the current system. This is in place now:
 
 ```text
 {{ if eq .chezmoi.os "darwin" }}
-.config/systemd/user/embedding-dimensions-proxy.service
+.config/systemd
 {{ end }}
 {{ if eq .chezmoi.os "linux" }}
-Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist
+Library
 {{ end }}
 ```
+
+Ignore the directory, not the file inside it. Chezmoi creates the parent
+directories of an ignored file, so a file-level ignore leaves an empty
+`~/Library/` tree on Linux and an empty `~/.config/systemd/` tree on
+macOS.
 
 The `Library` source directory carries no `dot_` prefix. The prefix adds
 a leading dot, which would give `~/.Library/LaunchAgents/` instead of

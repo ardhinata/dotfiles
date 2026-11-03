@@ -48,7 +48,7 @@ The expected result of each command:
 
 | Command | Expected result |
 |---|---|
-| `chezmoi ignored` | lists `Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist` and the three pinentry paths. It does not list the systemd unit. |
+| `chezmoi ignored` | lists `.config/systemd` and the three pinentry paths. It does not list the launchd plist. |
 | `chezmoi cat ~/.config/tmux/tmux.conf` | shows `copy-pipe-and-cancel "pbcopy"` |
 | `chezmoi cat ~/.gitconfig` | shows `gitdir:/Users/<name>/Work/` |
 | `chezmoi cat ~/.gnupg/gpg-agent.conf` | shows no `pinentry-program` line |
@@ -110,10 +110,11 @@ The repo uses three levers. Use the same three when you add a file.
 1. A template branch inside a `.tmpl` file, for a file that both systems
    share. The variables are `.chezmoi.os` (`linux` or `darwin`),
    `.chezmoi.homeDir`, and `.chezmoi.username`.
-2. An OS branch in `.chezmoiignore`, for a whole file that belongs to one
-   OS only. The patterns match the target path, not the source path. A
-   pattern such as `.config/systemd/user/x.service` names the file in
-   `$HOME`.
+2. An OS branch in `.chezmoiignore`, for a whole directory that belongs to
+   one OS only. The patterns match the target path, not the source path. A
+   pattern such as `.config/systemd` names the directory in `$HOME`. Ignore
+   the directory, not the file inside it: chezmoi still creates the parent
+   directories of an ignored file.
 3. A runtime check in a shell file, for a path that the OS itself
    resolves. The JetBrains Toolbox scripts use this lever.
 

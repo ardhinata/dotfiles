@@ -44,11 +44,14 @@ dot_config/opencode/private_service.json
 ## The embeddings proxy runs under the service manager of the host OS.
 ## Linux uses a systemd user unit; macOS uses a launchd agent. The proxy
 ## script itself is shared, so only the unit of the other OS is ignored.
+## Ignore the whole directory, not the unit file: chezmoi still creates
+## the parent directories of an ignored file, so a file-level ignore
+## leaves an empty tree in the home directory of the other OS.
 {{ if eq .chezmoi.os "darwin" }}
-.config/systemd/user/embedding-dimensions-proxy.service
+.config/systemd
 {{ end }}
 {{ if eq .chezmoi.os "linux" }}
-Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist
+Library
 {{ end }}
 
 ## The pinentry tooling is not deployed. gpg-agent.conf no longer points

@@ -131,7 +131,7 @@ describes. The Linux host still runs the old target state, because
 | `dot_config/tmux/tmux.conf` | a plain file | `dot_config/tmux/tmux.conf.tmpl` | the clipboard bridge now names `pbcopy` on macOS and `wl-copy` on Linux |
 | `dot_gitconfig` | a plain file with `/home/ardhinata/Work/` | `dot_gitconfig.tmpl` with `{{ .chezmoi.homeDir }}/Work/` | the home path differs between the two hosts |
 | `private_dot_gnupg/private_gpg-agent.conf` | a plain file with `pinentry-program .../pinentry-wrapper` | `private_dot_gnupg/private_gpg-agent.conf.tmpl` without that line | the wrapper is no longer deployed, so the line pointed at a missing file |
-| `.chezmoiignore` | no operating system branch | a branch for the systemd unit and the launchd plist, plus three pinentry paths | the file matches target paths |
+| `.chezmoiignore` | no operating system branch | a branch for the systemd directory and the launchd directory, plus three pinentry paths | the file matches target paths. The pattern names the directory, not the unit file, because chezmoi still creates the parent directories of an ignored file. |
 | `Library/LaunchAgents/com.user.embedding-dimensions-proxy.plist.tmpl` | absent | added | the macOS service for the embeddings proxy |
 | `.chezmoiscripts/run_start-embeddings-proxy.sh` | absent | added | starts the service of the host operating system on every apply |
 | `dot_shell/helper/executable_pinentry-switch`, `dot_shell/helper/executable_pinentry-wrapper`, `dot_shell/zsh/completions/_pinentry-switch` | deployed | excluded from the target state | nothing points at them any more. The sources stay in the repo. |
