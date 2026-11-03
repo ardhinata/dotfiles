@@ -201,6 +201,12 @@ The switcher and the wrapper stay out of the target state, so the
 host has no way to change the pinentry backend. A host that needs the
 choice must patch the two source files and drop the ignore lines.
 
+> **Update, 2026-11-03.** The pinentry tooling is Linux only now. The
+> ignore block in `.chezmoiignore` and the `gpg-agent.conf` template
+> branch on `.chezmoi.os`. Linux keeps the wrapper as the
+> `pinentry-program` of gpg-agent, and macOS renders the file as before.
+> The rest of this report describes the state at the time of capture.
+
 ## Related
 
 | Path | Holds |
