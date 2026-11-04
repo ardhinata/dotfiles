@@ -23,6 +23,7 @@ fi
 
 # --- Bun directory ---
 export BUN_INSTALL="${HOME}/.bun"
+[ -s "${BUN_INSTALL}/_bun" ] && source "${BUN_INSTALL}/_bun"
 
 # --- Local executable dir ---
 export PATH="${PATH}:${HOME}/.local/bin:${BUN_INSTALL}/bin"

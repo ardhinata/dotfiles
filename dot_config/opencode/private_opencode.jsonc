@@ -3,6 +3,7 @@
   "shell": "bash",
   "username": "ardhinata",
   "plugins": [
+    "@slkiser/opencode-quota@latest",
     "cc-safety-net@latest",
     "@cortexkit/aft-opencode@latest",
     "@cortexkit/opencode-magic-context@latest",
@@ -11,8 +12,6 @@
     "@upstash/context7-opencode@latest",
     "-opencode.tool.shell",
     "-opencode.tool.patch",
-    "opencode-kiro@latest",
-    "@slkiser/opencode-quota@latest"
   ],
   "instructions": [
     "~/.agents/rules/*.md",
