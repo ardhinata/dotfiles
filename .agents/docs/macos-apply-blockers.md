@@ -208,7 +208,7 @@ from the environment, so the AFT index and the magic context lose their
 API key.
 
 After `chezmoi init` the derived store path is
-`~/.local/share/6d8ec0bef890c2df4bfb647d41bfc7d1/`.
+`~/.local/share/<slug>/`, with the slug from the formulas above.
 
 The `dot_shell/private_store/` directory in the repo is the **legacy**
 ejson store. It deploys `~/.shell/store/personal-laptop_environment_store.json`,
@@ -239,7 +239,7 @@ sys.stdout.write(v.strip().strip('"').strip("'"))
 EOF
 ```
 
-The store is at `~/.local/share/6d8ec0bef890c2df4bfb647d41bfc7d1/`. The
+The store is at `~/.local/share/<slug>/`. The
 value came from line 56 of `~/.shell/.zshrc`, which the apply left in
 place because chezmoi does not manage it. A fresh login shell now loads
 the variable with no warning.
@@ -282,14 +282,19 @@ chezmoi cat ~/.local/share/shellx/master.key
 ```
 
 **Owner: the user. Done on 2026-11-03.** The live config now carries the
-nonce `4RTUdw6xmQCCcMpmJPGvbhRMdOjsNWhCzjeFXb9s4N8TXnTmkBydzaioGPh1GNuk`.
+64-character nonce. The 2026-11-05 secret-exposure audit redacted the
+nonce, the master key and the store slug from this file: the repo is
+public, the nonce is the input that derives the master key, and the
+master key is the derived value itself. Values still exist in git
+history until the rotation runs:
+[03-nonce-rotation.md](../../docs/reports/2026-11-03-macos-apply-audit/03-nonce-rotation.md).
 It derives:
 
 | Value | Derivation | Result |
 |---|---|---|
-| Master key | `sha256("com.ardju.utils:shellx:" + nonce)` | `10a05109a2703926a1a06f579343d1cc56d7590ed23da2bac4026f64e53396f1` |
-| Store slug | `blake2b(master_key, 16)` | `6d8ec0bef890c2df4bfb647d41bfc7d1` |
-| Store path | `~/.local/share/<slug>/` | does not exist yet |
+| Master key | `sha256("com.ardju.utils:shellx:" + nonce)` | rendered by `dot_local/share/private_shellx/private_master.key.tmpl`; not published here |
+| Store slug | `blake2b(master_key, 16)` | names the store directory |
+| Store path | `~/.local/share/<slug>/` | did not exist on 2026-11-03 |
 
 `chezmoi status` now returns 53 targets and the master key renders.
 

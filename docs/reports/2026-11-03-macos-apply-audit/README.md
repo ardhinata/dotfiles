@@ -12,6 +12,7 @@ itself has not run.
 |---|---|
 | [01-blockers.md](01-blockers.md) | The six blockers, what was done about each, and what remains |
 | [02-tooling.md](02-tooling.md) | The `check_decrypt.sh` path-mapping bug, the rewrite, and the new backup tool |
+| [03-nonce-rotation.md](03-nonce-rotation.md) | The runbook that retires the nonce, master key and slug the two files above published publicly |
 
 ## Summary
 

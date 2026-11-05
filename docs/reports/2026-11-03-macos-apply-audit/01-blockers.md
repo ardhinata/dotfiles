@@ -124,11 +124,13 @@ store slug = blake2b(master_key, 16)
 store path = ~/.local/share/<slug>/
 ```
 
-After `chezmoi init`, the nonce on this host is
-`4RTUdw6xmQCCcMpmJPGvbhRMdOjsNWhCzjeFXb9s4N8TXnTmkBydzaioGPh1GNuk`. It
-derives the master key
-`10a05109a2703926a1a06f579343d1cc56d7590ed23da2bac4026f64e53396f1` and
-the store path `~/.local/share/6d8ec0bef890c2df4bfb647d41bfc7d1/`.
+After `chezmoi init`, the nonce for this host is in the live
+`~/.config/chezmoi/chezmoi.yaml`; it derives the master key and the store
+path by the formulas above. The 2026-11-05 secret-exposure audit removed
+the values from this file: the repo is public, so this paragraph was
+publishing a key-derivation input and its derived key. The values stay
+in git history until the rotation runs — see
+[03-nonce-rotation.md](03-nonce-rotation.md).
 
 Neither the store nor the legacy `~/.shellx-store` marker exists here, so
 no store was ever created on this host. The apply creates the master key
