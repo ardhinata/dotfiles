@@ -79,3 +79,27 @@ chezmoi's parse order.
 Verified against `chezmoi target-path` for all 25 encrypted files plus 228
 attribute combinations. Run `bash .shell_helper/test_check_decrypt.sh` to
 confirm the mapping still matches.
+
+
+## `~/Work` lost the git identity override
+
+Documented in `macos-apply-caveats.md` before the apply and left open since:
+the repo `dot_gitconfig` includes `~/Work/.gitconfig`, a host-local file
+that existed on neither host, and the pre-apply laptop config instead
+included `~/Work/local/.git_local` under `gitdir:~/Work/local/`. After the
+apply every repo under `~/Work` committed with the personal identity and
+nothing was gpg-signed. Verified 2026-11-05: apply backup
+`~/.local/state/chezmoi-backup-final/files/.gitconfig` (the pre-apply
+config), and the work and personal signing subkeys
+(`0x32A87E6BED04FEC6`, `0x17A0476897A8A861`) both in the local keyring.
+
+Fixed 2026-11-05 by creating `~/Work/.gitconfig` (host-local, not managed
+by chezmoi, kept out of the repo): work identity for `~/Work`
+(`Muhamad Ardhinata J.`, `muhamad.ardhinata@krom.id`, key `0x32A87E6B`,
+`gpgSign = yes`) plus a nested `includeIf "gitdir:~/Work/local/"` to
+`~/Work/local/.git_local`. Global config and other paths keep the applied
+repo identity. `git config --get --show-origin` confirms: work repos
+under `~/Work` resolve to the work identity, a repo under
+`~/Work/local` to the personal `.git_local` identity with
+`commit.gpgsign` inherited from the work include, and anything outside
+`~/Work` to the repo template values.
