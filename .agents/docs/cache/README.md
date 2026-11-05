@@ -45,7 +45,7 @@ skill or rule file, with the cache entry as the evidence behind it.
 | [asd-ste100](asd-ste100/README.md) | The upstream ASD-STE100 checker: capabilities and install path | 1 |
 | [document-conventions](document-conventions/README.md) | Which document rules are standard, and which citations were wrong | 1 |
 | [opencode-harness](opencode-harness/README.md) | How the OpenCode harness and its plugins behave | 2 |
-| [pinentry](pinentry/README.md) | gpg-agent's pinentry extension point and the wrapper pattern | 1 |
+| [pinentry](pinentry/README.md) | gpg-agent's pinentry extension point, the wrapper pattern, and the macOS backend options | 2 |
 | [shellx-security](shellx-security/README.md) | The shellx store: how the master secret is held and what protects it | 1 |
 | [ssh](ssh/README.md) | Reusable SSH client facts for this host | 1 |
 

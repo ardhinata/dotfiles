@@ -117,9 +117,16 @@ After the change, and after `chezmoi apply` on the macOS host:
 - `chezmoi cat ~/.config/tmux/tmux.conf` shows
   `copy-pipe-and-cancel "pbcopy"`.
 - `chezmoi cat ~/.gitconfig` shows `gitdir:/Users/<name>/Work/`.
-- `chezmoi cat ~/.gnupg/gpg-agent.conf` shows no `pinentry-program` line.
+- `chezmoi cat ~/.gnupg/gpg-agent.conf` shows a `pinentry-program` line that
+  names `pinentry-mac` when the binary exists, and no line when it is
+  missing.
 - `launchctl print "gui/$(id -u)/com.user.embedding-dimensions-proxy"`
   shows the agent with a state and a process id.
+
+> **Update, 2026-11-03, later in the day.** The macOS work laptop ran
+> `chezmoi apply` against this source state. The result of the apply, and
+> the fixes it exposed, are in
+> [`2026-11-03-macos-apply-audit/`](2026-11-03-macos-apply-audit/).
 
 ## Actual
 
@@ -170,8 +177,10 @@ a dot at the front, which would give `~/.Library/LaunchAgents/` instead of
    `systemctl --user import-environment` twice. The command does not
    exist on macOS. The shell writes the error to `/dev/null`, so the
    shell still starts.
-5. **The OpenCode shell.** `dot_config/opencode/opencode.jsonc` pins
-   `"shell": "/usr/bin/bash"`. On macOS that is bash 3.2.
+5. **The OpenCode shell.** `dot_config/opencode/private_opencode.jsonc`
+   pins the shell as `"shell": "bash"`. On macOS that resolves through
+   PATH. The host has `/opt/homebrew/bin/bash` (5.3.20) ahead of
+   `/bin/bash` (3.2.57).
 6. **`date -Iseconds`.** The script
    `.chezmoiscripts/run_onchange_init-shellx-store.sh` uses it. BSD date
    rejects the flag and writes an error to stderr. The script continues,
@@ -201,10 +210,13 @@ The switcher and the wrapper stay out of the target state, so the
 host has no way to change the pinentry backend. A host that needs the
 choice must patch the two source files and drop the ignore lines.
 
-> **Update, 2026-11-03.** The pinentry tooling is Linux only now. The
-> ignore block in `.chezmoiignore` and the `gpg-agent.conf` template
-> branch on `.chezmoi.os`. Linux keeps the wrapper as the
-> `pinentry-program` of gpg-agent, and macOS renders the file as before.
+> **Update, 2026-11-03, later in the day.** The pinentry tooling is Linux
+> only. The ignore block in `.chezmoiignore` and the `gpg-agent.conf`
+> template branch on `.chezmoi.os`. Linux keeps the wrapper as the
+> `pinentry-program` of gpg-agent. A macOS host with `pinentry-mac` on
+> PATH now renders `pinentry-program <lookPath pinentry-mac>` instead of
+> no line, so the GUI dialog works without a TTY; a host without the
+> binary keeps the compiled default.
 > The rest of this report describes the state at the time of capture.
 
 ## Related

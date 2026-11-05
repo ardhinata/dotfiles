@@ -97,6 +97,7 @@ chezmoi init --apply
 │   └── check_decrypt.sh    # Tests which encrypted files are decryptable
 ├── .help/                  # Local chezmoi and sprig documentation
 │
+├── Library/                # macOS launchd templates → ~/Library/ (no dot_ prefix)
 ├── dot_config/             → ~/.config/
 │   ├── alacritty/          # Terminal emulator config
 │   ├── tmux/               # Terminal multiplexer config
@@ -104,7 +105,7 @@ chezmoi init --apply
 │   ├── opencode/           # OpenCode config and rules
 │   ├── private_cortexkit/  # Magic Context and AFT config
 │   └── systemd/user/       # Embeddings proxy unit
-├── dot_gitconfig           → ~/.gitconfig
+├── dot_gitconfig.tmpl      → ~/.gitconfig
 ├── dot_local/share/private_shellx/  # Master key template (0600)
 ├── dot_p10k.zsh            → ~/.p10k.zsh
 ├── dot_shell/              → ~/.shell/
@@ -116,7 +117,7 @@ chezmoi init --apply
 ├── dot_zshrc.tmpl          → ~/.zshrc  (per-OS prezto module list)
 ├── private_dot_cc-safety-net/  # → ~/.cc-safety-net/ (destructive-command policy)
 ├── private_dot_gnupg/      # → ~/.gnupg/ (gpg and gpg-agent config)
-└── docs/                   # Human-facing docs (plans, reports, post-mortems)
+└── docs/                   # Human-facing docs (how-to guides, plans, reports, post-mortems)
 ```
 
 ## Usage

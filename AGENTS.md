@@ -8,7 +8,7 @@ Personal dotfiles managed with Chezmoi v2.70.4+, age encryption for secrets, Zsh
 - **Encryption**: age for files, gpg for age-key backups
 - **Secrets**: `shellx` in `dot_shell/helper/` (Python 3 stdlib, no pip/venv). It uses scrypt or HMAC-SHA512 key derivation, ChaCha20, and an HMAC-BLAKE2b tag. The master key renders to `~/.local/share/shellx/master.key` (0600).
 - **Shell**: zsh, zgenom (plugin manager), powerlevel10k (prompt)
-- **Embeddings**: local dimensions proxy in `dot_shell/helper/`, systemd unit in `dot_config/systemd/user/`
+- **Embeddings**: local dimensions proxy in `dot_shell/helper/`, systemd unit in `dot_config/systemd/user/`, and a macOS launchd template in `Library/LaunchAgents/`
 - **Agent tooling**: OpenCode, Magic Context and AFT configs in `dot_config/`. The cc-safety-net policy sits in `private_dot_cc-safety-net/`.
 - **Global rules and skills**: `dot_agents/` (deployed to `~/.agents/`)
 
@@ -70,7 +70,7 @@ More than one agent works on this repo. The global rules and skills reach nine h
 - **shellx design and limits** (crypto, JSONC format, export and import, threat model): `dot_shell/helper/.help/` (source-only)
 - **Embedding dimensions proxy deployment** (Linux systemd, macOS launchd, client config, multi-OS templating notes): `docs/how-to/embedding-dimensions-proxy-deployment.md`
 - **macOS host** (the 2026-11-03 portability change, what the macOS host receives, and the open items that still assume Linux): `docs/reports/2026-11-03-macos-host-portability.md` for human readers, `.agents/docs/macos-host-handoff.md` for an agent that works on the macOS host
-- **macOS apply audit** (the six blockers on the macOS work laptop, the decisions taken on each, and the backup tooling): `docs/reports/2026-11-03-macos-apply-audit/` for human readers, `.agents/docs/macos-apply-blockers.md`, `.agents/docs/macos-apply-target-state.md` and `.agents/docs/macos-apply-fixed.md` for an agent
+- **macOS apply audit** (the six blockers on the macOS work laptop, the decisions taken on each, and the backup tooling): `docs/reports/2026-11-03-macos-apply-audit/` for human readers, `.agents/docs/macos-apply-blockers.md`, `.agents/docs/macos-apply-target-state.md`, `.agents/docs/macos-apply-caveats.md` and `.agents/docs/macos-apply-fixed.md` for an agent
 - **AFT embedding findings and measurements**: `docs/reports/` (open findings to hand to the team) and `.agents/docs/cache/aft-embedding/` (the measurements, harness, and query sets behind them)
 - **Agent design case studies** (haru, natsu, aki, fuyu, shiki, reki, assist-only): `docs/agent-case-studies.md` (the fleet was retired with Kilo on 2026-10-24, and the doc harvests the transferable rules)
 - **Full chezmoi conventions + prefix tables**: `.agents/skills/chezmoi/SKILL.md`

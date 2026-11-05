@@ -277,7 +277,7 @@ secret is lost.
 | 6. Take the interpreter savings | performance | done | the launcher split is measured separately |
 | 7. Change the KDF | performance | done | the 16 blob migration is still open |
 | 8. Detach the master secret | security | done | |
-| 9. Retire the runpriv triple | security | open | needs the owner's approval |
+| 9. Retire the runpriv triple | security | partly done | the two helper sources and the runpriv completion are removed from the repo (2026-11-03 portability change); the legacy store file still deploys |
 
 ## Decisions
 

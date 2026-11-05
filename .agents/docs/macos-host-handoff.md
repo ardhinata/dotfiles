@@ -18,8 +18,12 @@ one. This note describes the source state and the older open items.
 ## State of the source tree
 
 Commit `f855bab` made the source state portable. It landed on `main` on
-2026-11-03. The change is in the repo, but no macOS host ran
-`chezmoi apply` with it.
+2026-11-03. The macOS work laptop ran `chezmoi apply` with that state on
+the same day. The result of the apply, and the fixes it exposed, are in
+[`macos-apply-blockers.md`](macos-apply-blockers.md),
+[`macos-apply-target-state.md`](macos-apply-target-state.md),
+[`macos-apply-caveats.md`](macos-apply-caveats.md) and
+[`macos-apply-fixed.md`](macos-apply-fixed.md).
 
 ## What the macOS host receives
 
@@ -78,7 +82,7 @@ The expected result of each command:
 | `chezmoi ignored` | lists `.config/systemd` and the three pinentry paths. It does not list the launchd plist. |
 | `chezmoi cat ~/.config/tmux/tmux.conf` | shows `copy-pipe-and-cancel "pbcopy"` |
 | `chezmoi cat ~/.gitconfig` | shows `gitdir:/Users/<name>/Work/` |
-| `chezmoi cat ~/.gnupg/gpg-agent.conf` | shows no `pinentry-program` line |
+| `chezmoi cat ~/.gnupg/gpg-agent.conf` | shows `pinentry-program` at `pinentry-mac` when the binary exists; no line when it is missing (the template keeps the compiled default) |
 | `launchctl print` | shows the agent with a state and a process id |
 
 ## Open items to patch
@@ -116,9 +120,9 @@ notes are corrected below. The rest still stand.
 
    **Verified on 2026-11-03.** The agent restarts on the next `gpg`
    call, so the socket returns without launchd.
-5. **The OpenCode shell.** `dot_config/opencode/opencode.jsonc` pins
-   `"shell": "/usr/bin/bash"`. On macOS that is bash 3.2. Point it at
-   `/opt/homebrew/bin/bash` if the host has a newer bash.
+5. **The OpenCode shell.** `dot_config/opencode/private_opencode.jsonc`
+   pins the shell. On macOS that resolves through PATH, and the host has
+   `/opt/homebrew/bin/bash` (5.3.20) ahead of `/bin/bash` (3.2.57).
 
    **Corrected on 2026-11-03.** macOS 26 has no `/usr/bin/bash` at all.
    The host has `/bin/bash` (3.2.57) and `/opt/homebrew/bin/bash`

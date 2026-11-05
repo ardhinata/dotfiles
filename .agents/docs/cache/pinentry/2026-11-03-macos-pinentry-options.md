@@ -20,6 +20,13 @@ There is no Qt or GTK pinentry on macOS through Homebrew.
 
 ## Current state on this host (2026-11-03)
 
+> **Later on 2026-11-03** the repo moved this host to `pinentry-mac`:
+> `private_dot_gnupg/private_gpg-agent.conf.tmpl` renders the
+> `pinentry-program` line below when the binary is on PATH, and the
+> `Consequences for this repo` section of this entry describes it. The
+> sub-sections above keep the 2026-11-03 facts about the formulas and
+> the sources.
+
 - `gpg` 2.5.24, `pinentry` 1.3.3 and `pinentry-mac` 1.3.1.1 from Homebrew.
   `pinentry-touchid` is not installed.
 - `~/.gnupg/gpg-agent.conf` carries no `pinentry-program` line on purpose.
@@ -34,7 +41,7 @@ There is no Qt or GTK pinentry on macOS through Homebrew.
 
 | Backend | Source | State | Needs | Notes |
 |---|---|---|---|---|
-| `pinentry-curses` (current) | Homebrew `pinentry` 1.3.3 | maintained | a TTY | zero config. Fails for GUI-launched gpg and over cron. |
+| `pinentry-curses` (previous default) | Homebrew `pinentry` 1.3.3 | maintained | a TTY | zero config. Fails for GUI-launched gpg and over cron. |
 | `pinentry-tty` | same formula | maintained | a TTY | cruder curses. same limits. |
 | `pinentry-mac` | Homebrew `pinentry-mac` 1.3.1.1, GPGTools repo pushed 2025-04 | maintained | GUI session | native dialog. Optional login-keychain save. `PINENTRY_USER_DATA=USE_CURSES=1` falls back to curses for SSH. |
 | `pinentry-touchid` | `brew tap jorgelbg/tap`, v0.0.3 (2022-08), repo pushed 2023-10 | dormant | pinentry-mac, Touch ID sensor | wraps pinentry-mac, keychain items guarded by `LAContext`. No Apple Watch fallback. README paths are `/usr/local`. |
