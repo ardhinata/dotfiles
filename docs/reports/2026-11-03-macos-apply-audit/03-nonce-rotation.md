@@ -15,26 +15,27 @@ key derives a new store slug, and the new store starts empty. The old
 store blobs are protected by a key the whole internet can read, so the
 runbook deletes them.
 
-**Status: runbook for the owner. Not yet run.**
+**Status: run on 2026-11-05.** The agent ran the value-blind steps —
+the inventory, the nonce rotation, `shellx init` and the re-store — and
+the owner's shell ran the master-key apply and the old-store deletion,
+because the agent's safety net blocks any command that names those
+paths.
 
 Run every command on the work laptop, in an interactive zsh.
 
 ## Before the rotation
 
-List the names in the shellx store, so you know what the new store needs.
-`--no-encrypt` writes plaintext to /tmp. Read the JSONC entries once,
-then remove the directory right away:
+`shellx list` prints the names, tags and timestamps of the store. The
+inventory needs no plaintext export at all:
 
 ```bash
-~/.shell/helper/shellx export --no-encrypt --to /tmp/shellx-audit
-less /tmp/shellx-audit/*.jsonc
-rm -r /tmp/shellx-audit
+~/.shell/helper/shellx list
 ```
 
 The store held one entry on 2026-11-03, `OPENROUTER_API_OPENCODE_INDEX`,
 and a copy of that value is still in `~/.shell/.zshrc` (chezmoi does not
-manage that file). The inventory step is optional when the store holds
-values you can recover from a file.
+manage that file). The inventory is enough when every name in the list
+maps to a value you can recoup from its file.
 
 ## 1. Draw a fresh nonce
 
@@ -63,8 +64,8 @@ cat ~/.local/share/shellx/master.key
 ```
 
 The rendered value is 64 hex characters and must differ from the leaked
-value. A plain `chezmoi apply` gives the same result. The
-[report index](README.md) counts the 54 diff entries a full apply makes;
+value. A plain `chezmoi apply` gives the same result. A full apply has
+54 diff entries; the [report index](README.md) counts them.
 
 ## 3. Create the store and re-store the values
 
