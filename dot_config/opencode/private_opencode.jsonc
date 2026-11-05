@@ -75,8 +75,6 @@
     },
   },
   "warming": true,
-  // The websearch provider is not pinned. OpenCode picks one at runtime, so
-  // the provider keys must exist in the environment that starts OpenCode.
   "providers": {
     // Openrouter-specific provider settings to pin the inference provider to cheapest available
     "openrouter": {
