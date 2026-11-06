@@ -90,11 +90,11 @@ Each row needs a decision. The repo file to change is in the third column.
 
 | Missing from the repo | Where it lives now | Repo file to change |
 |---|---|---|
-| `00-brew-fix.zsh` (awscli `DYLD_LIBRARY_PATH` patch) | `~/.shell/useropts/` | new `dot_shell/zsh/13-brew-fix.zsh` |
+| `00-brew-fix.zsh` (awscli `DYLD_LIBRARY_PATH` patch) | `~/.shell/useropts/` | done 2026-11-06: new `dot_shell/zsh/05-homebrew-opts.zsh` (carries `00-brew-fix.zsh` and the cask opts; the openblas/SDKMAN/bun/opencode rows are still open) |
 | `01-openblas.zsh` (`LDFLAGS`, `CPPFLAGS`, `PKG_CONFIG_PATH`) | `~/.shell/useropts/` | new `dot_shell/zsh/11-openblas.zsh` |
 | `99-sdkman.zsh` (SDKMAN init) | `~/.shell/useropts/` | new `dot_shell/zsh/99-sdkman.zsh` |
 | `brew shellenv` | `~/.shell/.zprofile` | done: `dot_shell/zsh/00-before-zgenom.zsh` |
-| `HOMEBREW_CASK_OPTS="--appdir=~/Applications"` | `~/.shell/.zshrc` | `dot_shell/zsh/10-common-export.zsh` |
+| `HOMEBREW_CASK_OPTS="--appdir=~/Applications"` | `~/.shell/.zshrc` | done 2026-11-06: `dot_shell/zsh/05-homebrew-opts.zsh` |
 | Kiro CLI pre and post blocks | `~/.shell/.zshrc`, `~/.shell/.zprofile` | `dot_zshrc.tmpl`, `dot_zshprofile` |
 | bun `_bun` completions | `~/.shell/.zshrc` | `dot_shell/zsh/10-common-export.zsh` |
 | prezto `command-not-found` | `~/.shell/useropts/00-zgenom.zsh` | done: `dot_zshrc.tmpl` (macOS branch) |
@@ -151,7 +151,7 @@ The live `useropts/` files have no counterpart in the repo:
 
 | Live file | What it does | Repo equivalent |
 |---|---|---|
-| `00-brew-fix.zsh` | Patches `DYLD_LIBRARY_PATH` for awscli | none |
+| `00-brew-fix.zsh` | Patches `DYLD_LIBRARY_PATH` for awscli | done 2026-11-06: `dot_shell/zsh/05-homebrew-opts.zsh` |
 | `00-zgenom.zsh` | zgenom setup | `dot_zshrc.tmpl` inlines it |
 | `01-openblas.zsh` | Sets `LDFLAGS`, `CPPFLAGS`, `PKG_CONFIG_PATH` | none |
 | `02-bun.zsh` | bun path and completions | `10-common-export.zsh` |
@@ -159,8 +159,10 @@ The live `useropts/` files have no counterpart in the repo:
 | `03-compinit.zsh` | `compinit` plus brew site-functions | Prezto completion module |
 | `99-sdkman.zsh` | SDKMAN init | none |
 
-So after the apply, **SDKMAN and OpenBLAS stop working**, and the awscli
-`DYLD_LIBRARY_PATH` patch is gone.
+So after the apply, SDKMAN and OpenBLAS still stop working (open). The
+awscli `DYLD_LIBRARY_PATH` patch was restored on 2026-11-06 in
+`dot_shell/zsh/05-homebrew-opts.zsh`, together with the cask opts and
+the brew python libexec PATH entry.
 
 The repo `dot_zshrc.tmpl` also drops the Kiro CLI pre and post blocks that the
 live files carry.

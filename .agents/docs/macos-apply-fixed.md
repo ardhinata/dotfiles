@@ -61,6 +61,27 @@ before Prezto's `compinit`, so the Homebrew completions in
 `/opt/homebrew/share/zsh/site-functions` are picked up. It costs about
 40 ms per shell start.
 
+## The Homebrew opts are back in
+
+Restored on 2026-11-06 in `dot_shell/zsh/05-homebrew-opts.zsh`
+(darwin-gated, sourced from `dot_zshrc.tmpl` right after
+`00-before-zgenom.zsh`), from the orphaned pre-apply files backed up at
+`~/.local/state/chezmoi-host-artifacts/shell/`. It carries the
+verbatim content of `00-brew-fix.zsh` (the awscli
+`DYLD_LIBRARY_PATH` expat patch and the brew `python` `libexec/bin`
+entry on PATH, appended with `path+=`) plus the
+`HOMEBREW_CASK_OPTS="--appdir=~/Applications"` export that sat directly
+in `~/.shell/.zshrc`. Verified in a fresh zsh: `DYLD_LIBRARY_PATH` is
+`/opt/homebrew/opt/expat/lib`, the cask opts render verbatim, and
+`/opt/homebrew/opt/python@3.15/libexec/bin` lands on `$path`.
+
+Still open from the same useropts directory (owner: the user, to do
+when there is time): openblas `LDFLAGS`/`CPPFLAGS`/`PKG_CONFIG_PATH`,
+SDKMAN init, `BUN_INSTALL`/bun completions, and the opencode
+completions. They are also gated out on non-darwin if ported, and the
+SDKMAN file would need to stay last. See
+[`macos-apply-blockers.md`](macos-apply-blockers.md) for the row state.
+
 ## The shellx helper had no Python 3.10 interpreter
 
 Fixed by the `brew shellenv` change above. `python3` is now
