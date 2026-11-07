@@ -69,6 +69,7 @@ More than one agent works on this repo. The global rules and skills reach nine h
 - **`README.md`** — human-facing project overview, features, installation, usage, contributing
 - **shellx design and limits** (crypto, JSONC format, export and import, threat model): `dot_shell/helper/.help/` (source-only)
 - **Embedding dimensions proxy deployment** (Linux systemd, macOS launchd, client config, multi-OS templating notes): `docs/how-to/embedding-dimensions-proxy-deployment.md`
+- **OpenCode TUI GPU load in Zed** (the streaming-driver measurement, why the fps lever does not exist, and the ranked workarounds): `docs/reports/2026-11-07-opencode-tui-gpu-load-in-zed.md`
 - **macOS host** (the 2026-11-03 portability change, what the macOS host receives, and the open items that still assume Linux): `docs/reports/2026-11-03-macos-host-portability.md` for human readers, `.agents/docs/macos-host-handoff.md` for an agent that works on the macOS host
 - **macOS apply audit** (the six blockers on the macOS work laptop, the decisions taken on each, and the backup tooling): `docs/reports/2026-11-03-macos-apply-audit/` for human readers, `.agents/docs/macos-apply-blockers.md`, `.agents/docs/macos-apply-target-state.md`, `.agents/docs/macos-apply-caveats.md` and `.agents/docs/macos-apply-fixed.md` for an agent
 - **AFT embedding findings and measurements**: `docs/reports/` (open findings to hand to the team) and `.agents/docs/cache/aft-embedding/` (the measurements, harness, and query sets behind them)

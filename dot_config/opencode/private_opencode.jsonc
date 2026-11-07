@@ -10,6 +10,7 @@
     "opencode-handoff@latest",
     "@dietrichgebert/ponytail@latest",
     "@upstash/context7-opencode@latest",
+    "opencode-orchestrator@latest",
     "-opencode.tool.shell",
     "-opencode.tool.patch",
   ],
