@@ -41,8 +41,8 @@
     "copy_on_select": true,
     "font_weight": 400.0,
     "font_size": 12.0,
-    "font_family": "FiraMono Nerd Font Mono",
-    "font_fallbacks": ["NotoMono Nerd Font", "Terminess Nerd Font Mono"],
+    "font_family": "FiraMono Nerd Font",
+    "font_fallbacks": ["NotoMono Nerd Font", "Terminess Nerd Font"],
     "font_features": {
       "calt": false,
       "liga": false,
