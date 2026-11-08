@@ -1,0 +1,7 @@
+# ~/.zshenv
+# Read by every zsh: login, interactive and non-interactive. Keep it small,
+# because one copy runs for each zsh process, including `zsh -c`.
+# zgenom also compiles this file (~/.zshenv.zwc); a stale .zwc loses to a
+# newer source file, so an edit here takes effect on the next shell.
+
+[ -r "$HOME/.shell/env/path.sh" ] && . "$HOME/.shell/env/path.sh"

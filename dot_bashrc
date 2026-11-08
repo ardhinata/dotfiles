@@ -1,0 +1,18 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# Shared PATH for bash and zsh.
+[ -r "$HOME/.shell/env/path.sh" ] && . "$HOME/.shell/env/path.sh"
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+PS1='[\u@\h \W]\$ '
+
+# SSH credentials live in gpg-agent, not in an OpenSSH ssh-agent.
+_gpg_ssh_sock=$(gpgconf --list-dirs agent-ssh-socket 2>/dev/null)
+[ -n "$_gpg_ssh_sock" ] && export SSH_AUTH_SOCK="$_gpg_ssh_sock"
+unset _gpg_ssh_sock

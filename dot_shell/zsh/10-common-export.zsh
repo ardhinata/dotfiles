@@ -25,9 +25,6 @@ fi
 export BUN_INSTALL="${HOME}/.bun"
 [ -s "${BUN_INSTALL}/_bun" ] && source "${BUN_INSTALL}/_bun"
 
-# --- Local executable dir ---
-export PATH="${PATH}:${HOME}/.local/bin:${BUN_INSTALL}/bin"
-
 # --- Fast Node Manager ---
 # Initialize fnm in the shell session, respecting .node-version and .nvmrc files
 # when changing directories (--use-on-cd).
@@ -35,8 +32,8 @@ eval "$(fnm env --use-on-cd --shell zsh)"
 
 # --- Helper directory ---
 # shellx injects decrypted environment tokens into a target process.
-# Available on PATH via ~/.shell/helper.
-path=("${SHELL_TOOL_DIR}/helper" $path)
+# The directory is on PATH via ~/.shell/env/path.sh, which ~/.zshenv
+# sourced before this file.
 # Completion is handled by ~/.shell/zsh/completions/_shellx,
 # loaded via fpath (set in 00-before-zgenom.zsh before compinit runs).
 
