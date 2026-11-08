@@ -9,7 +9,6 @@
     "@cortexkit/opencode-magic-context@latest",
     "opencode-handoff@latest",
     "@dietrichgebert/ponytail@latest",
-    "@upstash/context7-opencode@latest",
     "opencode-orchestrator@latest",
     "-opencode.tool.shell",
     "-opencode.tool.patch",
@@ -20,6 +19,21 @@
     "~/.agents/rules.opencode/*.md",
     "~/.config/opencode/rules/*.md",
   ],
+  // The context7 MCP server serves the current documentation of open-source
+  // apps, services, and frameworks. It stays disabled by default, because a
+  // connected server adds its tool schemas to every request. Set `disabled`
+  // to false when a task clearly benefits from it. The `context7` section in
+  // ~/.agents/rules.opencode/web-verification.md tells the agent to check
+  // this server first.
+  "mcp": {
+    "servers": {
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": true,
+      },
+    },
+  },
   "permissions": [
     {
       "action": "external_directory",
@@ -75,7 +89,15 @@
       "model": "openrouter/qwen/qwen3.7-flash#none",
     },
   },
-  "warming": true,
+  // Keep the session's prompt cache alive across short pauses. `duration` is
+  // measured from the last real model request, not from the last ping. With
+  // the default 4-minute interval, a 16-minute window pings at minutes 4, 8
+  // and 12; the ping at 12 keeps the provider cache warm for its own TTL
+  // after the window closes. Omitted fields keep their defaults, and the
+  // interval must stay shorter than the duration.
+  "warming": {
+    "duration": "16 minutes",
+  },
   "providers": {
     // Openrouter-specific provider settings to pin the inference provider to cheapest available
     "openrouter": {

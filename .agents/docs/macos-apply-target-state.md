@@ -63,7 +63,7 @@ The restore does not delete files the apply created. Remove those with
 |---|---|
 | `~/.config/opencode/agents/*.md` | 4 new files. Model-pinned subagent variants for the OpenCode Go subscription. |
 | `~/.config/opencode/skills/subagent-routing/SKILL.md` | New file. Rolls a random model for each subagent call. |
-| `~/.config/opencode/opencode.jsonc` | Drops the ensemble plugin, adds context7. Deny rules for `tavily-defaults` and `spec-kit`. |
+| `~/.config/opencode/opencode.jsonc` | Drops the ensemble plugin. Adds the `context7` MCP server, disabled by default. Deny rules for `tavily-defaults` and `spec-kit`. |
 | `~/.config/opencode/cli.json` | Adds `debug.turn_tokens`. |
 | `~/.agents/rules.opencode/ensemble-teams.md` | Deleted. The ensemble plugin is gone. |
 | `~/.agents/skills/zsh-stack/SKILL.md` | Text update. |
