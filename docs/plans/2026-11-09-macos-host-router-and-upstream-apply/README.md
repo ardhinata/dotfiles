@@ -1,8 +1,8 @@
 ---
-status: draft
+status: completed
 goal: Make the macOS work laptop use the upstream dotfiles with the host-local secrets and the PATH order intact
 owner: ardhinata
-last-updated: 2026-11-09
+last-updated: 2026-11-10
 ---
 
 # Correct dotfiles for the macOS work laptop
@@ -22,7 +22,8 @@ place to go, instead of a new `if` in every template.
 | [01-findings.md](01-findings.md) | The five defects in the upstream tree, each with the measurement that proves it, and the two safe changes |
 | [02-design.md](02-design.md) | The three layers: presence-based dispatch, the hostname router, and the OS axis. The corrected `path.sh` |
 | [03-implementation.md](03-implementation.md) | The four phases, the risks, the verification list, the open questions and the decisions |
-| [04-revision.md](04-revision.md) | The re-checked facts, the two blockers in the design, the stale text, and the edits each file needs |
+| [04-revision.md](04-revision.md) | The review of the plan: the re-checked facts, the two blockers in the design, and the stale text |
+| [05-verification.md](05-verification.md) | The source changes, the install without `chezmoi apply`, and the measurements after it |
 
 ## Scope
 
@@ -68,12 +69,19 @@ render itself. The OS axis covers the platform facts.
 
 The revision in [04-revision.md](04-revision.md) confirms the findings and
 blocks two parts. The `_path_front` loop fails in zsh. Phase 4 uses
-`chezmoi apply`, which the owner banned.
+`chezmoi apply`, which the owner banned. Both are fixed.
+
+The plan was implemented on 2026-11-10. The install ran without
+`chezmoi apply`, and the host measured clean afterwards. The measurements
+are in [05-verification.md](05-verification.md).
 
 ## Current status
 
-The sandbox home and the upstream worktree that the original measurements
-used no longer exist. At commit `32a8978`, `chezmoi status` lists 12
-targets.
-[04-revision.md](04-revision.md) re-ran the measurements on the live host
-and records the evidence.
+The host matches the source tree. `chezmoi diff` is empty, and
+`chezmoi status` shows only the pre-existing drift of the embeddings proxy
+script. The API tokens load in a clean shell, the `shellx` helper runs on
+Python 3.15, and all four shell types resolve `python3` to
+`/opt/homebrew/bin/python3`.
+
+The backup of the live targets before the install is at
+`~/.local/state/chezmoi-backup-2026-11-10-macos-router`.

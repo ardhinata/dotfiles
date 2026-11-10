@@ -245,3 +245,24 @@ is not a diff.
 - The value format for `warming.duration`. It needs the live service.
 - The full Zed render with the new font families. The font files are
   present, but Zed was not restarted.
+
+## Disposition
+
+Every item of this review was applied on 2026-11-10. The measurements are
+in [05-verification.md](05-verification.md).
+
+| Item | Where it landed |
+|---|---|
+| Blocker 1: the `_path_front` loop | `dot_shell/env/path.sh` uses the peel version. The Homebrew block is in the same file |
+| Blocker 2: Phase 4 uses `chezmoi apply` | [03-implementation.md](03-implementation.md) Phase 4 writes the files from `chezmoi cat` |
+| Defect 3: the `cli.json` snippet breaks JSON | The condition sits inside each object in `dot_config/opencode/private_cli.json.tmpl` |
+| Defect 4: the Homebrew block is missing | `dot_shell/env/path.sh`, before the helper call |
+| Defect 5: the verification list is stale | [05-verification.md](05-verification.md) holds the new list and the end state |
+| The `include` sentence | [02-design.md](02-design.md) says that only `includeTemplate` searches `.chezmoitemplates` |
+| The `BASH_ENV` claim in the file header | `dot_shell/env/path.sh` says that the `BASH_ENV` path runs on Linux only |
+| The `environment.d` OS gate | `.chezmoiignore` ignores `.config/environment.d` when `.chezmoi.os` is `darwin` |
+| The `system_environment.profile` overlap | [03-implementation.md](03-implementation.md) records the decision: the profile selects the secret store, the router selects the rendered content |
+| The hostname in tracked files | [03-implementation.md](03-implementation.md) records the decision: the hostname is an asset tag, not a credential |
+| The `zsh/zcompile` note | [03-implementation.md](03-implementation.md) closes it: `zcompile` is a builtin in zsh 5.9 |
+| The `warming.duration` check | `opencode debug config` resolves it to `960000 millis` |
+| The F2 PATH positions | Measured again with the corrected function, in [05-verification.md](05-verification.md) |

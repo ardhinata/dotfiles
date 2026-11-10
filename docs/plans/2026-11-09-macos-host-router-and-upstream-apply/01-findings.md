@@ -1,13 +1,18 @@
 # Findings
 
-Six defects in the upstream `origin/main` tree, measured on the macOS work
-laptop `IKM202300278`. Part of the plan to correct the dotfiles for that
-host. See [README.md](README.md) for the index.
+Five defects in the upstream `origin/main` tree, and two upstream changes
+that are safe. Measured on the macOS work laptop `IKM202300278`. Part of
+the plan to correct the dotfiles for that host. See [README.md](README.md)
+for the index.
 
-Every measurement below ran in a sandbox home with a controlled PATH. The
-first attempt used the agent's inherited PATH, which put the helper at
-position 13 for the wrong reason. The numbers here come from
-`env -i` with PATH set to `/usr/bin:/bin:/usr/sbin:/sbin`.
+The numbers below come from `env -i` with a controlled PATH. The first
+attempt used the agent's inherited PATH, which put the helper at position
+13 for the wrong reason.
+
+The measurements were re-run on the live host on 2026-11-10, after the
+`_path_front` fix. The review in [04-revision.md](04-revision.md) found
+that the loop of the first draft duplicated entries in zsh, so the original
+positions were wrong. The numbers here are the corrected ones.
 
 ## F1. The `~/.zshenv` symlink becomes a regular file
 
@@ -39,9 +44,10 @@ $ shellx list
 TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'
 ```
 
-An interactive login shell fails the same way. `brew shellenv` moves
-`/opt/homebrew/bin` to the front but leaves the helper behind `/usr/bin`, at
-position 14.
+An interactive shell does not fail. `brew shellenv` in
+`dot_shell/zsh/00-before-zgenom.zsh` puts Homebrew first for every
+interactive shell, so `python3` resolves to 3.15.2 there. The breakage
+affects the shells that do not read `~/.zshrc`: the non-interactive ones.
 
 This failure is new. Today the helper is not on PATH in a non-interactive
 shell at all, so the helper is absent instead of broken. The upstream
@@ -61,8 +67,9 @@ this host, so the FastPath block does nothing today. The Kiro CLI line
 matters.
 
 The live `~/.profile` holds the same line, and the repo's `dot_zprofile`
-sources `~/.profile`. So the line survives in a login zsh and disappears in
-an interactive bash.
+sources `~/.profile`. A login bash reads `~/.bash_profile`, which holds the
+line as well. The line therefore disappears only from a non-login
+interactive bash, the one that reads `~/.bashrc` alone.
 
 ## F5. The OpenCode `cli.json` loses five keys
 
@@ -76,5 +83,6 @@ The live file is a strict superset of the repo file. The live file holds
   `initialize` with HTTP 200 and no key, and `disabled` is a valid field.
 - The Zed font families `FiraMono Nerd Font` and `Terminess Nerd Font` are
   both installed.
-- The `warming.duration` value `16 minutes` passes the validation, because
-  the default ping interval of 4 minutes is shorter than the window.
+- The `warming.duration` value `16 minutes` passes the validation. The
+  resolved config shows `warming = {"duration": "960000 millis"}`, and the
+  default ping interval of 4 minutes is shorter than the window.
