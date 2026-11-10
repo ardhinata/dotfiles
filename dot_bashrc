@@ -8,6 +8,10 @@
 # Shared PATH for bash and zsh.
 [ -r "$HOME/.shell/env/path.sh" ] && . "$HOME/.shell/env/path.sh"
 
+# Host-local lines that are not in the repo: the Kiro CLI PATH line and the
+# FastPath block. The file stays unmanaged, so chezmoi never overwrites it.
+[ -r "$HOME/.shell/bashrc.local" ] && . "$HOME/.shell/bashrc.local"
+
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 PS1='[\u@\h \W]\$ '

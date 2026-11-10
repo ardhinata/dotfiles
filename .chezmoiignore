@@ -54,6 +54,15 @@ dot_config/opencode/private_service.json
 Library
 {{ end }}
 
+## The environment.d directory feeds the systemd user manager. macOS has no
+## systemd, so the file has no consumer there. Ignore the whole directory,
+## not the file: chezmoi still creates the parent directories of an ignored
+## file, so a file-level ignore leaves an empty tree in the home directory
+## of the other OS.
+{{ if eq .chezmoi.os "darwin" }}
+.config/environment.d
+{{ end }}
+
 ## The pinentry tooling runs on Linux only. There the wrapper is the
 ## pinentry-program of gpg-agent and the switcher manages that line.
 ## On every other host the tooling has no consumer, so it stays in the

@@ -1,1 +1,7 @@
+# The PATH lives in ~/.shell/env/path.sh, which ~/.zshenv sources. macOS
+# runs /etc/zprofile before this file, and path_helper rewrites PATH there
+# with the system list first. The helper and the Homebrew prefix have to be
+# moved to the front again.
+[ -r "$HOME/.shell/env/path.sh" ] && . "$HOME/.shell/env/path.sh"
+
 [[ -f ~/.profile ]] && emulate sh -c 'source ~/.profile'

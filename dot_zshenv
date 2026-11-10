@@ -5,3 +5,7 @@
 # newer source file, so an edit here takes effect on the next shell.
 
 [ -r "$HOME/.shell/env/path.sh" ] && . "$HOME/.shell/env/path.sh"
+
+# The host-local secrets live in an unmanaged file, so the repo never holds
+# a token. This line must stay: without it the API tokens stop loading.
+[ -r "$HOME/.shell/.zshenv" ] && . "$HOME/.shell/.zshenv"

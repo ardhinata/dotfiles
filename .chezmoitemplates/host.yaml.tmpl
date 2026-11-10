@@ -1,0 +1,7 @@
+{{- $hosts := fromYaml (include ".chezmoitemplates/hosts.yaml") -}}
+{{- $profile := get $hosts .chezmoi.hostname -}}
+{{- if not $profile -}}
+{{-   warnf "unknown host %q: using the default profile" .chezmoi.hostname -}}
+{{-   $profile = get $hosts "_default" -}}
+{{- end -}}
+{{ toYaml $profile }}

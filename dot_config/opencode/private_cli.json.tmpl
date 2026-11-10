@@ -1,14 +1,20 @@
+{{- $host := fromYaml (includeTemplate "host.yaml.tmpl" .) -}}
 {
   "$schema": "https://opencode.ai/v2/cli.json",
   "animations": true,
   "session": {
     "thinking": "show",
     "grouping": "auto",
-    "verbosity": "medium"
+    "verbosity": "medium"{{ if $host.opencode_cli_extra }},
+    "image_preview": false,
+    "sidebar": "auto",
+    "markdown": "rendered",
+    "permissions": "prompt"{{ end }}
   },
   "diffs": {
     "single": true,
-    "view": "unified"
+    "view": "unified"{{ if $host.opencode_cli_extra }},
+    "wrap": "word"{{ end }}
   },
   "scroll": {
     "acceleration": true
