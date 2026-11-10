@@ -59,6 +59,7 @@ More than one agent works on this repo. The global rules and skills reach nine h
 - Structural changes to the source directory layout
 
 ### 🚫 Never
+- **Never run `chezmoi apply` in this repository.** It wrote the source tree into the live home on 2026-11-09 and destroyed host-specific state: `docs/post-mortem/2026-11-09-sandbox-apply-wrote-to-real-home.md`. Write a managed target from `chezmoi cat <absolute-target-path>` into a temp file in the same directory, then rename the temp file over the target. The rename replaces a symlink instead of following it, so a symlinked target is not truncated. `chezmoi diff` proves the target state.
 - Read or include content from encrypted files. The patterns are listed in `.agents/rules/chezmoi-source-project.md`
 - Commit plaintext secrets, keys, tokens, or credentials
 - Encrypt a file without running `chezmoi re-encrypt` afterwards

@@ -80,9 +80,15 @@ The live `~/.shell/.zshrc` sources `~/.shell/useropts/`. The repo
 | `shell/useropts.tar` | `~/.shell/useropts/` (all 7 files) |
 | `shell/embedding_dimensions_proxy.py` | the live proxy script |
 
-`~/.zshenv` is a symlink to `~/.shell/.zshenv`. The repo has no
-`dot_zshenv`, so chezmoi does not manage it. The file holds the Jira and
-Bitbucket tokens in plaintext and survives the apply untouched.
+`~/.zshenv` was a symlink to `~/.shell/.zshenv`, and the repo had no
+`dot_zshenv`, so chezmoi did not manage it. The file holds the Jira and
+Bitbucket tokens in plaintext and survived the apply untouched.
+
+**Changed on 2026-11-10.** The repo now has a `dot_zshenv`. It is a
+dispatcher: it sources `~/.shell/env/path.sh` and then the unmanaged
+`~/.shell/.zshenv`. The live `~/.zshenv` is a regular file now, and the
+token file still holds the tokens and is still unmanaged. See
+[`docs/plans/2026-11-09-macos-host-router-and-upstream-apply/`](../../docs/plans/2026-11-09-macos-host-router-and-upstream-apply/).
 
 ### What the live shell has and the repo shell does not
 
