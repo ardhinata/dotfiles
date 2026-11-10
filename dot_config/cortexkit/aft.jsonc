@@ -56,12 +56,6 @@
     // effect. An older proxy ignores the width segment and serves 512.
     "base_url": "http://127.0.0.1:8099/a91e786a61cc/384/v1",
     "api_key_env": "OPENROUTER_API_OPENCODE_INDEX",
-
-    // --- changed from 3000 (schema default) ---
-    // Measured OpenRouter round-trip for this model: 1.1-2.0 s for a short
-    // query, 1.1-1.6 s for a 1539-token row. A query embed that blows this
-    // deadline does NOT raise — aft_search quietly falls back to the lexical
-    // lane, which reads as "semantic search is just bad."
     "query_timeout_ms": 8000,
 
     // Made explicit. "auto" applies the documented recipe for the model
@@ -84,10 +78,6 @@
     // minute is not the binding constraint here. Changing this cap costs a
     // full re-embed of every root and buys no speed.
     "max_input_tokens": 480,
-    //
-    // Default 20000 is a local-fastembed memory guard. Remote backends embed
-    // server-side, so this only bites on roots over 20k files.
-    // "max_files": 50000,
 
     "timeout_ms": 60000,
     // "max_batch_size": undefined, // let the pipeline size its own batches

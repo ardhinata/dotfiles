@@ -47,9 +47,15 @@
   "prompt_surface": {
     "default": "full",
   },
+  // Trial: the overflow pool is 83 of 105 active memories, and the rendered
+  // mural measures 560x672 px (~480 vision tokens). Revert to false if the
+  // model garbles the cue identifiers.
+  "mural": {
+    "enabled": true,
+  },
   "memory": {
     "enabled": true,
-    "injection_budget_tokens": 6144,
+    "injection_budget_tokens": 4000,
     "auto_promote": true,
     "retrieval_count_promotion_threshold": 3,
     "auto_search": {

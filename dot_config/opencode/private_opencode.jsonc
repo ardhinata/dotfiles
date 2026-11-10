@@ -172,4 +172,11 @@
   "compaction": {
     "auto": false,
   },
+  "experimental": {
+    "todo": true,
+    "subagent_depth": 2,
+    "image_generate": {
+      "model": "openrouter/bytedance-seed/seedream-5-0-flash"
+    },
+  },
 }
