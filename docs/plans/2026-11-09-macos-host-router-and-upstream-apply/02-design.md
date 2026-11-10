@@ -138,13 +138,15 @@ fi
 _path_front "$HOME/.shell/helper"
 ```
 
-The measured result with the corrected file: the non-interactive shell puts
-the helper at position 1, `/opt/homebrew/bin` at position 2 and `/usr/bin`
-at position 5. The interactive shell lists the fnm directory, the Homebrew
-prefix and the cargo directory before the helper, because the interactive
-startup prepends them after this file has run. The helper stays ahead of
-`/usr/bin` and of `~/.local/bin`, which is what the file needs. Every one
-of the four shell types resolves `python3` to `/opt/homebrew/bin/python3`.
+The measured result with the corrected file: `zsh -lc` puts the helper at
+position 1, `/opt/homebrew/bin` at position 2 and `/usr/bin` at position 6.
+`zsh -c` puts the cargo directory first, so the helper is at position 2 and
+`/usr/bin` at position 5. The interactive shell lists the fnm directory,
+the Homebrew prefix and the cargo directory before the helper, because the
+interactive startup prepends them after this file has run. The helper
+stays ahead of `/usr/bin` and of `~/.local/bin`, which is what the file
+needs. Every one of the four shell types resolves `python3` to
+`/opt/homebrew/bin/python3`.
 
 The file must stay POSIX sh. The known limit is that the loop drops an
 empty PATH element. An empty element puts the current directory on PATH,

@@ -74,12 +74,11 @@ The first three PATH entries, and the resolved `python3`:
 | `zsh -ic` | fnm directory, `/opt/homebrew/bin`, `/opt/homebrew/sbin` | 3.15.2 |
 | `zsh -lic` | fnm directory, `/opt/homebrew/bin`, `/opt/homebrew/sbin` | 3.15.2 |
 
-The helper sits at position 1 in the login shell and position 2 in the
-non-interactive shell, behind the cargo directory that the token file
-adds. In the interactive shells it sits at position 4 or 5, behind the
-directories that the interactive startup prepends. In every case it is
-ahead of `/usr/bin` and of `~/.local/bin`, which is what the helper
-needs.
+The helper sits at position 1 in `zsh -lc` and position 2 in `zsh -c`,
+behind the cargo directory that the token file adds. In the interactive
+shells it sits at position 4 or 5, behind the directories that the
+interactive startup prepends. In every case it is ahead of `/usr/bin` and
+of `~/.local/bin`, which is what the helper needs.
 
 A non-interactive bash has no helper on PATH and resolves `python3` to
 `/usr/bin/python3`. That is the state before the change as well: macOS
