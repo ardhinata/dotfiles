@@ -19,9 +19,10 @@ place to go, instead of a new `if` in every template.
 
 | File | Contents |
 |---|---|
-| [01-findings.md](01-findings.md) | The six defects in the upstream tree, each with the measurement that proves it |
+| [01-findings.md](01-findings.md) | The five defects in the upstream tree, each with the measurement that proves it, and the two safe changes |
 | [02-design.md](02-design.md) | The three layers: presence-based dispatch, the hostname router, and the OS axis. The corrected `path.sh` |
 | [03-implementation.md](03-implementation.md) | The four phases, the risks, the verification list, the open questions and the decisions |
+| [04-revision.md](04-revision.md) | The re-checked facts, the two blockers in the design, the stale text, and the edits each file needs |
 
 ## Scope
 
@@ -51,12 +52,12 @@ place to go, instead of a new `if` in every template.
 
 ## Executive summary
 
-The upstream tree breaks this host in four ways. The `~/.zshenv` symlink
+The upstream tree breaks this host in five ways. The `~/.zshenv` symlink
 becomes a regular file, so the API tokens stop loading. The helper
 directory lands behind `/usr/bin`, so the `shellx` helper runs on Python 3.9
-and crashes. The `environment.d` file is a systemd mechanism that macOS
-ignores. The `~/.bashrc` and the OpenCode `cli.json` lose host-local
-content.
+and crashes in a non-interactive shell. The `environment.d` file is a
+systemd mechanism that macOS ignores. The `~/.bashrc` loses host-local
+lines. The OpenCode `cli.json` loses five keys.
 
 Two upstream config changes are safe. The `context7` remote MCP server is
 schema valid, and the Zed font families are installed.
@@ -65,9 +66,14 @@ The design uses three layers. A repo file sources a host-local file when
 that file exists. A hostname router renders the content that the repo must
 render itself. The OS axis covers the platform facts.
 
+The revision in [04-revision.md](04-revision.md) confirms the findings and
+blocks two parts. The `_path_front` loop fails in zsh. Phase 4 uses
+`chezmoi apply`, which the owner banned.
+
 ## Current status
 
-The agent measured the findings. The sandbox home
-`/private/var/folders/sb/yh9r4cqx0jdcc7ml6lwccp2m0000gn/T/opencode/om-sim`
-holds the upstream tree and the candidate `path.sh`. The upstream worktree
-sits at `/private/var/folders/sb/yh9r4cqx0jdcc7ml6lwccp2m0000gn/T/opencode/om-main`.
+The sandbox home and the upstream worktree that the original measurements
+used no longer exist. At commit `32a8978`, `chezmoi status` lists 12
+targets.
+[04-revision.md](04-revision.md) re-ran the measurements on the live host
+and records the evidence.
