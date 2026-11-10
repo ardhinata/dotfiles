@@ -4,11 +4,14 @@
 #
 # This file is managed by chezmoi and holds no secret. The values come from
 # the shellx store, which lives outside the repo.
+{{- $host := fromYaml (includeTemplate "host.yaml.tmpl" .) }}
 
 [ -r "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+{{- if eq $host.label "work-laptop" }}
 
-# Jira and Bitbucket. One shellx call covers all four variables, so a shell
-# pays for one decryption instead of four. xtrace is off across the eval, so
+# Jira and Bitbucket. Loaded on the work laptop only: the other hosts have no
+# such store entry. One shellx call covers all four variables, so a shell pays
+# for one decryption instead of four. xtrace is off across the eval, so
 # `zsh -x` cannot print a value.
 if [ -x "$HOME/.shell/helper/shellx" ]; then
 	_shellx_xtrace=
@@ -22,3 +25,4 @@ if [ -x "$HOME/.shell/helper/shellx" ]; then
 	if [ -n "$_shellx_xtrace" ]; then set -x; fi
 	unset _shellx_env _shellx_xtrace
 fi
+{{- end }}
