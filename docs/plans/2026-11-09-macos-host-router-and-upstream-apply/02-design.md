@@ -1,5 +1,8 @@
 # Design
 
+> **Superseded, 2026-11-13.** The router in this design is retired. See
+> [`../../reports/2026-11-13-identity-section-includes.md`](../../reports/2026-11-13-identity-section-includes.md).
+
 Three layers, from the most specific to the most general. This design fixes
 the defects in [01-findings.md](01-findings.md). Part of the plan to correct
 the dotfiles for the macOS work laptop. See [README.md](README.md) for the

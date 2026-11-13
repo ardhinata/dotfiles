@@ -1,0 +1,40 @@
+{{- /*
+  The common include for identity-specific sections.
+
+  Call it with the template action:
+    template "section.tmpl" (dict "root" . "file" "dot_zshrc.tmpl" "section" "prezto-platform")
+
+  The resource directory is a sibling of the template:
+    <dir of file>/.<base of file without .tmpl>.resources/
+
+  The lookup order is:
+    <section>.h_<hostname>
+    <section>.p_<profile>
+    <section>.os_<os>
+    <section>._default
+
+  The first existing file wins. Give every section an empty _default.
+  Resources are Go templates, so escape a literal opening brace pair.
+*/ -}}
+{{- $r := .root -}}
+{{- $base := trimSuffix ".tmpl" (base .file) -}}
+{{- $dir := joinPath $r.chezmoi.sourceDir (dir .file) (printf ".%s.resources" $base) -}}
+{{- $profile := regexReplaceAll "[^a-z0-9-]" (lower (dig "system_environment" "profile" "" $r)) "-" -}}
+{{- $host := printf "h_%s" (regexReplaceAll "[^a-z0-9-]" (lower $r.chezmoi.hostname) "-") -}}
+{{- $cands := list
+      (printf "%s.%s" .section $host)
+      (printf "%s.p_%s" .section $profile)
+      (printf "%s.os_%s" .section $r.chezmoi.os)
+      (printf "%s._default" .section) -}}
+{{- $found := false -}}
+{{- range $c := $cands -}}
+{{-   $p := joinPath $dir $c -}}
+{{-   if and (not $found) (stat $p) -}}
+{{-     $found = true -}}
+{{-     debugf "section %q of %q: using %s" $.section $.file $c -}}
+{{-     includeTemplate $p $r -}}
+{{-   end -}}
+{{- end -}}
+{{- if not $found -}}
+{{-   warnf "section %q of %q: no resource and no _default" $.section $.file -}}
+{{- end -}}

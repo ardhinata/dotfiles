@@ -15,6 +15,11 @@ working. The host-local shell preferences must survive.
 The plan also adds a hostname router. A future host difference then has one
 place to go, instead of a new `if` in every template.
 
+> **Superseded, 2026-11-13.** The hostname router in this plan is retired.
+> Machine-specific content now uses the common
+> `.chezmoitemplates/section.tmpl` helper. See
+> [`docs/reports/2026-11-13-identity-section-includes.md`](../../reports/2026-11-13-identity-section-includes.md).
+
 ## Index
 
 | File | Contents |

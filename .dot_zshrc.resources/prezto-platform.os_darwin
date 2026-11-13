@@ -1,0 +1,17 @@
+
+
+	# macOS only.
+	#
+	# `osx` gives the Finder, Quick Look and trash helpers. `command-not-found`
+	# uses the Homebrew handler to suggest a package for a missing command.
+	#
+	# `homebrew` is not loaded. `brew shellenv` in
+	# `dot_shell/zsh/00-before-zgenom.zsh` already exports the `HOMEBREW_`
+	# variables, and the module only adds the `brewc`, `brewi`, `brewl` and
+	# `brewo` aliases on top of that.
+	#
+	# `gnu-utility` is not loaded. It replaces the BSD coreutils with the GNU
+	# ones, and the `utility` module then sets `alias ls='ls -G'`. GNU `ls`
+	# reads `-G` as `--no-group`, so the listing loses its colors.
+	zgenom prezto osx
+	zgenom prezto command-not-found

@@ -1,7 +1,7 @@
 # docs/reports/
 
-Findings to hand to the team. Each report describes a problem that still
-needs attention. A report has no owner and no tracking issue. A postmortem
+Findings to hand to the team. Each report describes a problem, a finding, or
+a completed change. A report has no owner and no tracking issue. A postmortem
 in `../post-mortem/` covers an incident that is already closed.
 
 ## Reports
@@ -12,6 +12,7 @@ in `../post-mortem/` covers an incident that is already closed.
 | [2026-11-01-agent-permission-and-safety-net-issues.md](2026-11-01-agent-permission-and-safety-net-issues.md) | Fixed on 2026-11-02. The OpenCode shell rules denied a recursive delete of any path, cc-safety-net had every secret file class rule turned off, and the shellx helper was world-readable with the master secret inside it. |
 | [2026-11-03-macos-host-portability.md](2026-11-03-macos-host-portability.md) | The source state assumed one Linux host. The report names the faults on a macOS host, the change of 2026-11-03, and the items that still assume Linux. |
 | [2026-11-03-macos-apply-audit/](2026-11-03-macos-apply-audit/) | The macOS work laptop could not run `chezmoi apply`. The report names the six blockers, the decisions taken on each, and the tooling written to make the apply reversible. |
+| [2026-11-13-identity-section-includes.md](2026-11-13-identity-section-includes.md) | The templates moved their machine-specific sections into resource files behind the common `section.tmpl` helper. The host map is retired. The report holds the verification and the cross-system handoff. |
 
 ## Related source
 

@@ -1,7 +1,7 @@
 ---
 title: Prezto modules per operating system
 date: 2026-11-03
-last-updated: 2026-11-03
+last-updated: 2026-11-13
 status: active
 os:
   - linux
@@ -10,9 +10,9 @@ os:
 
 # Prezto modules per operating system
 
-The prezto module list lives in `dot_zshrc.tmpl`. The template loads the
-common modules on both systems, then adds the modules that only one of
-them uses.
+The common prezto module list lives in `dot_zshrc.tmpl`. The modules that
+only one system uses live in `.dot_zshrc.resources/`, and the common helper
+`.chezmoitemplates/section.tmpl` selects the file for the current OS.
 
 ## Why the list needs a split
 
@@ -71,9 +71,9 @@ These load on Linux only.
 | `pacman` | The Arch package manager aliases and the `aurget` function. The module returns early when the `pacman` command is missing, so it is safe on a host that is not Arch. |
 
 A host on Fedora, Debian or Alpine needs a different package manager
-module. The split uses `.chezmoi.os`, which names the operating system
-but not the distribution. Adding a distribution key needs a change to
-`.chezmoidata.yaml`.
+module. The split uses `os_linux` and `os_darwin` resources. The helper
+names the operating system but not the distribution. A distribution key
+needs a new tier in `.chezmoitemplates/section.tmpl`.
 
 ## The modules this repository does not load
 

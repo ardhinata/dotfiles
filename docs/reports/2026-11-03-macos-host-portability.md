@@ -31,6 +31,9 @@ each, and the tooling written to make the apply reversible. The
 agent-facing notes are `.agents/docs/macos-apply-blockers.md` and
 `.agents/docs/macos-apply-target-state.md`.
 
+**Update, 2026-11-13.** The template-branch lever is now the common section
+helper. See [`2026-11-13-identity-section-includes.md`](2026-11-13-identity-section-includes.md).
+
 ## Impact
 
 On a macOS host, before the change:

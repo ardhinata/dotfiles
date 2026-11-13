@@ -177,9 +177,10 @@ notes are corrected below. The rest still stand.
 
 The repo uses three levers. Use the same three when you add a file.
 
-1. A template branch inside a `.tmpl` file, for a file that both systems
-   share. The variables are `.chezmoi.os` (`linux` or `darwin`),
-   `.chezmoi.homeDir`, and `.chezmoi.username`.
+1. A section resource in `.<template>.resources/`, for a file that both
+   systems share. Name it `<section>.os_linux` or `<section>.os_darwin`.
+   The common helper `.chezmoitemplates/section.tmpl` selects it. The other
+   variables are `.chezmoi.homeDir` and `.chezmoi.username`.
 2. An OS branch in `.chezmoiignore`, for a whole directory that belongs to
    one OS only. The patterns match the target path, not the source path. A
    pattern such as `.config/systemd` names the directory in `$HOME`. Ignore
@@ -195,5 +196,7 @@ The repo uses three levers. Use the same three when you add a file.
 - [`macos-apply-caveats.md`](macos-apply-caveats.md) — the changes that do not block
 - [`macos-apply-fixed.md`](macos-apply-fixed.md) — the defects the apply exposed, and the fix for each one
 - `docs/reports/2026-11-03-macos-host-portability.md` — the report for human readers
+- `docs/reports/2026-11-13-identity-section-includes.md` — the section helper and the cross-system handoff
+- `.agents/docs/identity-section-includes.md` — the agent brief for the helper
 - `docs/how-to/embedding-dimensions-proxy-deployment.md` — the proxy guide for both systems
 - `.agents/skills/chezmoi/SKILL.md` — the source-state conventions of this repo

@@ -7,6 +7,11 @@ last-updated: 2026-11-03
 
 # Give macOS a GUI pinentry prompt
 
+> **Implementation note, 2026-11-13.** The gpg-agent template now computes the
+> pinentry path once and formats the note with `ensureLinePrefix`. The behavior
+> in this plan is unchanged. See
+> [`../reports/2026-11-13-identity-section-includes.md`](../reports/2026-11-13-identity-section-includes.md).
+
 ## Goal
 
 On macOS, `gpg-agent` currently runs the compiled-in default pinentry, which is

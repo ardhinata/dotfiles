@@ -64,9 +64,48 @@ Load this skill when working with chezmoi templates, source-state files, encrypt
 - **Blob versions:** A shellx blob starts with a version byte. Version 1 derives the per-blob keys with scrypt. Version 2 derives them with HMAC-SHA512 over the per-blob salt. The tag stays HMAC-BLAKE2b in both versions, so one store can hold blobs of both versions.
 - **`source_structure` data map:** `.chezmoidata.yaml` defines a `source_structure` map with key paths (`encryption_keys`, `helper`) used by templates and scripts to reference project directories without hardcoding paths.
 - **Dynamic `.chezmoiignore`:** The `.chezmoiignore` file is templated. It uses `check_decrypt.sh` (in `.shell_helper/`) at apply time via the `output` function to dynamically ignore encrypted files that fail decryption on the current machine.
-- **`system_environment.profile`:** `.chezmoidata.yaml` defines an empty `system_environment.profile` string. Templates condition on this field to include/exclude machine-specific configuration.
+- **`system_environment.profile`:** `.chezmoidata.yaml` defines an empty `system_environment.profile` string. The section helper uses it as the broad `p_<profile>` tier. Set it to a group name, not the hostname.
 - **`.encrypted_data/env_store/`:** Source-only, because it is a dot-directory at the source root. Two file shapes live here. Manual profile snippets follow `<profile>_<name>.zsh.age` and hold `export VAR="value"` lines. `shellx export` writes `encrypted_<host>_<slug>_<utc>.jsonc.age` instead. The slug comes from the master key, so an export for an old slug cannot be imported into the current store. `shellx` (Python, replaces `runpriv`) injects secrets on demand at process launch, so no token rests in the shell environment. The launched process receives `SHELLX_VARS` (and the legacy `RUNPRIV_VARS` alias, same value), a comma-separated list of the injected names. See `.encrypted_data/env_store/README.md` for the full convention. (Renamed from `tokens/` in `shellx 1.2.0`.)
 - **`.decrypted` files:** Files with a `.decrypted` extension are considered sensitive decrypted output. They are explicitly ignored by both `.chezmoiignore` (`**/*.decrypted`) and `.gitignore`.
+
+## Identity Section Includes
+
+A template that needs machine-specific content calls the common helper
+`.chezmoitemplates/section.tmpl`. Do not add a new `if eq .chezmoi.os` block.
+
+```gotemplate
+{{ template "section.tmpl" (dict "root" . "file" "dot_zshrc.tmpl" "section" "prezto-platform") }}
+```
+
+The helper reads a sibling dot directory:
+
+```
+<dir of file>/.<base of file without .tmpl>.resources/
+```
+
+It tries these names in order and uses the first that exists:
+
+1. `<section>.h_<hostname>`
+2. `<section>.p_<profile>`
+3. `<section>.os_<os>`
+4. `<section>._default`
+
+The identifier values are lowercased and sanitized to `[a-z0-9-]`.
+
+Rules:
+
+- Give every section a `_default`, even an empty one.
+- A block section uses `template`. Put the leading blank line in the resource.
+  Do not end a block resource with a newline. The template supplies the final
+  newline.
+- A fragment inside a line uses `trim (includeTemplate ...)`, so the resource's
+  trailing newline cannot break the line.
+- The helper logs the chosen candidate with `debugf`. Run
+  `chezmoi -v cat <target>` to see it.
+- A resource is a Go template. Escape a literal `{{`.
+- `.chezmoiignore` keeps its inline OS conditions. It is a special file, not a
+  target template.
+- `lookPath` conditions stay inline. The helper selects on identity only.
 
 ## Exclusion and Versioning
 

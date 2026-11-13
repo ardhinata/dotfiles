@@ -1,11 +1,14 @@
 ---
-status: draft
+status: completed
 goal: Move identity-specific sections out of chezmoi templates into resource files and retire the host map
 owner: ardhinata
 last-updated: 2026-11-13
 ---
 
 # Split identity-specific sections out of the chezmoi templates
+
+Implemented on 2026-11-13. The change report is
+[`../reports/2026-11-13-identity-section-includes.md`](../reports/2026-11-13-identity-section-includes.md).
 
 ## Goal
 
@@ -52,7 +55,7 @@ Two consequences follow.
 | `dot_zshrc.tmpl` | 70–94 | `.chezmoi.os` | 25-line block | Section |
 | `dot_config/tmux/tmux.conf.tmpl` | 179, 214, 215 | `.chezmoi.os` | One word, three times | One variable |
 | `private_dot_gnupg/private_gpg-agent.conf.tmpl` | 3–17 | `.chezmoi.os` and `lookPath` | Comment and line | One variable and a guard |
-| `dot_config/opencode/private_cli.json.tmpl` | 1, 8, 16 | Host flag | JSON keys | Two fragment sections |
+| `dot_config/opencode/private_cli.json.tmpl` | 1, 8, 16 | Host flag | JSON keys | Collapsed to plain JSON |
 | `dot_shell/dot_zshenv.tmpl` | 7–10 | Host label | Secret block | One section |
 | `.chezmoiignore` | 50–74 | `.chezmoi.os` | Ignore patterns | Keep inline |
 | `dot_agents/exact_rules/runtime-tools.md.tmpl` | 21–43 | `lookPath` | Blocks | Already includes |
@@ -60,12 +63,32 @@ Two consequences follow.
 The tree has three template files with inline OS conditions, not seven. Two
 files read the host map. The problem is real, but it is small.
 
+### Feasibility scan
+
+The source tree has three template files with inline OS conditions and two with
+host conditions. The rest are not candidates.
+
+| File | Kind | Finding |
+|---|---|---|
+| `dot_shell/env/path.sh` | Shell | `uname -s` at runtime. Not a template |
+| `dot_shell/zsh/05-homebrew-opts.zsh` | Shell | `$OSTYPE` at runtime. Not a template |
+| `dot_shell/zsh/12-gpg.zsh` | Shell | `$OSTYPE` at runtime. Not a template |
+| `.chezmoiscripts/run_start-embeddings-proxy.sh` | Script | `uname -s` at runtime. Not a template |
+| `dot_config/environment.d/10-shell-env.conf` | Config | Linux only. `.chezmoiignore` selects it |
+| `dot_config/systemd/` | Unit | Linux only. `.chezmoiignore` selects it |
+| `Library/LaunchAgents/` | Unit | macOS only. `.chezmoiignore` selects it |
+| `.chezmoiignore` | Special | OS patterns. Keep inline |
+| `dot_agents/exact_rules/runtime-tools.md.tmpl` | Template | `lookPath` blocks. Different axis |
+| `dot_shell/helper/private_shellx_impl.py.tmpl` | Template | Uses the profile as a value. No detection |
+| `.chezmoi.yaml.tmpl` | Template | Prompts the profile and the nonce. No detection |
+| `_shellx.tmpl`, `dot_gitconfig.tmpl`, the plist, `master.key.tmpl` | Template | `.chezmoi.homeDir` or a value. No detection |
+
 ### The host map has two consumers
 
 | Consumer | Use | Replacement |
 |---|---|---|
 | `dot_shell/dot_zshenv.tmpl` | `label == "work-laptop"` gates the Jira and Bitbucket block | `shellx-secrets` section |
-| `dot_config/opencode/private_cli.json.tmpl` | `opencode_cli_extra` adds five keys in two objects | `session-extra` and `diffs-extra` sections |
+| `dot_config/opencode/private_cli.json.tmpl` | `opencode_cli_extra` adds five keys in two objects | Plain JSON with the work-laptop keys |
 
 No other file reads `hosts.yaml` or `host.yaml.tmpl`. The retirement is small.
 
@@ -117,7 +140,6 @@ base name of the source file without `.tmpl`, and `.resources`:
 |---|---|
 | `dot_zshrc.tmpl` | `.dot_zshrc.resources/` |
 | `dot_shell/dot_zshenv.tmpl` | `dot_shell/.dot_zshenv.resources/` |
-| `dot_config/opencode/private_cli.json.tmpl` | `dot_config/opencode/.private_cli.json.resources/` |
 
 chezmoi ignores a dot directory, so it never reaches `$HOME` and needs no
 `.chezmoiignore` entry.
@@ -186,27 +208,10 @@ The `.zshenv` block moves to
 file is empty. The template drops the router line and the `if`, and it calls
 the section.
 
-The OpenCode flags become two fragment sections. The resource owns the leading
-comma, so the output is valid JSON in both cases:
-
-```json
-,
-    "image_preview": false,
-    "sidebar": "auto",
-    "markdown": "rendered",
-    "permissions": "prompt"
-```
-
-```json
-,
-    "wrap": "word"
-```
-
-The template keeps the shared key and calls the section after it:
-
-```gotemplate
-"verbosity": "medium"{{ template "section.tmpl" (dict "root" . "file" "dot_config/opencode/private_cli.json.tmpl" "section" "session-extra") }}
-```
+The OpenCode flags do not use a section. The file became a plain
+`private_cli.json` with the work-laptop keys. One host used the extras, and a
+plain file is easier to read than two JSON fragments. The template, the
+resource directory and the `.tmpl` suffix are gone.
 
 Then delete `.chezmoitemplates/hosts.yaml` and
 `.chezmoitemplates/host.yaml.tmpl`.
@@ -224,11 +229,12 @@ Then delete `.chezmoitemplates/hosts.yaml` and
 |---|---|
 | A multi-line block | A section |
 | A word inside a line | A variable |
-| A flag for a structural format | An empty or fragment section |
+| A flag for a structural format | A plain file |
 
-A section resource keeps its trailing newline. A one-word resource therefore
-breaks an inline command. This is why the tmux clipboard word and the gpg
-pinentry line use a variable, not a section.
+A resource is a Go template, so its trailing newline matters. A one-word
+resource breaks an inline command, so a fragment uses `trim`. A block resource
+ends without a newline, and the template supplies the final one. This is why
+the tmux clipboard word and the gpg pinentry line use a variable, not a section.
 
 ## Implementation steps
 
@@ -238,7 +244,8 @@ pinentry line use a variable, not a section.
    resources and an empty `_default`.
 3. Move the Jira and Bitbucket block from `dot_shell/dot_zshenv.tmpl` to the
    `shellx-secrets` section.
-4. Move the OpenCode extras to the `session-extra` and `diffs-extra` sections.
+4. Collapse the OpenCode flags into a plain `private_cli.json` with the
+   work-laptop keys. Delete the `.tmpl` suffix and the resource directory.
 5. Delete `.chezmoitemplates/hosts.yaml` and
    `.chezmoitemplates/host.yaml.tmpl`.
 6. Replace the three tmux conditions with one `$clip` variable.
@@ -255,10 +262,10 @@ pinentry line use a variable, not a section.
 |---|---|
 | The shell template renders | `chezmoi cat ~/.zshrc` |
 | The secrets render | `chezmoi cat ~/.shell/.zshenv` |
-| Both JSON variants are valid | `chezmoi cat ~/.config/opencode/cli.json \| python3 -m json.tool`, with and without the host resource |
+| The plain JSON is valid | `python3 -m json.tool dot_config/opencode/private_cli.json` |
 | The chosen section is visible | `chezmoi -v cat ~/.zshrc 2>&1 \| grep 'using'` |
 | The router is gone | `chezmoi managed \| grep -c 'hosts.yaml\|host.yaml'` returns 0 |
-| The tree is clean | `chezmoi diff` and `chezmoi status` |
+| The target state is expected | `chezmoi diff` shows only the `cli.json` keys |
 | The host tier wins | Create `prezto-platform.h_<hostname>`, render, remove |
 | The profile tier works | Set a test profile in the untracked config, render |
 | The OS tier works | Render on Linux and on macOS |
@@ -266,8 +273,8 @@ pinentry line use a variable, not a section.
 
 ## Risks and mitigations
 
-- Risk: the JSON fragment has a bad comma, so `cli.json` is invalid. Mitigation:
-  render both variants and parse each with `python3 -m json.tool`.
+- Risk: the plain `cli.json` applies the work-laptop keys to every host.
+  Mitigation: this is the intended behavior, and a plain file is easy to edit.
 - Risk: a renamed host loses the override. Mitigation: the empty `_default`
   gives the safe result. It does not grant another host's secrets.
 - Risk: a resource has a stray `{{`, so the render aborts. Mitigation: render
@@ -297,6 +304,12 @@ None. The decisions below are final for this plan.
   `includeTemplate` inside it for the selected resource.
   Document the `{{` escape rule.
 - 2026-11-13: Use section files for blocks and variables for words.
+- 2026-11-13: Use `trim (includeTemplate ...)` for a fragment inside a line.
+- 2026-11-13: Collapse `private_cli.json` to a plain file with the work-laptop
+  keys. One host used the difference, and it did not justify two fragment
+  sections.
+- 2026-11-13: A block resource ends without a trailing newline. The template
+  supplies the final newline.
 
 ## Deferred notes
 
@@ -310,5 +323,8 @@ None. The decisions below are final for this plan.
 
 ## Current status
 
-Research is complete. All design questions are closed. The resolver passed a
-prototype on a throwaway source tree. No source file changed yet.
+The migration is implemented. Four rendered targets are byte-identical to the
+baseline. `cli.json` gains the work-laptop keys on purpose. The router is
+deleted. `chezmoi diff` shows only that `cli.json` change. The host, profile,
+OS, default, debug, and missing-default paths were tested. The report and the
+agent note are written. The changes are not committed yet.

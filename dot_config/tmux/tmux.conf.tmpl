@@ -1,3 +1,4 @@
+{{- $clip := ternary "pbcopy" "wl-copy" (eq .chezmoi.os "darwin") -}}
 # ==========================================
 # TMUX CONFIGURATION
 # ==========================================
@@ -176,7 +177,7 @@ bind -T copy-mode-vi V send-keys -X select-line
 # Useful for capturing column-aligned data such as log tables or diffs.
 bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
 # `y` yanks the selection and exits copy-mode (mirrors Vim's yank).
-bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "{{ if eq .chezmoi.os "darwin" }}pbcopy{{ else }}wl-copy{{ end }}"
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "{{ $clip }}"
 
 # ==========================================
 # BUFFER PASTE (no copy-mode)
@@ -211,8 +212,8 @@ bind -r > swap-window -d -t :+1
 # Note: with `set-clipboard on` above, OSC-52-capable apps (Neovim
 # 0.10+, kitty, etc.) already reach the clipboard through tmux without
 # this bridge — these bindings cover the rest.
-bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "{{ if eq .chezmoi.os "darwin" }}pbcopy{{ else }}wl-copy{{ end }}"
-bind-key -T copy-mode    MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "{{ if eq .chezmoi.os "darwin" }}pbcopy{{ else }}wl-copy{{ end }}"
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "{{ $clip }}"
+bind-key -T copy-mode    MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "{{ $clip }}"
 
 # ==========================================
 # STATUS BAR

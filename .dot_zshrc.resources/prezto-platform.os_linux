@@ -1,0 +1,7 @@
+
+
+	# Linux only.
+	#
+	# `pacman` is the Arch package manager. The module returns early when the
+	# `pacman` command is missing, so it is safe on a non-Arch host.
+	zgenom prezto pacman

@@ -1,21 +1,29 @@
+{{- $pinentry := "" -}}
+{{- $pinentryNote := `No pinentry-program line on purpose. gpg-agent uses its built-in default
+pinentry. The pinentry-switch helper and the pinentry wrapper are not
+deployed, so this file is the only owner of the agent settings and
+chezmoi rewrites them on every apply.` -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   $pinentry = joinPath .chezmoi.homeDir ".shell/helper/pinentry-wrapper" -}}
+{{-   $pinentryNote = `The pinentry wrapper is the pinentry-program of gpg-agent.
+The switcher in ~/.shell/helper manages that line. Chezmoi rewrites this
+file on every apply, so run the switcher again after an apply.` -}}
+{{- else if and (eq .chezmoi.os "darwin") (lookPath "pinentry-mac") -}}
+{{-   $pinentry = lookPath "pinentry-mac" -}}
+{{-   $pinentryNote = `pinentry-mac gives gpg-agent a GUI dialog that works without a TTY. The
+keychain save is off on this host through a macOS defaults setting, so the
+passphrase lives only in the agent cache. Over SSH, 12-gpg.zsh exports
+PINENTRY_USER_DATA=USE_CURSES=1 to get a terminal prompt instead. The line
+is omitted when the binary is missing, so the agent keeps its built-in
+default.` -}}
+{{- end -}}
 # ~/.gnupg/gpg-agent.conf
 #
-{{ if eq .chezmoi.os "linux" }}# The pinentry wrapper is the pinentry-program of gpg-agent.
-# The switcher in ~/.shell/helper manages that line. Chezmoi rewrites this
-# file on every apply, so run the switcher again after an apply.
-{{ else if and (eq .chezmoi.os "darwin") (lookPath "pinentry-mac") }}# pinentry-mac gives gpg-agent a GUI dialog that works without a TTY. The
-# keychain save is off on this host through a macOS defaults setting, so the
-# passphrase lives only in the agent cache. Over SSH, 12-gpg.zsh exports
-# PINENTRY_USER_DATA=USE_CURSES=1 to get a terminal prompt instead. The line
-# is omitted when the binary is missing, so the agent keeps its built-in
-# default.
-{{ else }}# No pinentry-program line on purpose. gpg-agent uses its built-in default
-# pinentry. The pinentry-switch helper and the pinentry wrapper are not
-# deployed, so this file is the only owner of the agent settings and
-# chezmoi rewrites them on every apply.
-{{ end }}{{ if eq .chezmoi.os "linux" }}pinentry-program {{ .chezmoi.homeDir }}/.shell/helper/pinentry-wrapper
-{{ else if and (eq .chezmoi.os "darwin") (lookPath "pinentry-mac") }}pinentry-program {{ lookPath "pinentry-mac" }}
-{{ end }}enable-ssh-support
+{{ ensureLinePrefix "#" "# " $pinentryNote }}
+{{- if $pinentry }}
+pinentry-program {{ $pinentry }}
+{{- end }}
+enable-ssh-support
 default-cache-ttl 7200
 max-cache-ttl 86400
 default-cache-ttl-ssh 7200
