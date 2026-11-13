@@ -7,13 +7,34 @@
     "bar": "line"
   },
   "words": {
-    "percent": "bare",
-    "reset": "compact",
+    "percent": "left",
+    "reset": "smart",
     "sessionTokens": "tree"
   },
   "collapsed": {
     "hidden": [
-      "openrouter"
+      "openrouter",
+      "opencode"
     ]
+  },
+  "sidebar": {
+    "hidden": [
+      "opencode"
+    ]
+  },
+  "statusLine": {
+    "hidden": [
+      "opencode"
+    ]
+  },
+  "toast": {
+    "hidden": [
+      "opencode"
+    ]
+  },
+  "providers": {
+    "checking": {
+      "minIntervalMs": 600000
+    }
   }
 }
