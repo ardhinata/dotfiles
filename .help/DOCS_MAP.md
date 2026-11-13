@@ -1,6 +1,6 @@
 # Chezmoi Documentation Map
 
-**Version:** chezmoi v2.74.0 | **Generated:** 2026-11-02
+**Version:** chezmoi v2.74.1 | **Generated:** 2026-11-13
 To check staleness: compare `chezmoi --version` against the version above. If they differ, re-run `.help/fetch_current_docs.sh`. The fetch script does not update this line, so check it by hand after every fetch.
 
 Top-level under `.help/chezmoi-docs/`:
